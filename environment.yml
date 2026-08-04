@@ -1,0 +1,13 @@
+name: feifei
+channels: [pytorch, nvidia, conda-forge]
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - torch --index-url https://download.pytorch.org/whl/cu121
+    - torchvision --index-url https://download.pytorch.org/whl/cu121
+    - "git+https://github.com/facebookresearch/sam2.git"
+    - opencv-python
+    - numpy
+    - pyyaml
+    # stage2 起用: deeplabcut  (单独环境更稳,见 README)
