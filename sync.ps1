@@ -1,7 +1,22 @@
-# 一键提交并推送到 GitHub(在 FFY 目录里跑)
-# 用法: .\sync.ps1 "commit message"
+# One-click commit + push to GitHub (run inside the FFY folder)
+# Usage: .\sync.ps1 "commit message"
 param([string]$m = "update")
+
 git add -A
 git commit -m $m
-git push
-Write-Host "`n已推送。A100 上执行: git pull" -ForegroundColor Green
+
+$ok = $false
+for ($i = 1; $i -le 5; $i++) {
+    git push
+    if ($LASTEXITCODE -eq 0) { $ok = $true; break }
+    Write-Host "push failed (try $i/5), retry in 3s... (github.com:443 flaky in CN)" -ForegroundColor Yellow
+    Start-Sleep -Seconds 3
+}
+
+if ($ok) {
+    Write-Host "`nPushed OK. On A100 run: git pull" -ForegroundColor Green
+} else {
+    Write-Host "`nPush still failing. Either retry later, or set a proxy:" -ForegroundColor Red
+    Write-Host "  git config --global http.proxy http://127.0.0.1:7890" -ForegroundColor Red
+    Write-Host "  git config --global https.proxy http://127.0.0.1:7890" -ForegroundColor Red
+}
