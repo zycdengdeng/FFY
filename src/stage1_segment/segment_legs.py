@@ -3,12 +3,13 @@
 治缺口 #8:记忆机制穿瞬时自遮挡跟踪;为 Stage3 提供 silhouette 约束。
 
 输入:一段裁剪好的着陆视频 (mp4) + 首帧对腿部的 prompt(点或框)。
+     可用 --start_sec/--end_sec 只处理有用的着陆窗口(其余帧不抽)。
 输出:每帧腿部 mask(png)+ bbox,跨帧同一 track_id → SegOut(JSON)。
 
-需要 GPU。sandbox 无法跑,这份代码在 A100 上执行。
-用法见 README。checkpoint / 视频路径通过 CLI 传入。
+需要 GPU。sandbox 无法跑,这份代码在 A100 上执行。用法见 README。
 
-依赖:pip install "git+https://github.com/facebookresearch/sam2.git" opencv-python numpy
+依赖:pip install --no-build-isolation "git+https://github.com/facebookresearch/sam2.git"
+      pip install opencv-python numpy
 checkpoint:sam2.1_hiera_large.pt(见 sam2 官方 README 下载)
 """
 from __future__ import annotations
@@ -34,21 +35,30 @@ def parse_prompt(s: str):
     raise ValueError(f"bad prompt: {s}")
 
 
-def extract_frames(video_path: str, out_dir: str) -> list[str]:
+def extract_frames(video_path: str, out_dir: str,
+                   start_sec: float = 0.0, end_sec: float = 1e9) -> tuple[list[str], float]:
+    """抽取 [start_sec, end_sec] 窗口内的帧,重新从 0 编号(SAM2 需要连续序列)。"""
     import cv2
     os.makedirs(out_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
-    paths, i = [], 0
+    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+    f0 = int(start_sec * fps)
+    f1 = int(end_sec * fps)
+    src_i, dst_i, paths = 0, 0, []
     while True:
         ok, frame = cap.read()
         if not ok:
             break
-        p = os.path.join(out_dir, f"{i:05d}.jpg")
-        cv2.imwrite(p, frame)
-        paths.append(p)
-        i += 1
+        if f0 <= src_i <= f1:
+            p = os.path.join(out_dir, f"{dst_i:05d}.jpg")
+            cv2.imwrite(p, frame)
+            paths.append(p)
+            dst_i += 1
+        src_i += 1
+        if src_i > f1:
+            break
     cap.release()
-    return paths
+    return paths, fps
 
 
 def bbox_from_mask(mask: np.ndarray):
@@ -61,11 +71,13 @@ def bbox_from_mask(mask: np.ndarray):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--video", required=True, help="裁剪好的着陆视频 mp4")
+    ap.add_argument("--video", required=True, help="着陆视频 mp4")
     ap.add_argument("--clip_id", required=True)
     ap.add_argument("--ckpt", required=True, help="sam2.1_hiera_large.pt 路径")
     ap.add_argument("--cfg", default="configs/sam2.1/sam2.1_hiera_l.yaml")
-    ap.add_argument("--prompt", required=True, help="'point:cx,cy' 或 'box:x1,y1,x2,y2'(首帧腿部)")
+    ap.add_argument("--prompt", required=True, help="'point:cx,cy' 或 'box:x1,y1,x2,y2'(窗口首帧腿部)")
+    ap.add_argument("--start_sec", type=float, default=0.0, help="只处理该时刻之后")
+    ap.add_argument("--end_sec", type=float, default=1e9, help="只处理该时刻之前")
     ap.add_argument("--out", default="outputs")
     args = ap.parse_args()
 
@@ -76,8 +88,10 @@ def main():
     frames_dir = os.path.join(args.out, args.clip_id, "frames")
     masks_dir = os.path.join(args.out, args.clip_id, "masks")
     os.makedirs(masks_dir, exist_ok=True)
-    frame_paths = extract_frames(args.video, frames_dir)
-    print(f"[stage1] extracted {len(frame_paths)} frames")
+    frame_paths, fps = extract_frames(args.video, frames_dir, args.start_sec, args.end_sec)
+    print(f"[stage1] window [{args.start_sec},{args.end_sec}]s @ {fps:.1f}fps → {len(frame_paths)} frames")
+    if not frame_paths:
+        raise SystemExit("窗口内没有帧,检查 start_sec/end_sec")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     predictor = build_sam2_video_predictor(args.cfg, args.ckpt, device=device)
@@ -86,7 +100,6 @@ def main():
     seg = SegOut(clip_id=args.clip_id)
     with torch.inference_mode(), torch.autocast(device, dtype=torch.bfloat16):
         state = predictor.init_state(video_path=frames_dir)
-        # 首帧注入腿部 prompt(track_id=1 = 主分析腿)
         if kind == "point":
             predictor.add_new_points_or_box(
                 state, frame_idx=0, obj_id=1, points=prompt,
@@ -94,7 +107,6 @@ def main():
         else:
             predictor.add_new_points_or_box(state, frame_idx=0, obj_id=1, box=prompt)
 
-        # 记忆机制向后传播,穿遮挡跟踪
         for fidx, obj_ids, mask_logits in predictor.propagate_in_video(state):
             m = (mask_logits[0] > 0).cpu().numpy().squeeze().astype(np.uint8) * 255
             mp = os.path.join(masks_dir, f"{fidx:05d}.png")
