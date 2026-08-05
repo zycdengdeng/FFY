@@ -41,7 +41,10 @@ def extract_frames(video_path: str, out_dir: str,
     import cv2
     os.makedirs(out_dir, exist_ok=True)
     cap = cv2.VideoCapture(video_path)
-    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+    if not cap.isOpened():
+        raise SystemExit(f"打不开视频: {video_path}(不存在或损坏。注意 data/*.mp4 不进 git,需 scp 到本机)")
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    fps = fps if (fps and fps > 0) else 25.0   # 兜底,避免 -1/0 导致空窗口
     f0 = int(start_sec * fps)
     f1 = int(end_sec * fps)
     src_i, dst_i, paths = 0, 0, []

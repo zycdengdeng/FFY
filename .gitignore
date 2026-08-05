@@ -6,3 +6,5 @@ outputs/*
 !outputs/.gitkeep
 *.pt
 *.mp4
+# DLC 项目(数据+模型,走 scp 不进 git)
+stage2_dlc/
