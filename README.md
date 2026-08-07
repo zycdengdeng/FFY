@@ -17,12 +17,17 @@ configs/  data/  outputs/
 
 ## 运行环境(A100 集群,非本地沙箱)
 
+已建好的两个 conda 环境(A100 上直接用,勿重建):
+
+- **`ffy`** — SAM2 分割 + VGGT-Omega 深度(torch cu121)
+- **`dlc`** — DeepLabCut 关键点
+
 ```bash
-# /mnt/zihanw 下 clone 本 repo,建 conda 环境
-conda create -n feifei python=3.11 -y && conda activate feifei
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-pip install "git+https://github.com/facebookresearch/sam2.git" opencv-python numpy
-# 下载 SAM2 checkpoint(见 sam2 官方 README): sam2.1_hiera_large.pt
+# 仅供从零重装时参考(当前集群已配好):
+# conda create -n ffy python=3.11 -y && conda activate ffy
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# pip install "git+https://github.com/facebookresearch/sam2.git" opencv-python numpy
+# SAM2 checkpoint: sam2.1_hiera_large.pt(见 sam2 官方 README)
 ```
 
 ## Stage 1 · 跑腿部分割
@@ -63,6 +68,30 @@ python src/stage3_lift/lift3d.py --kp outputs/swan01/kp.json --clip_id swan01 --
 
 看三维模型的两种方式:① `--show` 弹交互窗口拖动旋转;② 直接打开 `outputs/swan01/stage3_3d.png` 看三面板静图。
 只矫正可观测远端链(ankle-mtp-toe),近端 knee/hip 仍文献常数——不对不可观测关节硬凑深度。
+
+## Stage 3b · 深度模型验证(VGGT-Omega,A100)
+
+镜像验证:Stage 3 拿「骨长恒定」当约束反解深度;本工具拿 VGGT-Omega **独立**估的深度算 3D 骨长,
+再用「骨长是否逐帧恒定」当免费真值给深度打分。多帧联合推理 → 深度跨帧同尺度(无逐帧仿射歧义)。
+
+```bash
+# A100 一次性安装 —— 装进现成的 ffy 环境(已有 torch cu121),不用新建
+conda activate ffy
+git clone https://github.com/facebookresearch/vggt-omega.git && cd vggt-omega
+pip install -e . && cd ..   # 先别跑 requirements.txt(可能钉死另一版 torch 拆掉 SAM2);缺包再单独补
+
+# 1) 抽帧跑深度(GPU;--chunk 分块防 VRAM 不够,块间自动尺度对齐)
+python src/stage3b_depth/depth_validate.py extract \
+  --frames data/swan01_frames --out outputs/swan01/depth.npz --chunk 48 --overlap 8
+# 2) 骨长恒定性打分(CPU)
+python src/stage3b_depth/depth_validate.py analyze \
+  --depth outputs/swan01/depth.npz --kp outputs/swan01/kp.json \
+  --masks outputs/swan01/masks --out outputs/swan01
+```
+
+产出:`bone3d_table.csv` + `depth_validation.json` + `stage3b_depth.png`。
+判据:3D 骨长 CV **<10% → 深度工具成立**;对比基线:纯 2D ~15-21%、骨长恒定反解 ~5-7%。
+细腿防渗色:深度只在 SAM2 掩码内取关键点邻域中位数。
 
 **侧视连杆运动视频**(整条腿逐帧动画,测量远端实线 + 先验近端虚线):
 

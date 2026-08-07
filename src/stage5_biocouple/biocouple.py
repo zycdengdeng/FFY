@@ -30,7 +30,9 @@ def bio_landing_law(kp_path):
     fr = json.load(open(kp_path, encoding="utf-8"))["frames"]
     col = lambda b: np.array([[f["kps"][b][0], f["kps"][b][1]] for f in fr])
     A, M, T = col("ankle"), col("mtp"), col("toe")
-    bone = np.linalg.norm(A - M, axis=1) + np.linalg.norm(M - T, axis=1)
+    # 用「恒定骨长」(中位数)做分母,消除前缩短/标注导致的逐帧 2D 骨长抖动(CV~15%)。
+    # 竖直伸展量(图像 y)不受深度前缩短影响,故延迟起峰的结论对此稳健(见鲁棒性检验)。
+    bone = float(np.median(np.linalg.norm(A - M, axis=1) + np.linalg.norm(M - T, axis=1)))
     h = smooth((T[:, 1] - A[:, 1]) / bone)                  # 图像 y 向下,踝在上 → h>0
     i0 = int(np.argmax(h)); i1 = int(np.argmin(h[i0:])) + i0  # 压缩起止
     seg = h[i0:i1 + 1]
