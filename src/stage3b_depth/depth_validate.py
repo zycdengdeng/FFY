@@ -40,12 +40,49 @@ PATCH = 4                                            # 关键点邻域半径(px,
 
 
 # ---------------------------------------------------------------- extract
+def _load_model(model_id, ckpt_path, device):
+    """官方 API:裸构造 VGGTOmega() + load_state_dict(torch.load(ckpt))。
+    未给 --ckpt 时自动从 HuggingFace 拉权重(找 repo 里第一个 .pt/.safetensors)。"""
+    import torch
+    from vggt_omega.models import VGGTOmega
+    model = VGGTOmega()
+    if ckpt_path is None:
+        from huggingface_hub import list_repo_files, hf_hub_download
+        files = list_repo_files(model_id)
+        cand = [f for f in files if f.endswith((".pt", ".pth", ".bin", ".safetensors"))]
+        assert cand, f"repo {model_id} 里没找到权重文件: {files}"
+        cand.sort(key=lambda f: (not f.endswith(".pt"), len(f)))
+        print(f"[extract] downloading checkpoint {model_id}/{cand[0]} ...")
+        ckpt_path = hf_hub_download(model_id, cand[0])
+    if ckpt_path.endswith(".safetensors"):
+        from safetensors.torch import load_file
+        sd = load_file(ckpt_path)
+    else:
+        sd = torch.load(ckpt_path, map_location="cpu")
+    if isinstance(sd, dict) and "model" in sd and not any(k.startswith(("depth", "aggregator", "camera")) for k in sd):
+        sd = sd["model"]                                  # 兼容包了一层 {'model': ...} 的 ckpt
+    missing, unexpected = model.load_state_dict(sd, strict=False)
+    if missing or unexpected:
+        print(f"[extract] load_state_dict: missing={len(missing)} unexpected={len(unexpected)} (strict=False)")
+    return model.to(device).eval()
+
+
+def _squeeze_np(x):
+    """(1,S,H,W,1)/(S,H,W,1)/(1,S,H,W) → (S,H,W) numpy。"""
+    a = x.float().cpu().numpy()
+    if a.ndim >= 4 and a.shape[-1] == 1:
+        a = a[..., 0]
+    if a.ndim == 4 and a.shape[0] == 1:
+        a = a[0]
+    return a
+
+
 def run_extract(args):
     """VGGT-Omega 推理:帧目录 → depth.npz(depth/conf/K/尺寸映射)。GPU."""
     import torch
     from PIL import Image
-    from vggt_omega.models.vggt_omega import VGGTOmega          # noqa
-    from vggt_omega.utils.load_fn import load_and_preprocess_images  # noqa
+    from vggt_omega.utils.load_fn import load_and_preprocess_images
+    from vggt_omega.utils.pose_enc import encoding_to_camera
 
     frame_paths = sorted(glob.glob(os.path.join(args.frames, "*.png"))) or \
                   sorted(glob.glob(os.path.join(args.frames, "*.jpg")))
@@ -55,7 +92,7 @@ def run_extract(args):
 
     device = "cuda"
     dtype = torch.bfloat16 if torch.cuda.get_device_capability()[0] >= 8 else torch.float16
-    model = VGGTOmega.from_pretrained(args.model).to(device).eval()
+    model = _load_model(args.model, args.ckpt, device)
 
     # 分块推理(整段 VRAM 不够时);块间靠重叠帧的深度中位数比值对齐尺度
     n = len(frame_paths); chunk, ov = args.chunk, args.overlap
@@ -64,13 +101,21 @@ def run_extract(args):
     starts = list(range(0, n, chunk - ov)) if chunk > 0 else [0]
     for si, s in enumerate(starts):
         e = min(n, s + chunk) if chunk > 0 else n
-        batch = load_and_preprocess_images(frame_paths[s:e]).to(device)
+        batch = load_and_preprocess_images(frame_paths[s:e], image_resolution=args.res).to(device)
         with torch.inference_mode(), torch.autocast("cuda", dtype=dtype):
             pred = model(batch)
-        d = pred["depth"].float().squeeze(-1).cpu().numpy()          # (T,h,w)
+        d = _squeeze_np(pred["depth"])                               # (T,h,w)
         c = pred.get("depth_conf")
-        c = c.float().cpu().numpy() if c is not None else np.ones_like(d)
-        K = pred["intrinsic"].float().cpu().numpy() if "intrinsic" in pred else None
+        c = _squeeze_np(c) if c is not None else np.ones_like(d)
+        # 内参:官方从 pose_enc 解码
+        try:
+            _, intr = encoding_to_camera(pred["pose_enc"], pred["images"].shape[-2:])
+            K = intr.float().cpu().numpy()
+            if K.ndim == 4 and K.shape[0] == 1:
+                K = K[0]                                             # (T,3,3)
+        except Exception as ex:
+            print(f"[extract] intrinsics decode failed ({ex}); analyze 将用近似内参")
+            K = None
         if prev_tail is not None and ov > 0:                          # 块间尺度对齐
             cur_head = d[:ov]
             r = np.nanmedian(prev_tail[prev_tail > 0]) / max(np.nanmedian(cur_head[cur_head > 0]), 1e-9)
@@ -189,6 +234,8 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     e = sub.add_parser("extract"); e.add_argument("--frames", required=True)
     e.add_argument("--out", required=True); e.add_argument("--model", default="facebook/VGGT-Omega-1B-512")
+    e.add_argument("--ckpt", default=None, help="本地权重路径(不给则自动从 HF 下载)")
+    e.add_argument("--res", type=int, default=512, help="模型输入分辨率")
     e.add_argument("--chunk", type=int, default=48); e.add_argument("--overlap", type=int, default=8)
     a = sub.add_parser("analyze"); a.add_argument("--depth", required=True)
     a.add_argument("--kp", required=True); a.add_argument("--masks", default=None)
