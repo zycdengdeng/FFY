@@ -23,6 +23,29 @@ SCEN = dict(m=200.0, v0=3.0, g=9.81,
 
 BOUNDS = dict(L1=(250.0, 490.0), r2=(1.3, 2.5), r3=(0.9, 2.0))
 
+# —— 真实水鸟尺度(2026-08 收缩决定:固定姿态,质量/速度/腿长按真鸟) ——
+SCEN_BIRD = dict(m=5.0, v0=1.2, g=9.81,
+                 k1=35.0, k2=35.0,        # 关节扭簧 N·m/rad(鸟尺度)
+                 c1=1.2, c2=1.2,          # 关节阻尼 N·m·s/rad
+                 cq=0.0, dq_stop=np.radians(55.0), k_stop=300.0,
+                 q1_0=np.radians(50.0), thetaA=np.radians(120.0), thetaK=np.radians(90.0))
+BOUNDS_BIRD = dict(L1=(40.0, 130.0), r2=(1.3, 2.5), r3=(0.8, 1.9))   # 鸭→天鹅/鹈鹕
+
+def bird_size(scen, x):
+    """尺寸化规则:关节刚度按载荷与腿长配簧(k=κ·m·g·L_leg, κ=3;c=0.03k)。
+    物理含义:每套设计按其载荷选簧,如真实工程;避免一套弹簧同时伺候1kg与12kg。"""
+    L1, r2, r3 = x
+    Lleg = (L1 / 1000.0) * (1.0 + r2 + r3)
+    k = 4.0 * scen["m"] * scen["g"] * Lleg
+    s2 = dict(scen)
+    s2["k1"] = s2["k2"] = k; s2["c1"] = s2["c2"] = 0.03 * k
+    s2["k_ankle"] = s2["k_knee"] = k; s2["c_ankle"] = s2["c_knee"] = 0.03 * k
+    s2["k_hip"] = 4.0 * k; s2["c_hip"] = 0.2 * k
+    s2["kc"] = 4000.0 * scen["m"] * scen["g"]      # 接触刚度随载荷配(防重鸟压穿)
+    s2["cc"] = 0.01 * s2["kc"]
+    return s2
+# 工况(5维附加):v0∈[0.5,2.0] m/s(水鸟着水下沉速度,文献量级),m∈[1,12] kg(鸭→天鹅)
+
 
 def _geom(x, s=SCEN):
     """x=(L1_mm,r2,r3) → 等效两连杆长度 l1, l2(米)。

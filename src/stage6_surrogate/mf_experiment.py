@@ -29,8 +29,14 @@ HI5 = np.concatenate([HI3, [4.0, 260.0]])
 # 7 维:+触地姿态(θA, θK),范围取 Duong 12 段 4 物种实测(113-160°, 118-158°)
 LO7 = np.concatenate([LO5, [113.0, 118.0]])
 HI7 = np.concatenate([HI5, [160.0, 158.0]])
+# 水鸟真实尺度(固定姿态;质量/速度/腿长为真鸟量级,关节&接触按载荷自动配簧)
+LO3B = np.array([40.0, 1.3, 0.8]);  HI3B = np.array([130.0, 2.5, 1.9])
+LO5B = np.concatenate([LO3B, [0.5, 1.0]]); HI5B = np.concatenate([HI3B, [2.0, 12.0]])
 DIM = 3
+SCALE = "eng"
 def _bounds():
+    if SCALE == "bird":
+        return {3: (LO3B, HI3B), 5: (LO5B, HI5B)}[DIM]
     return {3: (LO3, HI3), 5: (LO5, HI5), 7: (LO7, HI7)}[DIM]
 def unit(X):
     lo, hi = _bounds()
@@ -59,29 +65,33 @@ HFMODE = "2dof"
 LFMODE = "1dof"
 
 def _exu_one(args):
-    x, key = args
-    from hf_exudyn import exu_eval, SCEN_X
-    sc = dict(SCEN_X)
+    x, key, scale = args
+    from hf_exudyn import exu_eval, SCEN_X, SCEN_BIRD_X
+    sc = dict(SCEN_BIRD_X if scale == "bird" else SCEN_X)
     if len(x) >= 5:
         sc["v0"], sc["m"] = x[3], x[4]
     if len(x) == 7:
         sc["thetaA"], sc["thetaK"] = np.radians(x[5]), np.radians(x[6])
+    if scale == "bird":
+        sc = M.bird_size(sc, x[:3])
     return exu_eval(tuple(x[:3]), sc)[key]
 
 def evals(X, key):
     lf = []
     lf_fn = M.lf_eval if LFMODE == "1dof" else M.hf_eval   # 2dof 作 LF = 更像的物理先验
     for x in X:
-        sc = dict(M.SCEN)
+        sc = dict(M.SCEN_BIRD if SCALE == "bird" else M.SCEN)
         if DIM >= 5:
             sc["v0"], sc["m"] = x[3], x[4]
         if DIM == 7:
             sc["thetaA"], sc["thetaK"] = np.radians(x[5]), np.radians(x[6])
+        if SCALE == "bird":
+            sc = M.bird_size(sc, x[:3])
         lf.append(lf_fn(x[:3], sc)[key])
     if HFMODE == "exudyn":
         from concurrent.futures import ProcessPoolExecutor
         with ProcessPoolExecutor(max_workers=8) as ex:
-            hf = list(ex.map(_exu_one, [(x, key) for x in X], chunksize=2))
+            hf = list(ex.map(_exu_one, [(x, key, SCALE) for x in X], chunksize=2))
     else:
         hf = []
         for x in X:
@@ -99,10 +109,11 @@ def main():
     ap.add_argument("--key", default="peak_a"); ap.add_argument("--dim", type=int, default=3)
     ap.add_argument("--hf", default="2dof", choices=["2dof", "exudyn"])
     ap.add_argument("--lf", default="1dof", choices=["1dof", "2dof"])
+    ap.add_argument("--scale", default="eng", choices=["eng", "bird"])
     ap.add_argument("--ntest", type=int, default=200); ap.add_argument("--reps", type=int, default=30)
     args = ap.parse_args()
-    global DIM, HFMODE, LFMODE, NTEST, REPS
-    DIM = args.dim; HFMODE = args.hf; LFMODE = args.lf
+    global DIM, HFMODE, LFMODE, SCALE, NTEST, REPS
+    DIM = args.dim; HFMODE = args.hf; LFMODE = args.lf; SCALE = args.scale
     NTEST = args.ntest; REPS = args.reps
     os.makedirs(args.out, exist_ok=True); t0 = time.time()
 
@@ -138,7 +149,7 @@ def main():
             print(f"  rep {rep+1}/{REPS}  ({time.time()-t0:.0f}s)")
 
     summ = {m: {n: [float(np.mean(v)), float(np.std(v))] for n, v in d.items() if v} for m, d in res.items()}
-    json.dump({"metric": "NRMSE", "key": args.key, "hf": args.hf, "lf": args.lf, "n_grid": NS, "reps": REPS,
+    json.dump({"metric": "NRMSE", "key": args.key, "hf": args.hf, "lf": args.lf, "scale": args.scale, "n_grid": NS, "reps": REPS,
                "corr_lf_hf": float(np.corrcoef(lf_te, hf_te)[0, 1]), "summary": summ},
               open(os.path.join(args.out, "mf_results.json"), "w"), indent=2)
 

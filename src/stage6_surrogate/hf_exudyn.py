@@ -14,6 +14,14 @@ import numpy as np
 import exudyn as exu
 from exudyn.utilities import *   # noqa: F401,F403
 
+SCEN_BIRD_X = dict(m=5.0, v0=1.2, g=9.81,
+              k_ankle=35.0, k_knee=35.0, k_hip=160.0,
+              c_ankle=1.2, c_knee=1.2, c_hip=5.0,
+              q1_0=np.radians(50.0), thetaA=np.radians(120.0), thetaK=np.radians(90.0),
+              seg_mass_frac=0.05,
+              kc=8.0e4, cc=400.0, mu=0.5,
+              r_foot=0.008, gap0=0.003, T=1.0, h=2e-4)
+
 SCEN_X = dict(m=200.0, v0=3.0, g=9.81,
               k_ankle=4.5e3, k_knee=4.5e3, k_hip=2.0e4,
               c_ankle=4.0e2, c_knee=4.0e2, c_hip=8.0e2,
@@ -100,6 +108,9 @@ def exu_eval(x, s=SCEN_X):
         return dict(peak_a=np.nan, stroke=np.nan)
     peak = float(np.max(np.abs(az)))
     stroke = float(z[0] - np.min(z))
+    Lleg = l1 + l2 + l3
+    if stroke > 0.6 * Lleg:                      # 塌陷/屈曲 → 不可行设计
+        return dict(peak_a=np.nan, stroke=np.nan)
     return dict(peak_a=peak, stroke=stroke)
 
 
