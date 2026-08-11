@@ -47,6 +47,34 @@ def norm(v, lo, hi):
     return (v - lo) / (hi - lo)
 
 
+def fit(C, X, *, epochs=300, beta=0.02, lr=1e-3, zdim=2, device="cpu",
+        seed=0, verbose=True):
+    """训练 cVAE 并返回 (model, log)。C/X 均为已归一化 float32 张量或数组。"""
+    torch.manual_seed(seed)
+    C = torch.as_tensor(C, dtype=torch.float32)
+    X = torch.as_tensor(X, dtype=torch.float32)
+    model = CVAE(xd=X.shape[1], cd=C.shape[1], z=zdim).to(device)
+    opt = torch.optim.Adam(model.parameters(), lr=lr)
+    dl = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(X, C),
+                                     batch_size=256, shuffle=True)
+    log = []
+    for ep in range(epochs):
+        b = beta * min(1.0, ep / max(epochs * 0.3, 1))          # KL 预热
+        mse_s = kl_s = nb = 0
+        for xb, cb in dl:
+            xb, cb = xb.to(device), cb.to(device)
+            xh, mu, lv = model(xb, cb)
+            mse = ((xh - xb) ** 2).mean()
+            kl = (-0.5 * (1 + lv - mu ** 2 - lv.exp())).mean()
+            loss = mse + b * kl
+            opt.zero_grad(); loss.backward(); opt.step()
+            mse_s += mse.item(); kl_s += kl.item(); nb += 1
+        log.append(dict(ep=ep, mse=mse_s / nb, kl=kl_s / nb, beta=b))
+        if verbose and (ep + 1) % 50 == 0:
+            print(f"  ep {ep+1}/{epochs}  mse={mse_s/nb:.5f} kl={kl_s/nb:.3f}")
+    return model.cpu().eval(), log
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default="outputs/gen_data/gen_dataset.npz")
@@ -64,29 +92,12 @@ def main():
     meta = json.load(open(args.data.replace("gen_dataset.npz", "gen_dataset_meta.json")))
     c_lo, c_hi = np.array(meta["c_lo"]), np.array(meta["c_hi"])
     x_lo, x_hi = np.array(meta["x_lo"]), np.array(meta["x_hi"])
-    C = torch.tensor(norm(d["C_tr"], c_lo, c_hi), dtype=torch.float32)
-    X = torch.tensor(norm(d["X_tr"], x_lo, x_hi), dtype=torch.float32)
+    C = norm(d["C_tr"], c_lo, c_hi)
+    X = norm(d["X_tr"], x_lo, x_hi)
     print(f"[cvae] train pairs {len(C)}  device {args.device}")
 
-    model = CVAE(xd=X.shape[1], cd=C.shape[1], z=args.zdim).to(args.device)
-    opt = torch.optim.Adam(model.parameters(), lr=args.lr)
-    ds = torch.utils.data.TensorDataset(X, C)
-    dl = torch.utils.data.DataLoader(ds, batch_size=256, shuffle=True)
-    log = []
-    for ep in range(args.epochs):
-        beta = args.beta * min(1.0, ep / max(args.epochs * 0.3, 1))   # KL 预热
-        mse_s = kl_s = nb = 0
-        for xb, cb in dl:
-            xb, cb = xb.to(args.device), cb.to(args.device)
-            xh, mu, lv = model(xb, cb)
-            mse = ((xh - xb) ** 2).mean()
-            kl = (-0.5 * (1 + lv - mu ** 2 - lv.exp())).mean()
-            loss = mse + beta * kl
-            opt.zero_grad(); loss.backward(); opt.step()
-            mse_s += mse.item(); kl_s += kl.item(); nb += 1
-        log.append(dict(ep=ep, mse=mse_s / nb, kl=kl_s / nb, beta=beta))
-        if (ep + 1) % 50 == 0:
-            print(f"  ep {ep+1}/{args.epochs}  mse={mse_s/nb:.5f} kl={kl_s/nb:.3f}")
+    model, log = fit(C, X, epochs=args.epochs, beta=args.beta, lr=args.lr,
+                     zdim=args.zdim, device=args.device, seed=args.seed)
 
     torch.save(dict(state=model.state_dict(), meta=meta,
                     xd=X.shape[1], zdim=args.zdim),
