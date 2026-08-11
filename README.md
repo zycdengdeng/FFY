@@ -145,6 +145,20 @@ python src/stage7_generative/data_factory.py --nc 500 --nd 80 --workers 32 \
 产出 `outputs/gen_data/factory.jsonl`(约 4 万次仿真,32 核 30–60 分钟)。
 方案详见《生成阶段实验方案_v1.md》。
 
+工厂跑完后,依次(同样 ffy 环境;torch 已有):
+
+```bash
+# 1) 构建训练集(约束场景采样 + 前沿标注;秒级)
+python src/stage7_generative/build_dataset.py --factory outputs/gen_data/factory.jsonl --out outputs/gen_data
+# 2) 训 cVAE(CPU 分钟级;GPU 加 --device cuda)
+python src/stage7_generative/train_cvae.py --data outputs/gen_data/gen_dataset.npz --out outputs/gen_model
+# 3) E1 评测:生成 vs LHS9 vs 标度律暖启动 vs BO9,Exudyn 实判(32 核约 10-20 分钟)
+python src/stage7_generative/eval_gen.py --model outputs/gen_model/cvae.pt \
+       --data outputs/gen_data/gen_dataset.npz --out outputs/gen_eval --workers 32
+```
+
+回传 `outputs/gen_eval/eval_results.json` 即可分析。
+
 ## 工作流(sandbox 写代码 → 集群跑)
 
 Claude 在云沙箱写/改代码 → commit 进本地文件夹 → 你 `git push` →
