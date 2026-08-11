@@ -42,6 +42,53 @@ def rotY(a):
     return np.array([[c, 0., -s], [0., 1., 0.], [s, 0., c]])
 
 
+NAN_METRICS = dict(peak_a=np.nan, stroke=np.nan, eta=np.nan, cfe=np.nan,
+                   peak_jerk=np.nan, E_abs=np.nan, F_peak=np.nan,
+                   rebound=np.nan, n_bounce=np.nan, t_settle=np.nan)
+
+
+def _metrics(t, z, az, m, g, v0):
+    """从机身时程提取落震多指标(文献标准指标,白话注释):
+
+    - eta 缓冲效率: 吸收能量 / (峰值力×最大压缩行程)。力-行程曲线越接近
+      "矩形"(全程恒力)越接近 1;油气式支柱典型 0.8-0.9。
+    - cfe 压溃力效率: 压缩段平均力/峰值力,耐撞性文献同思想指标。
+    - peak_jerk: 加速度变化率峰值(冲击"突兀感",舒适性指标)。
+    - E_abs: 压缩段吸收能量 ∫F ds。
+    - rebound: 最大压缩后机身回弹超过触地高度的高度(弹跳倾向)。
+    - n_bounce: 足-地分离次数(bounced landing 事故模式计数)。
+    - t_settle: 触地→速度降到 5%v0 以内的耗时(镇定快慢)。
+    """
+    h = t[1] - t[0]
+    F = m * (az + g)                       # 腿传给机身的竖直力(自由落体段≈0)
+    thr = 0.02 * m * g
+    idx = np.where(F > thr)[0]
+    if len(idx) == 0:
+        return {}
+    i0 = int(idx[0])                       # 触地时刻
+    imin = int(np.argmin(z))               # 最大压缩时刻
+    if imin <= i0:
+        imin = min(i0 + 1, len(z) - 1)
+    zc, Fc = z[i0:imin + 1], F[i0:imin + 1]
+    s_max = float(z[i0] - z[imin])
+    Fmax = float(np.max(Fc))
+    trapz = getattr(np, "trapezoid", getattr(np, "trapz", None))
+    E = float(trapz(Fc, x=-zc))            # ∫F d(-z), 下压方向为正
+    eta = E / (Fmax * s_max) if Fmax > 0 and s_max > 1e-6 else np.nan
+    cfe = float(np.mean(Fc) / Fmax) if Fmax > 0 else np.nan
+    w = max(3, int(0.005 / h))             # 5ms 滑窗平滑再差分,防数值毛刺
+    az_s = np.convolve(az, np.ones(w) / w, mode="same")
+    jerk = float(np.max(np.abs(np.diff(az_s) / h)))
+    reb = float(max(0.0, np.max(z[imin:]) - z[i0]))
+    off = F[i0:] < thr
+    n_bounce = int(np.sum(np.diff(off.astype(int)) == 1))
+    v = np.gradient(z, h)
+    hot = np.where(np.abs(v) > 0.05 * abs(v0))[0]
+    t_settle = float(t[hot[-1]] - t[i0]) if len(hot) else 0.0
+    return dict(eta=eta, cfe=cfe, peak_jerk=jerk, E_abs=E, F_peak=Fmax,
+                rebound=reb, n_bounce=n_bounce, t_settle=t_settle)
+
+
 def exu_eval(x, s=SCEN_X):
     L1, r2, r3 = x
     l1 = L1 / 1000.0; l2 = r2 * l1; l3 = r3 * l1
@@ -101,17 +148,20 @@ def exu_eval(x, s=SCEN_X):
     try:
         mbs.SolveDynamic(ss)
     except Exception:
-        return dict(peak_a=np.nan, stroke=np.nan)
+        return dict(NAN_METRICS)
     acc = mbs.GetSensorStoredData(sAcc); pos = mbs.GetSensorStoredData(sPos)
-    az = acc[:, 3]; z = pos[:, 3]
+    t = acc[:, 0]; az = acc[:, 3]; z = pos[:, 3]
     if not np.all(np.isfinite(az)):
-        return dict(peak_a=np.nan, stroke=np.nan)
+        return dict(NAN_METRICS)
     peak = float(np.max(np.abs(az)))
     stroke = float(z[0] - np.min(z))
     Lleg = l1 + l2 + l3
     if stroke > 0.6 * Lleg:                      # 塌陷/屈曲 → 不可行设计
-        return dict(peak_a=np.nan, stroke=np.nan)
-    return dict(peak_a=peak, stroke=stroke)
+        return dict(NAN_METRICS)
+    out = dict(NAN_METRICS)
+    out.update(peak_a=peak, stroke=stroke)
+    out.update(_metrics(t, z, az, m, g, s["v0"]))
+    return out
 
 
 if __name__ == "__main__":

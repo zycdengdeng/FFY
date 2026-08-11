@@ -129,6 +129,22 @@ python src/stage5_biocouple/biocouple.py --kp outputs/swan01/kp.json --clip_id s
 - 核心结论:生物律「慢-快-慢」,压缩速率峰值延迟到 τ≈0.24;被动弹簧-阻尼速率峰值恒在 τ=0 → 物理上够不到 → 需主动/分段柔顺。
 - 详见《独立贡献_生物动态耦合方法草案.md》。
 
+## Stage 7 · 生成阶段数据工厂(A100,纯 CPU)
+
+为条件生成模型自产训练数据:扫 (m, v0) × LHS 设计,Exudyn 全指标入库。
+g_cap/stroke_max 是事后筛选参数,不进仿真——库建一次,训练对随便重构。
+
+```bash
+conda activate ffy
+pip install exudyn scikit-learn        # 首次;exudyn 纯 pip 即装
+python src/stage7_generative/data_factory.py --nc 500 --nd 80 --workers 32 \
+       --out outputs/gen_data
+# 断点续跑:同命令重跑即可,自动跳过已完成工况
+```
+
+产出 `outputs/gen_data/factory.jsonl`(约 4 万次仿真,32 核 30–60 分钟)。
+方案详见《生成阶段实验方案_v1.md》。
+
 ## 工作流(sandbox 写代码 → 集群跑)
 
 Claude 在云沙箱写/改代码 → commit 进本地文件夹 → 你 `git push` →

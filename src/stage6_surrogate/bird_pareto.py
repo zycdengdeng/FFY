@@ -16,7 +16,7 @@ import models as M
 from hf_exudyn import exu_eval, SCEN_BIRD_X
 
 MASSES = [1.2, 2.0, 4.0, 7.0, 10.0, 12.0]          # kg, 鸭→天鹅/鹈鹕
-V0REF, MREF, V0EXP = 1.2, 5.0, 0.0                  # v0(m)=V0REF*(m/MREF)**V0EXP;EXP=0 即固定
+V0REF, MREF, V0EXP, KAPPA = 1.2, 5.0, 0.0, 4.0                  # v0(m)=V0REF*(m/MREF)**V0EXP;EXP=0 即固定
 
 def v0_of(m):
     return V0REF * (m / MREF) ** V0EXP
@@ -28,7 +28,7 @@ SWAN_X = (123.0, 1.72, 0.89)                        # 真天鹅几何(蓝本 Tab
 
 def _eval_one(args):
     x, m = args
-    sc = M.bird_size({**SCEN_BIRD_X, "m": m, "v0": v0_of(m)}, x)
+    sc = M.bird_size({**SCEN_BIRD_X, "m": m, "v0": v0_of(m), "kappa": KAPPA}, x)
     r = exu_eval(tuple(x), sc)
     return r["peak_a"], r["stroke"]
 
@@ -46,12 +46,12 @@ def pareto2(P):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="outputs/bird_pareto"); ap.add_argument("--nd", type=int, default=80)
-    ap.add_argument("--v0exp", type=float, default=0.0)
+    ap.add_argument("--v0exp", type=float, default=0.0); ap.add_argument("--kappa", type=float, default=4.0)
     args = ap.parse_args(); os.makedirs(args.out, exist_ok=True)
-    global V0EXP; V0EXP = args.v0exp
+    global V0EXP, KAPPA; V0EXP = args.v0exp; KAPPA = args.kappa
     from concurrent.futures import ProcessPoolExecutor
 
-    lo = np.array([40.0, 1.3, 0.8]); hi = np.array([130.0, 2.5, 1.9])
+    lo = np.array(M.LO_BIRD); hi = np.array(M.HI_BIRD)   # 实测边界 v2(见 models.py 注释)
     rng = np.random.default_rng(42)
     results = {}
     for m in MASSES:
@@ -76,7 +76,7 @@ def main():
     swan_y = _eval_one((np.array(SWAN_X), 10.0))
     print(f"真天鹅几何 @10kg: peak={swan_y[0]/9.81:.1f}g stroke={swan_y[1]*1000:.0f}mm")
 
-    json.dump({"masses": MASSES, "v0ref": V0REF, "v0exp": V0EXP, "results": {str(k): v for k, v in results.items()},
+    json.dump({"masses": MASSES, "v0ref": V0REF, "v0exp": V0EXP, "kappa": KAPPA, "results": {str(k): v for k, v in results.items()},
                "swan_real": {"x": SWAN_X, "peak_a": swan_y[0], "stroke": swan_y[1]},
                "real_birds_L1": REAL_BIRDS},
               open(os.path.join(args.out, "pareto_results.json"), "w"))

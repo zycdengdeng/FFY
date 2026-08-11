@@ -29,14 +29,20 @@ SCEN_BIRD = dict(m=5.0, v0=1.2, g=9.81,
                  c1=1.2, c2=1.2,          # 关节阻尼 N·m·s/rad
                  cq=0.0, dq_stop=np.radians(55.0), k_stop=300.0,
                  q1_0=np.radians(50.0), thetaA=np.radians(120.0), thetaK=np.radians(90.0))
-BOUNDS_BIRD = dict(L1=(40.0, 130.0), r2=(1.3, 2.5), r3=(0.8, 1.9))   # 鸭→天鹅/鹈鹕
+# 设计空间边界 v2(2026-08 数据重置):全部来自公开实测,不再依赖蓝本/自标
+#  L1 : AVONET 1-12kg 水鸟 101 种跗跖实测 33-121mm(与 Watanabe 骨架 TMT 25-120 互证)
+#  r2 : Watanabe 2017 (Auk 134:672) 附录表10,91 种会飞雁鸭科 TIB/TMT 实测全距 1.49-2.09
+#  r3 : 同上,FEM/TMT 实测全距 0.84-1.28(旧上界 1.9 探索的是非生物区)
+BOUNDS_BIRD = dict(L1=(33.0, 121.0), r2=(1.49, 2.09), r3=(0.84, 1.28))
+LO_BIRD = [BOUNDS_BIRD[k][0] for k in ("L1", "r2", "r3")]
+HI_BIRD = [BOUNDS_BIRD[k][1] for k in ("L1", "r2", "r3")]
 
 def bird_size(scen, x):
     """尺寸化规则:关节刚度按载荷与腿长配簧(k=κ·m·g·L_leg, κ=3;c=0.03k)。
     物理含义:每套设计按其载荷选簧,如真实工程;避免一套弹簧同时伺候1kg与12kg。"""
     L1, r2, r3 = x
     Lleg = (L1 / 1000.0) * (1.0 + r2 + r3)
-    k = 4.0 * scen["m"] * scen["g"] * Lleg
+    k = scen.get("kappa", 4.0) * scen["m"] * scen["g"] * Lleg
     s2 = dict(scen)
     s2["k1"] = s2["k2"] = k; s2["c1"] = s2["c2"] = 0.03 * k
     s2["k_ankle"] = s2["k_knee"] = k; s2["c_ankle"] = s2["c_knee"] = 0.03 * k

@@ -30,7 +30,7 @@ HI5 = np.concatenate([HI3, [4.0, 260.0]])
 LO7 = np.concatenate([LO5, [113.0, 118.0]])
 HI7 = np.concatenate([HI5, [160.0, 158.0]])
 # 水鸟真实尺度(固定姿态;质量/速度/腿长为真鸟量级,关节&接触按载荷自动配簧)
-LO3B = np.array([40.0, 1.3, 0.8]);  HI3B = np.array([130.0, 2.5, 1.9])
+LO3B = np.array(M.LO_BIRD);  HI3B = np.array(M.HI_BIRD)   # 实测边界 v2(见 models.py 注释)
 LO5B = np.concatenate([LO3B, [0.5, 1.0]]); HI5B = np.concatenate([HI3B, [2.0, 12.0]])
 DIM = 3
 SCALE = "eng"
