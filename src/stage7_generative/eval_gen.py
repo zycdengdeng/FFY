@@ -29,8 +29,8 @@ KAPPA = 4.0
 
 def _eval_one(args):
     x, m, v0 = args
-    sc = M.bird_size({**SCEN_BIRD_X, "m": m, "v0": v0, "kappa": KAPPA}, x)
-    r = exu_eval(tuple(x), sc)
+    sc = M.bird_size_x({**SCEN_BIRD_X, "m": m, "v0": v0, "kappa": KAPPA}, x)
+    r = exu_eval(tuple(x[:3]), sc)
     return r["peak_a"], r["stroke"]
 
 
@@ -55,16 +55,17 @@ def bo9(ex, m, v0, gcap, smax, lo, hi, rng):
     """GPR+EI,9 次仿真:4 初始 + 5 迭代;目标 = peak_a + 约束罚。"""
     from sklearn.gaussian_process import GaussianProcessRegressor
     from sklearn.gaussian_process.kernels import RBF, ConstantKernel as Ck, WhiteKernel
-    X = lo + (hi - lo) * lhs(4, 3, rng)
+    d = len(lo)
+    X = lo + (hi - lo) * lhs(4, d, rng)
     Y = evals(ex, X, m, v0)
     def pen(y):
         if not np.isfinite(y[0]): return 1e4
         return y[0] + 1e3 * max(0, y[0] - gcap) / gcap + 1e3 * max(0, y[1] - smax) / smax
     for _ in range(5):
         t = np.array([pen(y) for y in Y])
-        g = GaussianProcessRegressor(Ck(1.0) * RBF([0.3] * 3) + WhiteKernel(1e-4),
+        g = GaussianProcessRegressor(Ck(1.0) * RBF([0.3] * d) + WhiteKernel(1e-4),
                                      normalize_y=True).fit(norm(X, lo, hi), t)
-        cand = norm(lo + (hi - lo) * lhs(400, 3, rng), lo, hi)
+        cand = norm(lo + (hi - lo) * lhs(400, d, rng), lo, hi)
         mu, sd = g.predict(cand, return_std=True)
         best = t.min()
         from scipy.stats import norm as N
@@ -90,10 +91,12 @@ def main():
 
     ck = torch.load(args.model, map_location="cpu", weights_only=False)
     meta = ck["meta"]
-    model = CVAE(); model.load_state_dict(ck["state"]); model.eval()
+    model = CVAE(xd=ck.get("xd", 3), z=ck.get("zdim", 2))
+    model.load_state_dict(ck["state"]); model.eval()
     c_lo, c_hi = np.array(meta["c_lo"]), np.array(meta["c_hi"])
     x_lo, x_hi = np.array(meta["x_lo"]), np.array(meta["x_hi"])
-    lo, hi = np.array(M.LO_BIRD), np.array(M.HI_BIRD)
+    lo, hi = x_lo, x_hi                      # 选手与裁判同一设计空间(3 或 7 维)
+    D = len(lo)
 
     C_te = np.load(args.data)["C_te"][:args.nsc]
     print(f"[eval] scenarios: {len(C_te)}")
@@ -105,7 +108,7 @@ def main():
             m, v0, gcap, smax = row[:4]
             rng = np.random.default_rng(500_000 + si)
             # 裁判:参考前沿
-            Yr = evals(ex, lo + (hi - lo) * lhs(args.nref, 3, rng), m, v0)
+            Yr = evals(ex, lo + (hi - lo) * lhs(args.nref, D, rng), m, v0)
             ref, okr = best_feasible(Yr, gcap, smax)
             if not np.isfinite(ref):
                 print(f"  sc{si}: 参考集无可行解,跳过"); continue
@@ -121,12 +124,14 @@ def main():
             cov.append(span / ref_span if ref_span > 0 else np.nan)
             R["gen"].append(dict(sc=si, best=bg, ref=ref, feas=feas_rate))
             # ② LHS-9
-            Y9 = evals(ex, lo + (hi - lo) * lhs(9, 3, rng), m, v0)
+            Y9 = evals(ex, lo + (hi - lo) * lhs(9, D, rng), m, v0)
             b9, _ = best_feasible(Y9, gcap, smax)
             R["lhs9"].append(dict(sc=si, best=b9, ref=ref))
-            # ③ 标度律暖启动 + 8 扰动
-            xw = np.array([np.clip(111.2 * (m / 10) ** 0.45, lo[0], hi[0]), 1.77, 1.08])
-            Xw = np.clip(xw + rng.normal(0, [8, 0.1, 0.08], (9, 3)), lo, hi); Xw[0] = xw
+            # ③ 标度律暖启动 + 8 扰动(7 维时刚度补默认规则值 4/4/16/0.03)
+            xw3 = [np.clip(111.2 * (m / 10) ** 0.45, lo[0], hi[0]), 1.77, 1.08]
+            xw = np.array(xw3 if D == 3 else xw3 + [4.0, 4.0, 16.0, 0.03])
+            sig = np.array([8, 0.1, 0.08] if D == 3 else [8, 0.1, 0.08, 0.8, 0.8, 3.0, 0.01])
+            Xw = np.clip(xw + rng.normal(0, sig, (9, D)), lo, hi); Xw[0] = np.clip(xw, lo, hi)
             Yw = evals(ex, Xw, m, v0)
             bw, _ = best_feasible(Yw, gcap, smax)
             R["warm"].append(dict(sc=si, best=bw, ref=ref))

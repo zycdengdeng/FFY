@@ -159,6 +159,18 @@ python src/stage7_generative/eval_gen.py --model outputs/gen_model/cvae.pt \
 
 回传 `outputs/gen_eval/eval_results.json` 即可分析。
 
+**E4 扩维版(7 维:几何 + 三关节刚度解耦 + 阻尼比)** —— 全新输出目录,不覆盖 v1:
+
+```bash
+python src/stage7_generative/data_factory.py --nc 500 --nd 120 --dim 7 --workers 64 --out outputs/gen_data7
+python src/stage7_generative/build_dataset.py --factory outputs/gen_data7/factory.jsonl --out outputs/gen_data7
+python src/stage7_generative/train_cvae.py --data outputs/gen_data7/gen_dataset.npz --out outputs/gen_model7 --zdim 3
+python src/stage7_generative/eval_gen.py --model outputs/gen_model7/cvae.pt \
+       --data outputs/gen_data7/gen_dataset.npz --out outputs/gen_eval7 --workers 64 --nref 300 --ngen 60
+```
+
+工厂 6 万次仿真,64 核约 30 分钟;评测约 10 分钟。回传 `outputs/gen_eval7/eval_results.json`。
+
 ## 工作流(sandbox 写代码 → 集群跑)
 
 Claude 在云沙箱写/改代码 → commit 进本地文件夹 → 你 `git push` →

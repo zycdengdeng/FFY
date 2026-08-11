@@ -38,8 +38,8 @@ def lhs(n, d, rng):
 
 def _eval_one(args):
     x, m, v0 = args
-    sc = M.bird_size({**SCEN_BIRD_X, "m": m, "v0": v0, "kappa": KAPPA}, x)
-    r = exu_eval(tuple(x), sc)
+    sc = M.bird_size_x({**SCEN_BIRD_X, "m": m, "v0": v0, "kappa": KAPPA}, x)
+    r = exu_eval(tuple(x[:3]), sc)
     return [float(r[k]) if np.isfinite(r[k]) else None for k in KEYS]
 
 
@@ -49,6 +49,8 @@ def main():
     ap.add_argument("--nd", type=int, default=80, help="每工况设计数")
     ap.add_argument("--workers", type=int, default=32)
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--dim", type=int, default=3, choices=[3, 7],
+                    help="3=几何(v1);7=几何+刚度/阻尼解耦(E4)")
     ap.add_argument("--out", default="outputs/gen_data")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
@@ -70,11 +72,15 @@ def main():
     C[:, 0] = C_LO["m"] + (C_HI["m"] - C_LO["m"]) * C[:, 0]
     C[:, 1] = C_LO["v0"] + (C_HI["v0"] - C_LO["v0"]) * C[:, 1]
 
-    lo, hi = np.array(M.LO_BIRD), np.array(M.HI_BIRD)
-    meta = dict(nc=args.nc, nd=args.nd, seed=args.seed, kappa=KAPPA,
+    if args.dim == 3:
+        lo, hi = np.array(M.LO_BIRD), np.array(M.HI_BIRD)
+        note = "3维:几何实测边界 v2;弹簧按 bird_size 规则配"
+    else:
+        lo, hi = np.array(M.LO_BIRD7), np.array(M.HI_BIRD7)
+        note = "7维 E4:几何实测边界 + κ踝/κ膝/κ髋/ζ 解耦(bird_size_x)"
+    meta = dict(nc=args.nc, nd=args.nd, seed=args.seed, kappa=KAPPA, dim=args.dim,
                 keys=KEYS, c_lo=C_LO, c_hi=C_HI,
-                x_lo=lo.tolist(), x_hi=hi.tolist(),
-                note="设计空间边界=实测 v2(AVONET+Watanabe);弹簧按 bird_size 规则配")
+                x_lo=lo.tolist(), x_hi=hi.tolist(), note=note)
     json.dump(meta, open(os.path.join(args.out, "factory_meta.json"), "w"),
               indent=2, ensure_ascii=False)
 
@@ -86,7 +92,7 @@ def main():
                 continue
             m, v0 = float(C[cid, 0]), float(C[cid, 1])
             drng = np.random.default_rng(10_000 + cid)   # 每工况独立可复现
-            X = lo + (hi - lo) * lhs(args.nd, 3, drng)
+            X = lo + (hi - lo) * lhs(args.nd, len(lo), drng)
             Y = list(ex.map(_eval_one, [(x, m, v0) for x in X], chunksize=2))
             nfail = sum(1 for y in Y if y[0] is None)
             f.write(json.dumps(dict(cid=cid, m=m, v0=v0,

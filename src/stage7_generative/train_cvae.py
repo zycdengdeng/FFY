@@ -21,6 +21,7 @@ ZDIM = 2
 class CVAE(nn.Module):
     def __init__(self, xd=3, cd=4, z=ZDIM, h=64):
         super().__init__()
+        self.zdim = z
         self.enc = nn.Sequential(nn.Linear(xd + cd, h), nn.SiLU(),
                                  nn.Linear(h, h), nn.SiLU())
         self.mu = nn.Linear(h, z); self.lv = nn.Linear(h, z)
@@ -38,7 +39,7 @@ class CVAE(nn.Module):
     def sample(self, c, n):
         """c:(cd,) 归一化;返回 (n, xd) 归一化设计。"""
         cc = c.unsqueeze(0).expand(n, -1)
-        z = torch.randn(n, ZDIM)
+        z = torch.randn(n, self.zdim)
         return self.dec(torch.cat([z, cc], -1))
 
 
@@ -54,6 +55,7 @@ def main():
     ap.add_argument("--beta", type=float, default=0.02)
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--device", default="cpu")
+    ap.add_argument("--zdim", type=int, default=2, help="7维设计建议 3-4")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args(); os.makedirs(args.out, exist_ok=True)
     torch.manual_seed(args.seed); np.random.seed(args.seed)
@@ -66,7 +68,7 @@ def main():
     X = torch.tensor(norm(d["X_tr"], x_lo, x_hi), dtype=torch.float32)
     print(f"[cvae] train pairs {len(C)}  device {args.device}")
 
-    model = CVAE().to(args.device)
+    model = CVAE(xd=X.shape[1], cd=C.shape[1], z=args.zdim).to(args.device)
     opt = torch.optim.Adam(model.parameters(), lr=args.lr)
     ds = torch.utils.data.TensorDataset(X, C)
     dl = torch.utils.data.DataLoader(ds, batch_size=256, shuffle=True)
@@ -86,7 +88,9 @@ def main():
         if (ep + 1) % 50 == 0:
             print(f"  ep {ep+1}/{args.epochs}  mse={mse_s/nb:.5f} kl={kl_s/nb:.3f}")
 
-    torch.save(dict(state=model.state_dict(), meta=meta), os.path.join(args.out, "cvae.pt"))
+    torch.save(dict(state=model.state_dict(), meta=meta,
+                    xd=X.shape[1], zdim=args.zdim),
+               os.path.join(args.out, "cvae.pt"))
     json.dump(log, open(os.path.join(args.out, "train_log.json"), "w"))
     print(f"[cvae] saved → {args.out}/cvae.pt")
 

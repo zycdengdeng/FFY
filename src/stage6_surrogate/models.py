@@ -37,6 +37,35 @@ BOUNDS_BIRD = dict(L1=(33.0, 121.0), r2=(1.49, 2.09), r3=(0.84, 1.28))
 LO_BIRD = [BOUNDS_BIRD[k][0] for k in ("L1", "r2", "r3")]
 HI_BIRD = [BOUNDS_BIRD[k][1] for k in ("L1", "r2", "r3")]
 
+# —— E4 扩维:刚度/阻尼解耦(7 维设计空间)——
+# x7 = (L1, r2, r3, κ_踝, κ_膝, κ_髋, ζ阻尼比)
+# 刚度仍按量纲规则 k=κ·m·g·L_leg,但三关节 κ 独立可选;范围覆盖旧默认 (4,4,16,0.03)
+# 并向两侧展开——"生物没有的自由度",E4 的核心问题所在。
+BOUNDS_BIRD7 = dict(**BOUNDS_BIRD, kap_a=(1.5, 8.0), kap_k=(1.5, 8.0),
+                    kap_h=(6.0, 32.0), zeta=(0.01, 0.10))
+_K7 = ("L1", "r2", "r3", "kap_a", "kap_k", "kap_h", "zeta")
+LO_BIRD7 = [BOUNDS_BIRD7[k][0] for k in _K7]
+HI_BIRD7 = [BOUNDS_BIRD7[k][1] for k in _K7]
+
+
+def bird_size_x(scen, x):
+    """通用尺寸化:len(x)==3 走 bird_size 默认规则;len(x)==7 刚度/阻尼解耦。"""
+    x = list(x)
+    if len(x) == 3:
+        return bird_size(scen, x)
+    L1, r2, r3, ka, kk, kh, z = x
+    Lleg = (L1 / 1000.0) * (1.0 + r2 + r3)
+    mgL = scen["m"] * scen["g"] * Lleg
+    s2 = dict(scen)
+    s2["k_ankle"] = ka * mgL; s2["k_knee"] = kk * mgL; s2["k_hip"] = kh * mgL
+    s2["k1"] = s2["k_ankle"]; s2["k2"] = s2["k_knee"]
+    s2["c_ankle"] = z * s2["k_ankle"]; s2["c_knee"] = z * s2["k_knee"]
+    s2["c1"] = s2["c_ankle"]; s2["c2"] = s2["c_knee"]
+    s2["c_hip"] = (z / 0.03) * 0.2 * s2["k_hip"]     # 保持旧默认比例关系
+    s2["kc"] = 4000.0 * scen["m"] * scen["g"]
+    s2["cc"] = 0.01 * s2["kc"]
+    return s2
+
 def bird_size(scen, x):
     """尺寸化规则:关节刚度按载荷与腿长配簧(k=κ·m·g·L_leg, κ=3;c=0.03k)。
     物理含义:每套设计按其载荷选簧,如真实工程;避免一套弹簧同时伺候1kg与12kg。"""
