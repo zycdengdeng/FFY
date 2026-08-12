@@ -187,6 +187,18 @@ r0 即"E4 同款纯工厂数据基线",之后逐轮应看到 gap 下降。
 > 并行度不再受单工况候选数(24)限制——144 核机器开 `--workers 128` 可吃满;
 > `OMP_NUM_THREADS=1` 防止每个仿真进程再开线程互踩。续跑旧目录完全兼容。
 
+**E5c 种子分布 + 合法选模**(同一份数据 × N 种子;验证集挑选、测试集报告,无泄露):
+
+```bash
+OMP_NUM_THREADS=1 python src/stage7_generative/e5_seeds.py \
+  --factory outputs/gen_data7/factory.jsonl --data outputs/gen_data7/gen_dataset.npz \
+  --inc outputs/gen_e5/pool_increments.jsonl --refs outputs/gen_e5/refs.json \
+  --out outputs/gen_e5c --nseeds 8 --workers 128
+```
+
+约 40–50 分钟(8 次重训 + 新建验证前沿 + 8×两套评测)。
+回传 `outputs/gen_e5c/e5c_results.json`。
+
 ## 工作流(sandbox 写代码 → 集群跑)
 
 Claude 在云沙箱写/改代码 → commit 进本地文件夹 → 你 `git push` →
