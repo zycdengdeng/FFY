@@ -174,14 +174,18 @@ python src/stage7_generative/eval_gen.py --model outputs/gen_model7/cvae.pt \
 **E5 自提升循环(生成→真值验证→回灌→重训,expert iteration)**:
 
 ```bash
-python src/stage7_generative/e5_loop.py \
+OMP_NUM_THREADS=1 python src/stage7_generative/e5_loop.py \
   --factory outputs/gen_data7/factory.jsonl --data outputs/gen_data7/gen_dataset.npz \
-  --out outputs/gen_e5 --rounds 3 --kgen 24 --workers 64
+  --out outputs/gen_e5 --rounds 6 --kgen 24 --workers 128
 ```
 
-每轮 ≈1.2 万仿真 + 重训,3 轮约 1 小时;断点续跑同命令即可。
+每轮 ≈1.2 万仿真 + 重训;断点续跑同命令即可(自动从已完成轮次继续)。
 回传 `outputs/gen_e5/trajectory.json`(逐轮差距/可行率/覆盖轨迹)。
 r0 即"E4 同款纯工厂数据基线",之后逐轮应看到 gap 下降。
+
+> 性能注(2026-08-12 重构):回灌/评测/参考前沿全部"跨工况打平"为万级任务队列,
+> 并行度不再受单工况候选数(24)限制——144 核机器开 `--workers 128` 可吃满;
+> `OMP_NUM_THREADS=1` 防止每个仿真进程再开线程互踩。续跑旧目录完全兼容。
 
 ## 工作流(sandbox 写代码 → 集群跑)
 

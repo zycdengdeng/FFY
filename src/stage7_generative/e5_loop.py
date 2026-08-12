@@ -72,10 +72,20 @@ def lhs(n, d, rng):
     return X
 
 
-def simulate(ex, X, m, v0, keys):
-    """批量真值评估 → (n, k) float,不可行为 NaN。"""
-    rows = list(ex.map(_eval_one, [(x, m, v0) for x in X], chunksize=2))
+def simulate(ex, jobs, keys):
+    """批量真值评估。jobs = [(x, m, v0), ...] —— 跨工况打平成一个大队列,
+    并行度 = min(len(jobs), workers),不受单工况候选数限制。"""
+    rows = list(ex.map(_eval_one, jobs, chunksize=8))
     return np.array([[np.nan if v is None else v for v in r] for r in rows])
+
+
+def scatter(items):
+    """[(tag, X, m, v0), ...] → (jobs, slices):打平并记录归属切片。"""
+    jobs, slices, ofs = [], {}, 0
+    for tag, X, m, v0 in items:
+        jobs += [(x, m, v0) for x in X]
+        slices[tag] = slice(ofs, ofs + len(X)); ofs += len(X)
+    return jobs, slices
 
 
 def load_pools(factory_path, lo, hi):
@@ -117,11 +127,17 @@ def build_ref_cache(ex, C_te, lo, hi, iP, iS, nref, keys, cache_fp):
     """留出场景的参考前沿——只算一次,此后各轮共用同一把尺子。"""
     if os.path.exists(cache_fp):
         return json.load(open(cache_fp))
+    items = []
+    for si, row in enumerate(C_te):
+        rng = np.random.default_rng(500_000 + si)
+        items.append((si, lo + (hi - lo) * lhs(nref, len(lo), rng),
+                      float(row[0]), float(row[1])))
+    jobs, slices = scatter(items)
+    Yall = simulate(ex, jobs, keys)
     cache = []
     for si, row in enumerate(C_te):
         m, v0, gcap, smax = row[:4]
-        rng = np.random.default_rng(500_000 + si)
-        Y = simulate(ex, lo + (hi - lo) * lhs(nref, len(lo), rng), m, v0, keys)
+        Y = Yall[slices[si]]
         okr = np.isfinite(Y[:, iP]) & (Y[:, iP] <= gcap) & (Y[:, iS] <= smax)
         if not okr.any():
             continue
@@ -135,12 +151,17 @@ def build_ref_cache(ex, C_te, lo, hi, iP, iS, nref, keys, cache_fp):
 def eval_model(model, ex, refs, meta, iP, iS, ngen, keys):
     c_lo, c_hi = np.array(meta["c_lo"]), np.array(meta["c_hi"])
     x_lo, x_hi = np.array(meta["x_lo"]), np.array(meta["x_hi"])
-    gaps, feas_r, cov = [], [], []
-    for r in refs:
+    items = []
+    for si, r in enumerate(refs):
         cn = torch.tensor(norm(np.array([r["m"], r["v0"], r["gcap"], r["smax"]]),
                                c_lo, c_hi), dtype=torch.float32)
         Xg = x_lo + (x_hi - x_lo) * model.sample(cn, ngen).numpy()
-        Yg = simulate(ex, Xg, r["m"], r["v0"], keys)
+        items.append((si, Xg, r["m"], r["v0"]))
+    jobs, slices = scatter(items)
+    Yall = simulate(ex, jobs, keys)
+    gaps, feas_r, cov = [], [], []
+    for si, r in enumerate(refs):
+        Yg = Yall[slices[si]]
         ok = np.isfinite(Yg[:, iP]) & (Yg[:, iP] <= r["gcap"]) & (Yg[:, iS] <= r["smax"])
         feas_r.append(float(ok.mean()))
         gaps.append((float(Yg[ok, iP].min()) - r["ref"]) / r["ref"] if ok.any() else 1.0)
@@ -216,31 +237,35 @@ def main():
             if rd == args.rounds:
                 break
 
-            # —— 提议 + 验证 + 回灌 ——
+            # —— 提议(CPU,快)→ 一次性打平验证(吃满所有核)→ 回灌 ——
             n_exp = int(round(args.kgen * args.eps))
             n_gen = args.kgen - n_exp
+            items = []
+            for p in pools.values():
+                if p.cid in test_cids:
+                    continue
+                rng = np.random.default_rng(rd * 1_000_003 + p.cid)
+                crng = np.random.default_rng(rd * 2_000_003 + p.cid)
+                cand = [lo + (hi - lo) * lhs(n_exp, D, rng)]            # 探索
+                for _ in range(2):                                      # 两个约束场景下开采
+                    c = np.array([p.m, p.v0, crng.uniform(*GCAP_RANGE) * 9.81,
+                                  crng.uniform(*SMAX_RANGE)])
+                    cn = torch.tensor(norm(c, c_lo, c_hi), dtype=torch.float32)
+                    cand.append(lo + (hi - lo) * model.sample(cn, n_gen // 2).numpy())
+                items.append((p.cid, np.clip(np.vstack(cand), lo, hi), p.m, p.v0))
+            jobs, slices = scatter(items)
+            Yall = simulate(ex, jobs, keys)                             # 万级大队列
             added = 0
             with open(inc_fp, "a") as f:
-                for p in pools.values():
-                    if p.cid in test_cids:
-                        continue
-                    rng = np.random.default_rng(rd * 1_000_003 + p.cid)
-                    crng = np.random.default_rng(rd * 2_000_003 + p.cid)
-                    cand = [lo + (hi - lo) * lhs(n_exp, D, rng)]        # 探索
-                    for _ in range(2):                                  # 两个约束场景下开采
-                        c = np.array([p.m, p.v0, crng.uniform(*GCAP_RANGE) * 9.81,
-                                      crng.uniform(*SMAX_RANGE)])
-                        cn = torch.tensor(norm(c, c_lo, c_hi), dtype=torch.float32)
-                        cand.append(lo + (hi - lo) * model.sample(cn, n_gen // 2).numpy())
-                    X_new = np.clip(np.vstack(cand), lo, hi)
-                    Y_new = simulate(ex, X_new, p.m, p.v0, keys)
-                    added += p.absorb(X_new, Y_new, lo, hi)
-                    f.write(json.dumps(dict(cid=p.cid, round=rd,
+                for cid, X_new, _, _ in items:
+                    Y_new = Yall[slices[cid]]
+                    added += pools[cid].absorb(X_new, Y_new, lo, hi)
+                    f.write(json.dumps(dict(cid=cid, round=rd,
                                             X=np.round(X_new, 4).tolist(),
                                             Y=[[None if not np.isfinite(v) else float(v)
                                                 for v in row] for row in Y_new])) + "\n")
-            print(f"[e5] r{rd}→r{rd+1}: 回灌 {added} 新设计(ε={args.eps} 探索)"
-                  f"  ({time.time()-t0:.0f}s)")
+            print(f"[e5] r{rd}→r{rd+1}: 回灌 {added} 新设计(ε={args.eps} 探索,"
+                  f"队列 {len(jobs)})  ({time.time()-t0:.0f}s)")
 
     print("\n== E5 轨迹 ==")
     for t in traj:
