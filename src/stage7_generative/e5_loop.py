@@ -210,7 +210,9 @@ def main():
     if os.path.exists(inc_fp):
         for line in open(inc_fp):
             inc = json.loads(line)
-            pools[inc["cid"]].absorb(np.array(inc["X"]), np.array(inc["Y"]), lo, hi)
+            Yi = np.array([[np.nan if v is None else v for v in row]
+                           for row in inc["Y"]], float)   # null(求解失败)→ NaN,与实时路径一致
+            pools[inc["cid"]].absorb(np.array(inc["X"], float), Yi, lo, hi)
 
     t0 = time.time()
     with ProcessPoolExecutor(max_workers=args.workers) as ex:
