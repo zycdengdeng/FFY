@@ -199,6 +199,18 @@ OMP_NUM_THREADS=1 python src/stage7_generative/e5_seeds.py \
 约 40–50 分钟(8 次重训 + 新建验证前沿 + 8×两套评测)。
 回传 `outputs/gen_e5c/e5c_results.json`。
 
+**E5 重测不重跑**(逐轮重建池子 + 每轮 3 种子,产论文级轨迹带图):
+
+```bash
+OMP_NUM_THREADS=1 python src/stage7_generative/e5_remeasure.py \
+  --factory outputs/gen_data7/factory.jsonl --data outputs/gen_data7/gen_dataset.npz \
+  --inc outputs/gen_e5/pool_increments.jsonl --refs outputs/gen_e5/refs.json \
+  --traj outputs/gen_e5/trajectory.json --out outputs/gen_e5_remeasure --seeds 3 --workers 128
+```
+
+约 2–3.5 小时(45 次重训,CPU 为主);断点续跑同命令。
+回传 `outputs/gen_e5_remeasure/`(remeasure.json + e5_trajectory_band.png)。
+
 ## 工作流(sandbox 写代码 → 集群跑)
 
 Claude 在云沙箱写/改代码 → commit 进本地文件夹 → 你 `git push` →
