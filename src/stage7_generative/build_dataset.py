@@ -19,12 +19,18 @@ SMAX_RANGE = (0.008, 0.040)   # m
 
 
 def pareto2(P):
-    n = len(P); dom = np.zeros(n, bool)
-    for i in range(n):
-        for k in range(n):
-            if k != i and np.all(P[k] <= P[i]) and np.any(P[k] < P[i]):
-                dom[i] = True; break
-    return ~dom
+    """双目标最小化的非支配掩码,O(N log N) 排序扫描版。
+    (按目标0升序、平局按目标1升序;沿序扫描,目标1创新低者非支配。
+     与 O(N²) 定义等价;完全重复点只保留一份——对训练集无害且更干净。)"""
+    P = np.asarray(P, float)
+    order = np.lexsort((P[:, 1], P[:, 0]))
+    mask = np.zeros(len(P), bool)
+    best1 = np.inf
+    for i in order:
+        if P[i, 1] < best1:
+            mask[i] = True
+            best1 = P[i, 1]
+    return mask
 
 
 def main():
