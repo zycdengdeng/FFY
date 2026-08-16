@@ -75,7 +75,9 @@ def main():
         for rd in sorted(rounds):
             for k in range(applied + 1, rd):         # 增量推进到 rd 轮的教材状态
                 for d in incs.get(k, []):
-                    pools[d["cid"]].absorb(np.array(d["X"]), np.array(d["Y"]), lo, hi)
+                    Yi = np.array([[np.nan if v is None else v for v in row]
+                                   for row in d["Y"]], float)   # null → NaN,与实时路径一致
+                    pools[d["cid"]].absorb(np.array(d["X"], float), Yi, lo, hi)
                 applied = k
             if str(rd) in done:
                 continue

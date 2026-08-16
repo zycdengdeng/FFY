@@ -71,7 +71,9 @@ def main():
     if os.path.exists(args.inc):
         for line in open(args.inc):
             inc = json.loads(line)
-            pools[inc["cid"]].absorb(np.array(inc["X"]), np.array(inc["Y"]), lo, hi)
+            Yi = np.array([[np.nan if v is None else v for v in row]
+                           for row in inc["Y"]], float)   # null(求解失败)→ NaN,与实时路径一致
+            pools[inc["cid"]].absorb(np.array(inc["X"], float), Yi, lo, hi)
     C_tr, X_tr = build_pairs(pools, set(ds_meta["test_cids"]), iP, iS, args.kscen)
     print(f"[e5c] pool={sum(len(p.X) for p in pools.values())}  pairs={len(C_tr)}")
 
