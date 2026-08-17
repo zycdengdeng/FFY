@@ -179,6 +179,27 @@ def size_leg(met, mat, sf, nlegs, dmin):
     return out, total
 
 
+def strut_baseline(m, v0, smax, height, mat, sf, dmin, eta_oleo=0.85,
+                   telescopic_factor=1.5):
+    """第三档工程基准:等效伸缩式弹簧阻尼支柱,同任务 (m,v0,smax) 同定尺寸规则。
+    理想恒力吸能 F = 0.5·m·v0²/(η·s) + m·g(η=0.85 油气典型效率);
+    受压柱长 = 站高×1.3(伸缩重叠),屈曲+压应力定径;质量×1.5(双管+活塞)。"""
+    F = 0.5 * m * v0 ** 2 / (eta_oleo * smax) + m * 9.81
+    peak_g = F / m / 9.81
+    Lcol = height * 1.3
+    D, mass, gov = size_segment(0.0, F, Lcol, mat, sf, dmin)
+    return dict(F_N=F, peak_g=peak_g, D_mm=D * 1e3,
+                mass_g=mass * telescopic_factor * 1e3, governs=gov)
+
+
+def standing_height(x, s=SCEN_BIRD_X):
+    """触地姿态下髋点高度(与腿同站高的支柱长度口径)。"""
+    l1 = x[0] / 1000.0; l2 = x[1] * l1; l3 = x[2] * l1
+    a1 = s["q1_0"]; a2 = a1 + (np.pi - s["thetaA"]); a3 = a2 - (np.pi - s["thetaK"])
+    return (s["gap0"] + s["r_foot"] + l1 * np.sin(a1)
+            + l2 * np.sin(a2) + l3 * np.sin(a3))
+
+
 # ---------------------------------------------------------------- 主实验
 def main():
     ap = argparse.ArgumentParser()
@@ -244,23 +265,32 @@ def main():
                 segs, mtot = size_leg(mb, mat, args.sf, args.nlegs, args.dmin)
                 entry.update(best=dict(
                     x=np.round(xb, 3).tolist(), peak_g=mb["peak_a"] / 9.81,
-                    stroke_mm=mb["stroke"] * 1e3,
+                    stroke_mm=mb["stroke"] * 1e3, rebound_mm=mb["rebound"] * 1e3,
                     M_hip=mb["M_hip"], M_knee=mb["M_knee"], M_ankle=mb["M_ankle"],
                     segments=segs, leg_mass_g=mtot * 1e3,
-                    mass_frac_pct=100 * mtot / r["m"]))
+                    mass_frac_pct=100 * mtot / r["m"],
+                    SEA_Jkg=mb["E_abs"] / mtot))
+            if feas:
+                strut = strut_baseline(r["m"], r["v0"], r["smax"],
+                                       standing_height(entry["best"]["x"]),
+                                       mat, args.sf, args.dmin)
+                entry.update(strut=strut)
             sw = res[-1]
             if sw:
                 ssw, msw = size_leg(sw, mat, args.sf, args.nlegs, args.dmin)
                 entry.update(swan=dict(peak_g=sw["peak_a"] / 9.81,
                                        leg_mass_g=msw * 1e3,
-                                       mass_frac_pct=100 * msw / r["m"]))
+                                       mass_frac_pct=100 * msw / r["m"],
+                                       SEA_Jkg=sw["E_abs"] / msw))
             rows.append(entry)
-            b = entry.get("best"); sname = entry.get("swan")
+            b = entry.get("best"); sname = entry.get("swan"); st = entry.get("strut")
             print(f"  工况 m={r['m']:.1f}kg v0={r['v0']:.2f}: "
-                  + (f"生成腿 {b['leg_mass_g']:.0f}g({b['mass_frac_pct']:.1f}%体重) "
-                     f"峰值{b['peak_g']:.1f}g" if b else "无可行")
-                  + (f" | 天鹅对照 {sname['leg_mass_g']:.0f}g"
-                     f"({sname['mass_frac_pct']:.1f}%)" if sname else ""))
+                  + (f"生成腿 {b['leg_mass_g']:.0f}g({b['mass_frac_pct']:.1f}%) "
+                     f"峰值{b['peak_g']:.1f}g 回弹{b['rebound_mm']:.1f}mm "
+                     f"SEA{b['SEA_Jkg']:.0f}J/kg" if b else "无可行")
+                  + (f" | 支柱基准 {st['mass_g']:.0f}g 峰值{st['peak_g']:.1f}g"
+                     f"({st['governs'][:4]})" if st else "")
+                  + (f" | 天鹅 {sname['leg_mass_g']:.0f}g" if sname else ""))
 
     # 5% 规则对比:规则质量 = 3 段 × 5% 体重
     for e in rows:
