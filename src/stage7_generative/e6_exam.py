@@ -44,14 +44,18 @@ M_EDGES = [1.0, 4.0, 8.0, 12.0]
 V_EDGES = [0.5, 1.25, 2.0]
 
 
-def feas_mask(Y, gcap, smax, eta_min, v0):
-    """考规 v2:峰值/行程/η 达标 + 两级回弹闸(硬:足端不离地;软:回能比≤REB_CAP)。"""
+def feas_mask(Y, gcap, smax, eta_min, v0, nohop=False):
+    """考规 v3:峰值/行程/η 达标 + 回能比 ≤ REB_CAP(唯一判罚闸;
+    等价于二次冲击速度 ≤ √REB_CAP·v0≈22%v0,见《回弹判据调研》v3)。
+    nohop=True 为附加口径(足端零离地),仅用于展示被动构型高速能力边界。"""
     ok = np.isfinite(Y[:, iP])
     h_eq = max(v0 * v0 / (2 * 9.81), 1e-9)
     er = np.nan_to_num(Y[:, iR], nan=np.inf) / h_eq
-    nb = np.nan_to_num(Y[:, iB], nan=np.inf)
-    return (ok & (Y[:, iP] <= gcap) & (Y[:, iS] <= smax)
-            & (Y[:, iE] >= eta_min) & (nb <= 0.5) & (er <= REB_CAP))
+    base = (ok & (Y[:, iP] <= gcap) & (Y[:, iS] <= smax)
+            & (Y[:, iE] >= eta_min) & (er <= REB_CAP))
+    if nohop:
+        base = base & (np.nan_to_num(Y[:, iB], nan=np.inf) <= 0.5)
+    return base
 
 
 def stratum(m, v0):
@@ -129,12 +133,18 @@ def eval_gen_e6(model, ex, refs, c_lo, c_hi, x_lo, x_hi, ngen):
         gap = ((float(Y[feas, iP].min()) - r["ref"]) / r["ref"]) if feas.any() else 1.0
         cov = (float(np.ptp(Y[feas, iS])) / r["span"]
                if feas.sum() > 1 and r["span"] > 0 else np.nan)
+        fn = feas_mask(Y, r["gcap"], r["smax"], r["eta_min"], r["v0"], nohop=True)
+        gap_nh = ((float(Y[fn, iP].min()) - r["ref"]) / r["ref"]) if fn.any() else 1.0
         out.append(dict(m=r["m"], v0=r["v0"], gap=float(gap),
+                        gap_nohop=float(gap_nh),
                         feas=float(feas.mean()), cov=cov))
     gaps = np.array([o["gap"] for o in out])
     covs = [o["cov"] for o in out if o["cov"] is not None and np.isfinite(o["cov"])]
+    gnh = np.array([o["gap_nohop"] for o in out])
     summ = dict(median_gap=float(np.median(gaps)), mean_gap=float(gaps.mean()),
                 fail=int((gaps >= 1.0).sum()),
+                nohop_median_gap=float(np.median(gnh)),
+                nohop_fail=int((gnh >= 1.0).sum()),
                 feas_rate=float(np.mean([o["feas"] for o in out])),
                 coverage=float(np.mean(covs)) if covs else 0.0)
     return summ, out
@@ -157,9 +167,7 @@ def bo9_e6(ex, r, lo, hi, rng):
              + 1e3 * max(0, y[iS] - r["smax"]) / r["smax"]
              + 1e3 * max(0, r["eta_min"] - y[iE]) / r["eta_min"])
         h_eq = max(r["v0"] ** 2 / (2 * 9.81), 1e-9)
-        if np.nan_to_num(y[iB], nan=1.0) > 0.5:          # 硬闸:足端离地
-            v += 1e3
-        if np.nan_to_num(y[iR], nan=np.inf) / h_eq > REB_CAP:  # 软闸:回能比
+        if np.nan_to_num(y[iR], nan=np.inf) / h_eq > REB_CAP:  # 回能比闸(v3 唯一判罚)
             v += 1e3
         return v
 

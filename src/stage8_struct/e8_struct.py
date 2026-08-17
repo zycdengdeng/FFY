@@ -261,8 +261,7 @@ def main():
             h_eq = max(r["v0"] ** 2 / (2 * 9.81), 1e-9)
             feas = [(x, mt) for x, mt in zip(Xg, res[:-1])
                     if mt and mt["peak_a"] <= r["gcap"] and mt["stroke"] <= r["smax"]
-                    and mt["n_bounce"] == 0
-                    and mt["rebound"] / h_eq <= args.reb_cap]
+                    and mt["rebound"] / h_eq <= args.reb_cap]   # v3:回能比为唯一判罚闸
             entry = dict(m=r["m"], v0=r["v0"], gcap_g=r["gcap"] / 9.81,
                          smax_mm=r["smax"] * 1e3, n_feas=len(feas))
             if feas:
@@ -272,6 +271,7 @@ def main():
                     x=np.round(xb, 3).tolist(), peak_g=mb["peak_a"] / 9.81,
                     stroke_mm=mb["stroke"] * 1e3, rebound_mm=mb["rebound"] * 1e3,
                     energy_return_pct=100 * mb["rebound"] / h_eq,
+                    n_bounce=int(mb["n_bounce"]),
                     M_hip=mb["M_hip"], M_knee=mb["M_knee"], M_ankle=mb["M_ankle"],
                     segments=segs, leg_mass_g=mtot * 1e3,
                     mass_frac_pct=100 * mtot / r["m"],

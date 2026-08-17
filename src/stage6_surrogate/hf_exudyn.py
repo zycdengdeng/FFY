@@ -80,8 +80,16 @@ def _metrics(t, z, az, m, g, v0):
     az_s = np.convolve(az, np.ones(w) / w, mode="same")
     jerk = float(np.max(np.abs(np.diff(az_s) / h)))
     reb = float(max(0.0, np.max(z[imin:]) - z[i0]))
+    # 离地判定加 5ms 时间门槛:真实弹跳腾空为几十 ms 量级,
+    # 回程弹簧卸载导致的亚毫秒级力过零属数值抖动,不计(判据调研 v2,2026-08-17)
     off = F[i0:] < thr
-    n_bounce = int(np.sum(np.diff(off.astype(int)) == 1))
+    wmin = max(1, int(0.005 / h))
+    n_bounce = 0
+    run = 0
+    for o in off:
+        run = run + 1 if o else 0
+        if run == wmin:                      # 每个 ≥5ms 的失载段计一次
+            n_bounce += 1
     v = np.gradient(z, h)
     hot = np.where(np.abs(v) > 0.05 * abs(v0))[0]
     t_settle = float(t[hot[-1]] - t[i0]) if len(hot) else 0.0
