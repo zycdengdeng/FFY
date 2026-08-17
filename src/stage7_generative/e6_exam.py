@@ -36,18 +36,22 @@ from train_cvae import CVAE, fit, norm                      # noqa: E402
 
 iP, iS = KEYS.index("peak_a"), KEYS.index("stroke")
 iE, iR = KEYS.index("eta"), KEYS.index("rebound")
+iB = KEYS.index("n_bounce")
 ETA_RANGE = (0.50, 0.80)        # η_min 抽样区间默认值(可用 --eta-lo/--eta-hi 覆盖)
-REB_TOL = 1e-6                  # 回弹判零容差
+REB_CAP = 0.05                  # 软闸:回能比上限(回弹高/等效落高;见《回弹判据调研》)
 
 M_EDGES = [1.0, 4.0, 8.0, 12.0]
 V_EDGES = [0.5, 1.25, 2.0]
 
 
-def feas_mask(Y, gcap, smax, eta_min):
-    """新考规:峰值/行程达标 + η 达标 + 零回弹。Y:(n, len(KEYS))"""
+def feas_mask(Y, gcap, smax, eta_min, v0):
+    """考规 v2:峰值/行程/η 达标 + 两级回弹闸(硬:足端不离地;软:回能比≤REB_CAP)。"""
     ok = np.isfinite(Y[:, iP])
+    h_eq = max(v0 * v0 / (2 * 9.81), 1e-9)
+    er = np.nan_to_num(Y[:, iR], nan=np.inf) / h_eq
+    nb = np.nan_to_num(Y[:, iB], nan=np.inf)
     return (ok & (Y[:, iP] <= gcap) & (Y[:, iS] <= smax)
-            & (Y[:, iE] >= eta_min) & (np.nan_to_num(Y[:, iR], nan=1.0) <= REB_TOL))
+            & (Y[:, iE] >= eta_min) & (nb <= 0.5) & (er <= REB_CAP))
 
 
 def stratum(m, v0):
@@ -69,7 +73,7 @@ def build_pairs_e6(pools, test_cids, kscen):
             gcap = crng.uniform(*GCAP_RANGE) * 9.81
             smax = crng.uniform(*SMAX_RANGE)
             emin = crng.uniform(*ETA_RANGE)
-            feas = feas_mask(Y, gcap, smax, emin)
+            feas = feas_mask(Y, gcap, smax, emin, p.v0)
             if feas.sum() < 3:
                 n_empty += 1; continue
             front = pareto2(Y[feas][:, [iP, iS]])
@@ -94,7 +98,7 @@ def build_refs_e6(ex, conds, lo, hi, nref, cache_fp):
     for si, c in enumerate(conds):
         m, v0, gcap, smax, emin = c
         Y = Yall[slices[si]]
-        feas = feas_mask(Y, gcap, smax, emin)
+        feas = feas_mask(Y, gcap, smax, emin, v0)
         if not feas.any():
             continue
         cache.append(dict(
@@ -102,7 +106,7 @@ def build_refs_e6(ex, conds, lo, hi, nref, cache_fp):
             eta_min=float(emin), ref=float(Y[feas, iP].min()),
             span=float(np.ptp(Y[feas, iS])) if feas.sum() > 1 else 0.0,
             n_feas=int(feas.sum()),
-            Y=np.round(Y[:, [iP, iS, iE, iR]], 5).tolist()))
+            Y=np.round(Y[:, [iP, iS, iE, iR, iB]], 5).tolist()))
     json.dump(cache, open(cache_fp, "w"))
     return cache
 
@@ -121,7 +125,7 @@ def eval_gen_e6(model, ex, refs, c_lo, c_hi, x_lo, x_hi, ngen):
     out = []
     for si, r in enumerate(refs):
         Y = Yall[si * ngen:(si + 1) * ngen]
-        feas = feas_mask(Y, r["gcap"], r["smax"], r["eta_min"])
+        feas = feas_mask(Y, r["gcap"], r["smax"], r["eta_min"], r["v0"])
         gap = ((float(Y[feas, iP].min()) - r["ref"]) / r["ref"]) if feas.any() else 1.0
         cov = (float(np.ptp(Y[feas, iS])) / r["span"]
                if feas.sum() > 1 and r["span"] > 0 else np.nan)
@@ -152,7 +156,10 @@ def bo9_e6(ex, r, lo, hi, rng):
         v = (y[iP] + 1e3 * max(0, y[iP] - r["gcap"]) / r["gcap"]
              + 1e3 * max(0, y[iS] - r["smax"]) / r["smax"]
              + 1e3 * max(0, r["eta_min"] - y[iE]) / r["eta_min"])
-        if np.nan_to_num(y[iR], nan=1.0) > REB_TOL:
+        h_eq = max(r["v0"] ** 2 / (2 * 9.81), 1e-9)
+        if np.nan_to_num(y[iB], nan=1.0) > 0.5:          # 硬闸:足端离地
+            v += 1e3
+        if np.nan_to_num(y[iR], nan=np.inf) / h_eq > REB_CAP:  # 软闸:回能比
             v += 1e3
         return v
 
@@ -168,7 +175,7 @@ def bo9_e6(ex, r, lo, hi, rng):
         ynew = [np.nan if v is None else v
                 for v in list(ex.map(_eval_one, [(xnew, r["m"], r["v0"])]))[0]]
         X = np.vstack([X, xnew]); Y = np.vstack([Y, ynew])
-    feas = feas_mask(Y, r["gcap"], r["smax"], r["eta_min"])
+    feas = feas_mask(Y, r["gcap"], r["smax"], r["eta_min"], r["v0"])
     return ((float(Y[feas, iP].min()) - r["ref"]) / r["ref"]) if feas.any() else 1.0
 
 
@@ -187,7 +194,7 @@ def strata_table(rows):
 
 
 def main():
-    global ETA_RANGE
+    global ETA_RANGE, REB_CAP
     ap = argparse.ArgumentParser()
     ap.add_argument("--factory", default="outputs/gen_data7/factory.jsonl")
     ap.add_argument("--data", default="outputs/gen_data7/gen_dataset.npz")
@@ -204,8 +211,11 @@ def main():
     ap.add_argument("--skip-bo", action="store_true")
     ap.add_argument("--eta-lo", type=float, default=ETA_RANGE[0])
     ap.add_argument("--eta-hi", type=float, default=ETA_RANGE[1])
+    ap.add_argument("--reb-cap", type=float, default=REB_CAP,
+                    help="软闸回能比上限(硬闸 n_bounce=0 恒开)")
     args = ap.parse_args(); os.makedirs(args.out, exist_ok=True)
     ETA_RANGE = (args.eta_lo, args.eta_hi)
+    REB_CAP = args.reb_cap
 
     meta = json.load(open(os.path.join(os.path.dirname(args.factory), "factory_meta.json")))
     ds_meta = json.load(open(args.data.replace("gen_dataset.npz", "gen_dataset_meta.json")))

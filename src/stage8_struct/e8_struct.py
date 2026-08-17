@@ -211,6 +211,8 @@ def main():
     ap.add_argument("--nlegs", type=int, default=1,
                     help="分载腿数(1=单腿扛全重,最保守)")
     ap.add_argument("--dmin", type=float, default=0.004, help="最小外径 m(打印工艺限)")
+    ap.add_argument("--reb-cap", type=float, default=0.05,
+                    help="软闸回能比上限(硬闸 n_bounce=0 恒开;见《回弹判据调研》)")
     ap.add_argument("--ngen", type=int, default=40)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--seed", type=int, default=808_001)
@@ -256,8 +258,11 @@ def main():
             jobs.append((xs, r["m"], r["v0"]))
             res = list(ex.map(_job, jobs, chunksize=2))
 
+            h_eq = max(r["v0"] ** 2 / (2 * 9.81), 1e-9)
             feas = [(x, mt) for x, mt in zip(Xg, res[:-1])
-                    if mt and mt["peak_a"] <= r["gcap"] and mt["stroke"] <= r["smax"]]
+                    if mt and mt["peak_a"] <= r["gcap"] and mt["stroke"] <= r["smax"]
+                    and mt["n_bounce"] == 0
+                    and mt["rebound"] / h_eq <= args.reb_cap]
             entry = dict(m=r["m"], v0=r["v0"], gcap_g=r["gcap"] / 9.81,
                          smax_mm=r["smax"] * 1e3, n_feas=len(feas))
             if feas:
@@ -266,6 +271,7 @@ def main():
                 entry.update(best=dict(
                     x=np.round(xb, 3).tolist(), peak_g=mb["peak_a"] / 9.81,
                     stroke_mm=mb["stroke"] * 1e3, rebound_mm=mb["rebound"] * 1e3,
+                    energy_return_pct=100 * mb["rebound"] / h_eq,
                     M_hip=mb["M_hip"], M_knee=mb["M_knee"], M_ankle=mb["M_ankle"],
                     segments=segs, leg_mass_g=mtot * 1e3,
                     mass_frac_pct=100 * mtot / r["m"],
@@ -286,7 +292,7 @@ def main():
             b = entry.get("best"); sname = entry.get("swan"); st = entry.get("strut")
             print(f"  工况 m={r['m']:.1f}kg v0={r['v0']:.2f}: "
                   + (f"生成腿 {b['leg_mass_g']:.0f}g({b['mass_frac_pct']:.1f}%) "
-                     f"峰值{b['peak_g']:.1f}g 回弹{b['rebound_mm']:.1f}mm "
+                     f"峰值{b['peak_g']:.1f}g 回能比{b['energy_return_pct']:.1f}% "
                      f"SEA{b['SEA_Jkg']:.0f}J/kg" if b else "无可行")
                   + (f" | 支柱基准 {st['mass_g']:.0f}g 峰值{st['peak_g']:.1f}g"
                      f"({st['governs'][:4]})" if st else "")
