@@ -187,6 +187,7 @@ def strata_table(rows):
 
 
 def main():
+    global ETA_RANGE
     ap = argparse.ArgumentParser()
     ap.add_argument("--factory", default="outputs/gen_data7/factory.jsonl")
     ap.add_argument("--data", default="outputs/gen_data7/gen_dataset.npz")
@@ -204,7 +205,6 @@ def main():
     ap.add_argument("--eta-lo", type=float, default=ETA_RANGE[0])
     ap.add_argument("--eta-hi", type=float, default=ETA_RANGE[1])
     args = ap.parse_args(); os.makedirs(args.out, exist_ok=True)
-    global ETA_RANGE
     ETA_RANGE = (args.eta_lo, args.eta_hi)
 
     meta = json.load(open(os.path.join(os.path.dirname(args.factory), "factory_meta.json")))
