@@ -47,6 +47,20 @@ _K7 = ("L1", "r2", "r3", "kap_a", "kap_k", "kap_h", "zeta")
 LO_BIRD7 = [BOUNDS_BIRD7[k][0] for k in _K7]
 HI_BIRD7 = [BOUNDS_BIRD7[k][1] for k in _K7]
 
+# —— E11 仿生先验消融:只改几何盒子(生物数据唯一进入设计空间之处),
+#    刚度/阻尼范围三臂完全一致(它们来自量纲论证,与鸟类数据无关)。
+#    bio   : AVONET 101 种 + Watanabe 91 种实测(体积基准 88×0.60×0.44)
+#    wide  : 工程朴素宽界,无生物知识(体积 ≈ 94× bio,且包含 bio 盒)
+#    shift : 与 bio 等体积但比例非生物(长胫短股)——把"窄"与"位置对"分开
+BOUNDS_WIDE7 = dict(BOUNDS_BIRD7, L1=(20.0, 250.0), r2=(0.50, 4.00), r3=(0.30, 3.00))
+BOUNDS_SHIFT7 = dict(BOUNDS_BIRD7, L1=(33.0, 121.0), r2=(2.20, 2.80), r3=(0.30, 0.74))
+LO_WIDE7 = [BOUNDS_WIDE7[k][0] for k in _K7]
+HI_WIDE7 = [BOUNDS_WIDE7[k][1] for k in _K7]
+LO_SHIFT7 = [BOUNDS_SHIFT7[k][0] for k in _K7]
+HI_SHIFT7 = [BOUNDS_SHIFT7[k][1] for k in _K7]
+BOXES7 = {"bio": (LO_BIRD7, HI_BIRD7), "wide": (LO_WIDE7, HI_WIDE7),
+          "shift": (LO_SHIFT7, HI_SHIFT7)}
+
 
 def bird_size_x(scen, x):
     """通用尺寸化:len(x)==3 走 bird_size 默认规则;len(x)==7 刚度/阻尼解耦。"""

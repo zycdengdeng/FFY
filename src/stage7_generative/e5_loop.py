@@ -167,8 +167,10 @@ def eval_model(model, ex, refs, meta, iP, iS, ngen, keys):
         gaps.append((float(Yg[ok, iP].min()) - r["ref"]) / r["ref"] if ok.any() else 1.0)
         cov.append(float(np.ptp(Yg[ok, iS])) / r["span"]
                    if ok.sum() > 1 and r["span"] > 0 else np.nan)
+    cv = [c for c in cov if np.isfinite(c)]
     return dict(median_gap=float(np.median(gaps)), mean_gap=float(np.mean(gaps)),
-                feas_rate=float(np.mean(feas_r)), coverage=float(np.nanmean(cov)),
+                feas_rate=float(np.mean(feas_r)),
+                coverage=float(np.mean(cv)) if cv else 0.0,
                 fail=int(sum(g >= 1.0 for g in gaps)), n=len(gaps))
 
 

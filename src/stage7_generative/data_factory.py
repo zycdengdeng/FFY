@@ -51,6 +51,8 @@ def main():
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--dim", type=int, default=3, choices=[3, 7],
                     help="3=几何(v1);7=几何+刚度/阻尼解耦(E4)")
+    ap.add_argument("--box", default="bio", choices=["bio", "wide", "shift"],
+                    help="7维几何盒子(E11 消融):bio=实测/wide=工程朴素/shift=等体积非生物")
     ap.add_argument("--out", default="outputs/gen_data")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
@@ -76,9 +78,12 @@ def main():
         lo, hi = np.array(M.LO_BIRD), np.array(M.HI_BIRD)
         note = "3维:几何实测边界 v2;弹簧按 bird_size 规则配"
     else:
-        lo, hi = np.array(M.LO_BIRD7), np.array(M.HI_BIRD7)
-        note = "7维 E4:几何实测边界 + κ踝/κ膝/κ髋/ζ 解耦(bird_size_x)"
+        blo, bhi = M.BOXES7[args.box]
+        lo, hi = np.array(blo), np.array(bhi)
+        note = (f"7维 E4/E11:几何盒子={args.box} + κ踝/κ膝/κ髋/ζ 解耦(bird_size_x);"
+                f"刚度阻尼范围三臂一致")
     meta = dict(nc=args.nc, nd=args.nd, seed=args.seed, kappa=KAPPA, dim=args.dim,
+                box=args.box,
                 keys=KEYS, c_lo=C_LO, c_hi=C_HI,
                 x_lo=lo.tolist(), x_hi=hi.tolist(), note=note)
     json.dump(meta, open(os.path.join(args.out, "factory_meta.json"), "w"),
