@@ -275,9 +275,10 @@ def main():
             for i in range(args.ndes):
                 r = R[(i, tn, m)]
                 tot += 1
-                f, w = P.feasible_v2(r, args.gcap, args.smax)
+                f, ws = P.feasible_v2(r, args.gcap, args.smax)
                 ok += int(f)
-                why[(tn, m, w)] = why.get((tn, m, w), 0) + 1
+                for w in ws:                      # 记全部违反项,不带检查顺序伪影
+                    why[(tn, m, w)] = why.get((tn, m, w), 0) + 1
             row.append(100.0 * ok / max(tot, 1))
         feas_tab[tn] = row
         mono = all(row[i] >= row[i + 1] - 1e-9 for i in range(len(row) - 1))

@@ -32,7 +32,10 @@ iP, iS, iL = (KEYS_V2.index("peak_a"), KEYS_V2.index("stroke"),
               KEYS_V2.index("leg_stroke"))
 iSO, iMO = KEYS_V2.index("struct_over"), KEYS_V2.index("mass_over")
 
-GCAP_RANGE = (4.0, 15.0)          # g
+# 上界 15→25 g:v1 的 [4,15] 是按 v1 那个唯一(且偏软)的等效地面标定的;
+# v2 的地形跨到 1e6 N/m,硬地上生物设计盒里没有任何设计能进 15 g。
+# 实测(pilot 10,200 次仿真):[4,15] 有 4% 的工况零可行,[4,25] 降到 0%。
+GCAP_RANGE = (4.0, 25.0)          # g
 SMAX_RANGE = (0.008, 0.040)       # m
 
 

@@ -46,7 +46,9 @@ TERRAIN = {
 # 球-面罚接触失效(记 fail="deep_sink",绝不与真实塌陷混淆)。
 # 实测有效边界(足端 = 0.20·L1):kc ≥ 5e4 在 m∈[1,12] 全程有效;
 # kc ∈ [2e4, 5e4) 仅在 m ≲ 8 kg 有效。更软(泥/水)需 v²拖曳+附加质量模型 → v2.1。
-KC_RANGE = (5.0e4, 2.0e6)
+# 上界从 2e6 收到 1e6:足端不是刚体,弹性足垫与地面**串联**,
+# 有效接触刚度由较软者封顶;2e6 N/m 经一个 20mm 半径的足垫传递并不现实。
+KC_RANGE = (5.0e4, 1.0e6)
 ZETA_C_RANGE = (0.05, 0.35)
 
 # ---------------------------------------------------------------- 结构(绝对量)
@@ -249,19 +251,26 @@ def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
 
 
 def feasible_v2(r, gcap, smax):
-    """v2 可行性:运动学三条(v1 原有) + 结构三条(全部是不随 m 缩放的绝对量)。"""
+    """v2 可行性。返回 (是否可行, 违反的判据列表)。
+
+    **返回全部违反项而不是第一个** —— 只报第一个会让统计带上检查顺序的伪影:
+    低质量端因为 g_cap 先失效,把它们的结构状态整个遮住,看上去像
+    "高质量端才出现结构失效",其实只是高质量端峰值低、才轮得到结构判据被检查。
+    实测教训,见《方案》实施记录 ④。
+    """
     if r is None:
-        return False, "none"
+        return False, ["none"]
     if r.get("fail"):
-        return False, r["fail"]
+        return False, [r["fail"]]
     if not np.isfinite(r.get("peak_a", np.nan)):
-        return False, "nonfinite"
+        return False, ["nonfinite"]
+    bad = []
     if r["peak_a"] > gcap:
-        return False, "gcap"
+        bad.append("gcap")
     if r.get("leg_stroke", r["stroke"]) > smax:
-        return False, "smax"
+        bad.append("smax")
     if r["struct_over"]:
-        return False, "slenderness"     # 应力/屈曲要求的管径超过几何上限
+        bad.append("slenderness")     # 应力/屈曲要求的管径超过几何上限
     if r["mass_over"]:
-        return False, "massbudget"
-    return True, "ok"
+        bad.append("massbudget")
+    return (not bad), (bad or ["ok"])
