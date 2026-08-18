@@ -52,12 +52,49 @@ def to_arr(rows):
     return np.array([[np.nan if v is None else v for v in r] for r in rows], float)
 
 
+def resolve_ckpt(p):
+    """--model 允许给文件,也允许给目录:目录则递归找轮次最大的 cvae_r*.pt。
+
+    存档命名在多种子/续跑之间变过好几次,写死路径迟早再炸一次,这里一次解决。
+    """
+    import glob as _g
+    import re as _re
+    if os.path.isfile(p):
+        return p
+    if not os.path.isdir(p):
+        # 也许给的是 outputs/gen_e5c/cvae_r85.pt 但实际在别的轮次
+        d = os.path.dirname(p) or "."
+        if not os.path.isdir(d):
+            raise SystemExit(f"[e14] 找不到 {p},其所在目录也不存在")
+        p = d
+    cands = _g.glob(os.path.join(p, "**", "cvae_r*.pt"), recursive=True)
+    if cands:
+        def rd(f):
+            m = _re.search(r"cvae_r(\d+)\.pt$", f)
+            return int(m.group(1)) if m else -1
+        # 并列时取层级最浅的(多种子目录下不要静默挑到某个非官方种子)
+        best = max(cands, key=lambda f: (rd(f), -f.count(os.sep)))
+        dirs = sorted({os.path.dirname(f) for f in cands})
+        print(f"[e14] 目录 {p} 下找到 {len(cands)} 个存档,取轮次最大: {best}")
+        if len(dirs) > 1:
+            print(f"[e14] 注意:存档分布在 {len(dirs)} 个子目录 {dirs};"
+                  f"若要指定种子请直接把 --model 指到具体文件")
+        return best
+    plain = _g.glob(os.path.join(p, "**", "cvae.pt"), recursive=True)
+    if plain:
+        print(f"[e14] 未见 cvae_r*.pt,改用 {plain[0]}")
+        return plain[0]
+    raise SystemExit(f"[e14] {p} 下没有任何 cvae*.pt。用 "
+                     f"`find outputs -name 'cvae*.pt' | head` 看看存档在哪。")
+
+
 def load_model(fp):
+    fp = resolve_ckpt(fp)
     ck = torch.load(fp, map_location="cpu", weights_only=False)
     meta = ck["meta"]
     mdl = CVAE(xd=ck["xd"], cd=len(meta["c_lo"]), z=ck["zdim"])
     mdl.load_state_dict(ck["state"]); mdl.eval()
-    return mdl, meta
+    return mdl, meta, fp
 
 
 # --------------------------------------------------------------- A 解码器灵敏度
@@ -169,7 +206,8 @@ def probe_invariance(ex, masses, ndes=24, v0=1.2, seed=2):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="outputs/gen_e5c/cvae_r85.pt")
+    ap.add_argument("--model", default="outputs/gen_e5c",
+                    help="存档文件,或目录(自动取轮次最大的 cvae_r*.pt)")
     ap.add_argument("--out", default="outputs/gen_e14")
     ap.add_argument("--workers", type=int, default=32)
     ap.add_argument("--masses", default="1,2,4,8,12")
@@ -179,7 +217,7 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     masses = [float(v) for v in args.masses.split(",")]
 
-    mdl, meta = load_model(args.model)
+    mdl, meta, args.model = load_model(args.model)
     print(f"[e14] 模型 {args.model}  xd={mdl.dec[-2].out_features} zdim={mdl.zdim}")
 
     print("\n=== A 解码器灵敏度(0 仿真:固定 z,单独扫每一维工况)===")
