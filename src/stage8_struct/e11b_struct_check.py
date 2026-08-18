@@ -63,9 +63,19 @@ def main():
             tags += [(si, bname, x) for x in X]
 
     t0 = time.time()
+    res, step = [], max(2000, len(jobs) // 20)
     with ProcessPoolExecutor(max_workers=args.workers) as ex:
-        res = list(ex.map(_job, jobs, chunksize=8))
-    print(f"[e11b] 仿真完成 ({time.time() - t0:.0f}s)")
+        for i, r in enumerate(ex.map(_job, jobs, chunksize=8)):
+            res.append(r)
+            if (i + 1) % step == 0 or i + 1 == len(jobs):
+                el = time.time() - t0
+                eta = el / (i + 1) * (len(jobs) - i - 1)
+                print(f"  进度 {i + 1}/{len(jobs)}  已用 {el / 60:.1f} 分  "
+                      f"预计还需 {eta / 60:.1f} 分", flush=True)
+    nfail = sum(1 for r in res if r is None)
+    print(f"[e11b] 仿真完成 ({time.time() - t0:.0f}s);"
+          f"求解失败/塌陷 {nfail}/{len(res)} = {100 * nfail / len(res):.1f}%"
+          f"(记为不可行,属预期——极端盒子含大量非物理设计)")
 
     per = {}
     for (si, bname, x), mt in zip(tags, res):

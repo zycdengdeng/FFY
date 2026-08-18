@@ -34,7 +34,7 @@ import torch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "stage6_surrogate"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "stage7_generative"))
 import models as M                                    # noqa: E402
-from hf_exudyn import SCEN_BIRD_X, _metrics, rotY     # noqa: E402
+from hf_exudyn import SCEN_BIRD_X, _metrics, rotY, silence_solver  # noqa: E402
 from train_cvae import CVAE, norm                     # noqa: E402
 
 import exudyn as exu                                  # noqa: E402
@@ -108,7 +108,8 @@ def exu_eval_struct(x7, sc):
     ss.solutionSettings.writeSolutionToFile = False
     ss.solutionSettings.sensorsWritePeriod = s["h"]
     try:
-        mbs.SolveDynamic(ss)
+        with silence_solver():
+            mbs.SolveDynamic(ss)
     except Exception:
         return None
     acc = mbs.GetSensorStoredData(sAcc); pos = mbs.GetSensorStoredData(sPos)

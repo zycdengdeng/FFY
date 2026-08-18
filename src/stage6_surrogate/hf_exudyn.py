@@ -42,6 +42,31 @@ def rotY(a):
     return np.array([[c, 0., -s], [0., 1., 0.], [s, 0., c]])
 
 
+import contextlib
+import os as _os
+
+
+@contextlib.contextmanager
+def silence_solver():
+    """屏蔽 Exudyn C++ 内核直接写文件描述符的横幅(DYNAMIC SOLVER FAILED 等)。
+
+    这类输出不经过 Python 的 sys.stdout,contextlib.redirect_stdout 拦不住,
+    必须在 fd 层重定向。求解失败本就由 try/except 接住并记为 NaN,
+    横幅只是噪声;设 EXU_VERBOSE=1 可恢复输出以便调试。
+    """
+    if _os.environ.get("EXU_VERBOSE"):
+        yield
+        return
+    devnull = _os.open(_os.devnull, _os.O_WRONLY)
+    saved = (_os.dup(1), _os.dup(2))
+    try:
+        _os.dup2(devnull, 1); _os.dup2(devnull, 2)
+        yield
+    finally:
+        _os.dup2(saved[0], 1); _os.dup2(saved[1], 2)
+        _os.close(devnull); _os.close(saved[0]); _os.close(saved[1])
+
+
 NAN_METRICS = dict(peak_a=np.nan, stroke=np.nan, eta=np.nan, cfe=np.nan,
                    peak_jerk=np.nan, E_abs=np.nan, F_peak=np.nan,
                    rebound=np.nan, n_bounce=np.nan, t_settle=np.nan)
@@ -154,7 +179,8 @@ def exu_eval(x, s=SCEN_X):
     ss.solutionSettings.writeSolutionToFile = False
     ss.solutionSettings.sensorsWritePeriod = s["h"]
     try:
-        mbs.SolveDynamic(ss)
+        with silence_solver():
+            mbs.SolveDynamic(ss)
     except Exception:
         return dict(NAN_METRICS)
     acc = mbs.GetSensorStoredData(sAcc); pos = mbs.GetSensorStoredData(sPos)
