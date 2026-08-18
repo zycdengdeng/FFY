@@ -30,16 +30,27 @@ fi
 # 结果目录:自动发现 outputs/ 下所有一级目录(硬编码清单会静默漏掉改过名的实验)
 DIRS=()
 while IFS= read -r d; do DIRS+=("$d"); done < <(find outputs -mindepth 1 -maxdepth 1 -type d | sort)
+[[ -d logs ]] && DIRS+=("logs")      # 运行日志也是实验记录,一并存档
 echo "[freeze] 纳入 ${#DIRS[@]} 个结果目录"
 
 # ---------------------------------------------------------------- ① 代码快照
+# 注意:**不在这里 git commit**。本脚本通常在 A100 上跑,而 A100 是只读消费端
+# (代码走 Windows → GitHub → A100)。在这里提交会让本地与 origin 分叉,
+# 下次 git pull 直接 fatal。快照因此直接打包工作树,不依赖提交状态。
 if [[ "${VERIFY:-0}" != "1" ]]; then
-  echo "[freeze] ① 代码快照"
-  git add -A && git commit -q -m "freeze: ${TAG} 质量无关版最终状态" || echo "  (无新改动可提交)"
-  git tag -f "$TAG" -m "v1 质量无关版:响应对 m 严格不变,详见 版本冻结_v1_质量无关版.md"
-  git archive --format=tar.gz -o "$ADIR/code_${TAG}.tar.gz" "$TAG"
-  git rev-parse "$TAG" > "$ADIR/COMMIT.txt"
-  echo "  tag=$TAG commit=$(cat "$ADIR/COMMIT.txt")"
+  echo "[freeze] ① 代码快照(打包工作树,不提交)"
+  git rev-parse HEAD > "$ADIR/COMMIT.txt" 2>/dev/null || echo "not-a-git-repo" > "$ADIR/COMMIT.txt"
+  git status --porcelain > "$ADIR/DIRTY.txt" 2>/dev/null || true
+  git diff HEAD > "$ADIR/uncommitted.diff" 2>/dev/null || true
+  tar -czf "$ADIR/code_${TAG}.tar.gz" \
+      --exclude=.git --exclude=outputs --exclude=archive --exclude=logs \
+      --exclude='*.pt' --exclude='__pycache__' --exclude='*.pyc' .
+  # 标签只是书签,便于 git checkout;真正权威的是上面的 tar 包
+  git tag -f "$TAG" -m "v1 质量无关版:响应对 m 严格不变,见 版本冻结_v1_质量无关版.md" \
+      >/dev/null 2>&1 || true
+  n_dirty=$(wc -l < "$ADIR/DIRTY.txt" 2>/dev/null || echo 0)
+  echo "  commit=$(cat "$ADIR/COMMIT.txt")  未提交改动 ${n_dirty} 项(已存 uncommitted.diff)"
+  ls -lh "$ADIR/code_${TAG}.tar.gz" | awk '{print "  "$9" "$5}'
 fi
 
 # ---------------------------------------------------------------- ② 清点+校验和
@@ -91,7 +102,8 @@ cat > "$ADIR/ARCHIVE_README.md" <<MDEOF
 \`版本冻结_v1_质量无关版.md\` 与 \`outputs/gen_e14/\` 的验尸报告。
 
 ## 怎么用
-- 复现代码:\`tar xzf code_${TAG}.tar.gz\`,或 \`git checkout ${TAG}\`
+- 复现代码:\`tar xzf code_${TAG}.tar.gz\`(权威:含未提交改动)
+  标签 \`${TAG}\` 只是书签;若与 tar 包有出入,以 tar 包 + \`uncommitted.diff\` 为准
 - 结果小件:\`tar xzf core_results.tar.gz\`
 - 大件(未打包,留在本机原路径):见 \`BIG_FILES.tsv\`
 - 完整性校验:\`awk -F'\t' 'NR>1{print \$3"  "\$1}' MANIFEST.tsv | sha256sum -c -\`
