@@ -22,17 +22,14 @@ ADIR="archive/${TAG}"
 BIGMB="${BIGMB:-64}"                 # 超过此大小(MB)算「大件」,不进 core 包
 mkdir -p "$ADIR"
 
-# 结果目录白名单:存在才处理
-CANDIDATES=(
-  outputs/gen_data7 outputs/gen_data7_wide outputs/gen_data7_shift
-  outputs/gen_e5 outputs/gen_e5b outputs/gen_e5c
-  outputs/gen_e6 outputs/gen_e6c outputs/gen_e7
-  outputs/gen_e8 outputs/gen_e8c
-  outputs/gen_abl outputs/gen_abl_wide outputs/gen_abl_shift
-  outputs/gen_e12 outputs/gen_e13 outputs/gen_e14
-  outputs/surrogate_exu7d outputs/multi_metric_v2 outputs/bird_pareto_v16
-)
-DIRS=(); for d in "${CANDIDATES[@]}"; do [[ -d "$d" ]] && DIRS+=("$d"); done
+if [[ "${ONLY_INDEX:-0}" == "1" ]]; then    # 只重算索引,不动代码包与结果包
+  python tools/index_results.py --roots outputs --out "$ADIR/HEADLINE.json"
+  echo "[freeze] 仅重算索引完成 → $ADIR/HEADLINE.json"; exit 0
+fi
+
+# 结果目录:自动发现 outputs/ 下所有一级目录(硬编码清单会静默漏掉改过名的实验)
+DIRS=()
+while IFS= read -r d; do DIRS+=("$d"); done < <(find outputs -mindepth 1 -maxdepth 1 -type d | sort)
 echo "[freeze] 纳入 ${#DIRS[@]} 个结果目录"
 
 # ---------------------------------------------------------------- ① 代码快照
@@ -66,51 +63,8 @@ du -sh "${DIRS[@]}" > "$ADIR/SIZES.tsv" 2>/dev/null || true
 echo "  文件 $(( $(wc -l < "$ADIR/MANIFEST.tsv") - 1 )) 个,其中大件 $(( $(wc -l < "$ADIR/BIG_FILES.tsv") - 1 )) 个"
 
 # ---------------------------------------------------------------- ③ 头条数字
-echo "[freeze] ③ 抽取头条数字"
-python - "$ADIR" <<'PY'
-import json, os, sys
-import numpy as np
-adir = sys.argv[1]
-H = {}
-
-def traj(fp, name):
-    if not os.path.exists(fp): return
-    t = json.load(open(fp))
-    g = [x["median_gap"] * 100 for x in t]
-    H[name] = dict(file=fp, rounds=len(t), r0=g[0], best=min(g),
-                   last=g[-1], last5_median=float(np.median(g[-5:])),
-                   fail_last=t[-1].get("fail"),
-                   feas_last=t[-1].get("feas_rate"))
-
-for n, f in [("E5_bio", "outputs/gen_e5/trajectory.json"),
-             ("E5c_bio_85r", "outputs/gen_e5c/trajectory.json"),
-             ("E11_wide", "outputs/gen_abl_wide/trajectory.json"),
-             ("E11_shift", "outputs/gen_abl_shift/trajectory.json"),
-             ("E11_bio_union", "outputs/gen_abl/bio_trajectory.json")]:
-    traj(f, n)
-
-def grab(fp, name, keys=None):
-    if not os.path.exists(fp): return
-    try: d = json.load(open(fp))
-    except Exception: return
-    H[name] = dict(file=fp, **({k: d[k] for k in keys if k in d} if keys
-                               else {"_keys": list(d)[:24] if isinstance(d, dict) else f"list[{len(d)}]"}))
-
-for n, f in [("E5_seeds", "outputs/gen_e5c/seeds_summary.json"),
-             ("E6_multimetric", "outputs/gen_e6c/e6_summary.json"),
-             ("E7_polish", "outputs/gen_e7/e7_summary.json"),
-             ("E8_struct", "outputs/gen_e8c/e8_summary.json"),
-             ("E11b_struct", "outputs/gen_abl/e11b_struct.json"),
-             ("E12_feas", "outputs/gen_e12/e12_summary.json"),
-             ("E13_robust", "outputs/gen_e13/e13_summary.json"),
-             ("E14_mass_probe", "outputs/gen_e14/e14_mass_probe.json")]:
-    grab(f, n)
-
-json.dump(H, open(os.path.join(adir, "HEADLINE.json"), "w"),
-          indent=2, ensure_ascii=False, default=float)
-for k, v in H.items():
-    print(f"  {k:<16} {v.get('file','')}")
-PY
+echo "[freeze] ③ 抽取头条数字(自动发现摘要文件)"
+python tools/index_results.py --roots outputs --out "$ADIR/HEADLINE.json"
 
 # ---------------------------------------------------------------- ④ 打包小件
 if [[ "${VERIFY:-0}" != "1" ]]; then
