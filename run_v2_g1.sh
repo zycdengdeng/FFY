@@ -17,6 +17,7 @@ NDES="${NDES:-200}"          # G1 设计数
 NDES_CH="${NDES_CH:-120}"    # 通道归因设计数
 OUT="${OUT:-outputs/gen_v2_g1}"
 TERRAINS="${TERRAINS:-concrete,asphalt,turf,wetsand}"
+NDES_MAP="${NDES_MAP:-60}"    # 能力图设计数
 
 mkdir -p logs "$OUT"
 LOG="logs/v2_g1_$(date +%Y%m%d_%H%M%S).log"
@@ -42,6 +43,11 @@ el
 step "③ 通道归因(5 组合 × 设计 $NDES_CH × 质量 5,地形 turf)"
 python src/stage10_v2/e15_mass_check.py --channels \
   --ndes "$NDES_CH" --workers "$WORKERS" --terrain turf --out "$OUT"
+el
+
+step "④ kc × m 能力图(6 档地面刚度 × 设计 $NDES_MAP × 质量 5)"
+python src/stage10_v2/e15_mass_check.py --map \
+  --ndes "$NDES_MAP" --workers "$WORKERS" --out "$OUT"
 el
 
 step "汇总"

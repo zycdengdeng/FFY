@@ -40,13 +40,13 @@ TERRAIN = {
     "asphalt":  dict(kc=8.0e5, zeta_c=0.08),
     "turf":     dict(kc=2.0e5, zeta_c=0.15),
     "wetsand":  dict(kc=5.0e4, zeta_c=0.30),
-    "mud":      dict(kc=1.2e4, zeta_c=0.45),
-    "water":    dict(kc=3.0e3, zeta_c=0.60),   # 极软+高阻尼近似入水;
-}                                              # 完整 v²拖曳+附加质量 见 v2.1
-# 工况采样按对数均匀。软端截在 3e4:再软则动态侵入深度超过足端球半径(8mm),
-# 球-面罚接触模型本身失效(实测 kc=1.2e4 时 m≥4kg 全部失败)。
-# 泥/水这类大侵入介质需要另一套接触律(v²拖曳+附加质量),列为 v2.1。
-KC_RANGE = (3.0e4, 2.0e6)
+    "softmud":  dict(kc=2.0e4, zeta_c=0.35),   # 12 kg 端已接近模型边界,慎用
+}
+# 工况采样按对数均匀。软端由**模型有效性**决定而非物理:侵入深度超过足端球半径时
+# 球-面罚接触失效(记 fail="deep_sink",绝不与真实塌陷混淆)。
+# 实测有效边界(足端 = 0.20·L1):kc ≥ 5e4 在 m∈[1,12] 全程有效;
+# kc ∈ [2e4, 5e4) 仅在 m ≲ 8 kg 有效。更软(泥/水)需 v²拖曳+附加质量模型 → v2.1。
+KC_RANGE = (5.0e4, 2.0e6)
 ZETA_C_RANGE = (0.05, 0.35)
 
 # ---------------------------------------------------------------- 结构(绝对量)
@@ -56,6 +56,9 @@ D_MAX_RATIO = 0.25       # 外径 / 段长 上限:超过即判不可行(杆件�
 D_MIN = 0.004            # 最小可制造外径 4mm(壁厚 0.4mm)
 NLEGS = 2                # 双腿分担
 MASS_FRAC_CAP = 0.06     # 腿总质量 / 机体质量 上限(6%,航空口径的结构质量预算)
+# 足端等效半径按跗跖长缩放(蹼足)。v1 固定 8 mm,与 33–121 mm 的跗跖长不自洽,
+# 且在软介质上会让侵入深度超过球半径,使球-面罚接触模型失效(被误判成"腿塌了")。
+FOOT_RATIO = 0.20
 SEG_FRAC_GUESS = 0.02    # 第一遍的杆件质量猜测(占 m 的比例)
 
 
@@ -76,6 +79,8 @@ def size_x_v2(scen, x7, seg_mass=None):
     s["seg_mass"] = (list(seg_mass) if seg_mass is not None
                      else [SEG_FRAC_GUESS * scen["m"]] * 3)
     s["seg_len"] = [l1, r2 * l1, r3 * l1]
+    s["r_foot"] = FOOT_RATIO * l1
+    s["gap0"] = 0.3 * s["r_foot"]          # 初始离地间隙随足端一起缩放
     return s
 
 
@@ -128,6 +133,9 @@ def exu_eval_v2(x7, s):
     sRot = [mbs.AddSensor(SensorBody(bodyNumber=b, storeInternal=True,
                                      outputVariableType=exu.OutputVariableType.Rotation))
             for b in (femur, tibio, tarso)]
+    sFoot = mbs.AddSensor(SensorBody(                     # 足端球心,用于分离地面下陷
+        bodyNumber=tarso, storeInternal=True, localPosition=[-0.5 * l1, 0., 0.],
+        outputVariableType=exu.OutputVariableType.Position))
     mbs.Assemble()
     ss = exu.SimulationSettings()
     ss.timeIntegration.endTime = s["T"]
@@ -145,9 +153,14 @@ def exu_eval_v2(x7, s):
     t = acc[:, 0]; az = acc[:, 3]; z = pos[:, 3]
     if not np.all(np.isfinite(az)):
         return dict(fail="nonfinite")
-    stroke = float(z[0] - np.min(z))
-    if stroke > 0.6 * (l1 + l2 + l3):
-        return dict(fail="collapse")     # 腿被压塌:是设计不行,不是数值问题
+    stroke = float(z[0] - np.min(z))                     # 机体总下沉
+    zf = mbs.GetSensorStoredData(sFoot)[:, 3]
+    sink = float(max(0.0, s["r_foot"] - np.min(zf)))     # 地面下陷(足球心低于半径部分)
+    leg_stroke = float(max(0.0, stroke - sink))          # 起落架自身行程
+    if leg_stroke > 0.6 * (l1 + l2 + l3):
+        return dict(fail="collapse")     # 腿真被压塌(已扣除地面下陷),设计不行
+    if sink > 0.9 * s["r_foot"]:
+        return dict(fail="deep_sink")    # 侵入超过足端球半径 → 罚接触模型失效,非物理
     rot = [mbs.GetSensorStoredData(si)[:, 2] for si in sRot]
     h = t[1] - t[0]
     dth = dict(hip=rot[0] - rot[0][0],
@@ -162,7 +175,7 @@ def exu_eval_v2(x7, s):
     met = dict(peak_a=float(np.max(np.abs(az))), stroke=stroke)
     met.update(_metrics(t, z, az, m, g, v0))
     met.update(M_hip=Mj["hip"], M_knee=Mj["knee"], M_ankle=Mj["ankle"],
-               seg_len=[l1, l2, l3])
+               seg_len=[l1, l2, l3], sink=sink, leg_stroke=leg_stroke)
     return met
 
 
@@ -224,6 +237,8 @@ def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
     frac = leg_mass / float(m)
     out = dict(met)
     out.update(leg_mass_kg=leg_mass, mass_frac=frac,
+               sink_mm=1e3 * met.get("sink", 0.0),
+               leg_stroke_mm=1e3 * met.get("leg_stroke", met["stroke"]),
                struct_over=bool(over), mass_over=bool(frac > MASS_FRAC_CAP),
                D_mm=[r["D_mm"] for r in rows],
                D_max_mm=[r["D_max_mm"] for r in rows],
@@ -243,7 +258,7 @@ def feasible_v2(r, gcap, smax):
         return False, "nonfinite"
     if r["peak_a"] > gcap:
         return False, "gcap"
-    if r["stroke"] > smax:
+    if r.get("leg_stroke", r["stroke"]) > smax:
         return False, "smax"
     if r["struct_over"]:
         return False, "slenderness"     # 应力/屈曲要求的管径超过几何上限

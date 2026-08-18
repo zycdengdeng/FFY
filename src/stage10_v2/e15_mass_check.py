@@ -31,6 +31,7 @@ import physics_v2 as P                                   # noqa: E402
 
 # mud/water 超出球-面罚接触模型的有效范围(侵入深度 > 足端球半径),故不在默认表内
 TERRAINS = ["concrete", "asphalt", "turf", "wetsand"]
+KC_GRID = [2.0e6, 8.0e5, 3.0e5, 1.2e5, 5.0e4, 2.0e4]
 MASSES = [1.0, 2.0, 4.0, 8.0, 12.0]
 
 
@@ -49,11 +50,94 @@ def _job(a):
                 dpeak_pass_pct=r["dpeak_pass_pct"])
 
 
-def rel_spread(v):
-    v = np.asarray(v, float)
-    if not np.all(np.isfinite(v)):
+def rel_spread(v, need=3):
+    """有效质量点 ≥ need 就算,不要求 5 个全成功。
+
+    软地形上重机体会因塌陷/深陷而无解——那本身就是质量效应的一部分,
+    若因此把整条设计丢掉,反而看不到最强的质量依赖(v1 版判据的漏洞)。"""
+    v = np.asarray([x for x in v if x is not None and np.isfinite(x)], float)
+    if v.size < need:
         return np.nan
     return float((v.max() - v.min()) / max(abs(np.median(v)), 1e-12))
+
+
+def _job_kc(a):
+    xi, m, v0, kc, zc, npass = a
+    r = P.eval_v2(xi, m, v0, kc=kc, zeta_c=zc, npass=npass)
+    if r is None or r.get("fail"):
+        return dict(fail=(r or {}).get("fail", "none"))
+    return dict(peak_a=r["peak_a"], stroke=r["stroke"], leg_stroke_mm=r["leg_stroke_mm"],
+                sink_mm=r["sink_mm"], struct_over=r["struct_over"],
+                mass_over=r["mass_over"], F_peak=r["F_peak"])
+
+
+def capability_map(args):
+    """kc × m 能力图:峰值、地面下陷、可行率。方案 §五 要的两张主图之一。
+
+    读法:硬地那一行几乎平(质量无关的残迹);越往软走,质量效应越强,
+    且方向相反——重机体被软地垫得更软(峰值↓)却陷得更深(行程↑),
+    两个通道打架 ⇒ 可行域在质量方向上出现**内部最优**。
+    """
+    lo, hi = np.array(M.LO_BIRD7), np.array(M.HI_BIRD7)
+    rng = np.random.default_rng(args.seed)
+    X = lo + (hi - lo) * rng.random((args.ndes, len(lo)))
+    zc = {2.0e6: 0.05, 8.0e5: 0.08, 3.0e5: 0.12, 1.2e5: 0.20, 5.0e4: 0.30, 2.0e4: 0.35}
+    jobs, tags = [], []
+    for kc in KC_GRID:
+        for i, xi in enumerate(X):
+            for m in MASSES:
+                jobs.append((tuple(xi), m, args.v0, kc, zc.get(kc, 0.15), args.npass))
+                tags.append((kc, i, m))
+    print(f"[map] 地面刚度 {len(KC_GRID)} × 设计 {args.ndes} × 质量 {len(MASSES)} "
+          f"= {len(jobs)} 次评价")
+    t0 = time.time()
+    with ProcessPoolExecutor(max_workers=args.workers) as ex:
+        rows = list(ex.map(_job_kc, jobs, chunksize=1))
+    print(f"[map] 完成 ({time.time() - t0:.0f}s)\n")
+    R = {tg: r for tg, r in zip(tags, rows)}
+
+    def cell(kc, m, fn):
+        vs = [fn(R[(kc, i, m)]) for i in range(args.ndes)
+              if R[(kc, i, m)] and not R[(kc, i, m)].get("fail")]
+        return float(np.median(vs)) if vs else float("nan")
+
+    grid = {}
+    for name, fn, unit, scale in [
+            ("peak_a", lambda r: r["peak_a"] / 9.81, "g", 1),
+            ("sink", lambda r: r["sink_mm"], "mm", 1),
+            ("leg_stroke", lambda r: r["leg_stroke_mm"], "mm", 1)]:
+        print(f"--- {name} 中位 ({unit}) ---")
+        print(f"{'kc (N/m)':>10}" + "".join(f"{m:>9g}" for m in MASSES) + "   沿 m 相对极差")
+        grid[name] = {}
+        for kc in KC_GRID:
+            row = [cell(kc, m, fn) for m in MASSES]
+            grid[name][f"{kc:g}"] = row
+            sp = rel_spread(row, need=3)
+            print(f"{kc:>10.0f}" + "".join(f"{v:>9.2f}" for v in row)
+                  + f"{sp*100:>16.1f}%")
+        print()
+
+    print(f"--- 可行率 % (g_cap={args.gcap/9.81:.0f}g, s_max={args.smax*1e3:.0f}mm) ---")
+    print(f"{'kc (N/m)':>10}" + "".join(f"{m:>9g}" for m in MASSES) + "   峰值位置")
+    feas = {}
+    for kc in KC_GRID:
+        row = []
+        for m in MASSES:
+            ok = sum(int(P.feasible_v2(R[(kc, i, m)], args.gcap, args.smax)[0])
+                     for i in range(args.ndes))
+            row.append(100.0 * ok / args.ndes)
+        feas[f"{kc:g}"] = row
+        am = int(np.argmax(row))
+        tag = ("单调↓" if all(row[i] >= row[i+1] - 1e-9 for i in range(len(row)-1))
+               else ("单调↑" if all(row[i] <= row[i+1] + 1e-9 for i in range(len(row)-1))
+                     else f"内部最优 m={MASSES[am]:g}kg"))
+        print(f"{kc:>10.0f}" + "".join(f"{v:>9.1f}" for v in row) + f"{tag:>16}")
+    os.makedirs(args.out, exist_ok=True)
+    fp = os.path.join(args.out, "e15_map.json")
+    json.dump(dict(kc_grid=KC_GRID, masses=MASSES, ndes=args.ndes,
+                   gcap=args.gcap, smax=args.smax, grid=grid, feas=feas),
+              open(fp, "w"), indent=2, ensure_ascii=False)
+    print(f"\n[map] → {fp}")
 
 
 def channels(args):
@@ -93,11 +177,13 @@ def channels(args):
         sp, ss_, n = [], [], 0
         for i in range(args.ndes):
             rs = [R[(cn, i, m)] for m in MASSES]
-            if any((r is None or r.get("fail")) for r in rs):
+            gv = lambda k: [(r[k] if (r and not r.get("fail")) else None) for r in rs]
+            p = rel_spread(gv("peak_a"))
+            if not np.isfinite(p):
                 continue
             n += 1
-            sp.append(rel_spread([r["peak_a"] for r in rs]))
-            ss_.append(rel_spread([r["stroke"] for r in rs]))
+            sp.append(p)
+            ss_.append(rel_spread(gv("stroke")))
         v = float(np.median(sp)) if sp else float("nan")
         out[cn] = dict(peak=v, stroke=float(np.median(ss_)) if ss_ else float("nan"), n=n)
         print(f"{cn:<22}{v*100:>21.2f}%{out[cn]['stroke']*100:>9.1f}%{n:>10d}")
@@ -119,6 +205,7 @@ def main():
     ap.add_argument("--seed", type=int, default=11)
     ap.add_argument("--out", default="outputs/gen_v2_g1")
     ap.add_argument("--channels", action="store_true", help="只跑通道归因")
+    ap.add_argument("--map", action="store_true", help="只跑 kc×m 能力图")
     ap.add_argument("--terrain", default="turf", help="通道归因用哪种地形")
     ap.add_argument("--terrains", default=None,
                     help="逗号分隔,覆盖默认地形表,如 concrete,turf")
@@ -127,6 +214,8 @@ def main():
     global TERRAINS
     if args.terrains:
         TERRAINS = [t.strip() for t in args.terrains.split(",") if t.strip()]
+    if args.map:
+        return capability_map(args)
     if args.channels:
         return channels(args)
 
