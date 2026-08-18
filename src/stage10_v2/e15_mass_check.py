@@ -29,7 +29,8 @@ sys.path.insert(0, os.path.join(HERE, "..", "stage6_surrogate"))
 import models as M                                       # noqa: E402
 import physics_v2 as P                                   # noqa: E402
 
-TERRAINS = ["concrete", "turf", "wetsand"]   # mud/water 超出球-面接触模型的有效范围
+# mud/water 超出球-面罚接触模型的有效范围(侵入深度 > 足端球半径),故不在默认表内
+TERRAINS = ["concrete", "asphalt", "turf", "wetsand"]
 MASSES = [1.0, 2.0, 4.0, 8.0, 12.0]
 
 
@@ -119,8 +120,13 @@ def main():
     ap.add_argument("--out", default="outputs/gen_v2_g1")
     ap.add_argument("--channels", action="store_true", help="只跑通道归因")
     ap.add_argument("--terrain", default="turf", help="通道归因用哪种地形")
+    ap.add_argument("--terrains", default=None,
+                    help="逗号分隔,覆盖默认地形表,如 concrete,turf")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
+    global TERRAINS
+    if args.terrains:
+        TERRAINS = [t.strip() for t in args.terrains.split(",") if t.strip()]
     if args.channels:
         return channels(args)
 
