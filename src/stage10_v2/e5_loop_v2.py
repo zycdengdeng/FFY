@@ -136,7 +136,8 @@ def build_pairs(pools, train_bids, kscen, ktop=8):
 
 
 # ---------------------------------------------------------------- 冻结考卷
-def build_exam(ex, pools, test_bids, prior, nref, nexam, cache_fp, seed=5):
+def build_exam(ex, pools, test_bids, prior, nref, nexam, cache_fp, seed=5,
+               min_feas_ref=5):
     """考卷 = 测试束里的工况 + 每题一组设计要求 + nref 个新鲜设计给出的参考前沿。
 
     无解的题(nref 个里没有一个可行)整题剔除——没有参考就没有 gap 可言。
@@ -145,6 +146,7 @@ def build_exam(ex, pools, test_bids, prior, nref, nexam, cache_fp, seed=5):
         return json.load(open(cache_fp))
     cands = sorted([p for p in pools.values() if p.bid in test_bids],
                    key=lambda p: p.cid)
+    n_avail = len(cands)
     rng = np.random.default_rng(seed)
     if len(cands) > nexam:
         cands = [cands[i] for i in sorted(rng.choice(len(cands), nexam, replace=False))]
@@ -158,18 +160,25 @@ def build_exam(ex, pools, test_bids, prior, nref, nexam, cache_fp, seed=5):
         items.append((si, Xq, p.m, p.v0, p.kc, p.zc)); spec.append((p, gcap, smax))
     jobs, slices = scatter(items)
     Y = simulate(ex, jobs)
-    exam = []
+    exam, n_dead, n_thin = [], 0, 0
     for si, (p, gcap, smax) in enumerate(spec):
         Yq = Y[slices[si]]
         ok = feasible_mask(Yq, gcap, smax)
         if not ok.any():
-            continue                       # 无解题剔除
+            n_dead += 1; continue          # 无解题剔除:没有参考前沿就没有 gap 可言
+        if ok.sum() < min_feas_ref:
+            n_thin += 1; continue          # 参考太薄:min 只由 1-2 个样本决定,gap 噪声大
         exam.append(dict(cid=p.cid, bid=p.bid, m=p.m, v0=p.v0, kc=p.kc, zc=p.zc,
                          gcap=gcap, smax=smax,
                          ref=float(Yq[ok, iP].min()),
                          span=float(np.ptp(Yq[ok, iL])) if ok.sum() > 1 else 0.0,
                          n_feas=int(ok.sum())))
     json.dump(exam, open(cache_fp, "w"), indent=2)
+    print(f"[e5v2] 考卷:测试块 {n_avail} 个,抽 {len(spec)} 题 → "
+          f"无解剔除 {n_dead},参考过薄(<{min_feas_ref})剔除 {n_thin} → **{len(exam)} 题**")
+    if len(spec) < nexam:
+        print(f"[e5v2] 提示:测试块只有 {n_avail} 个,不足 --nexam {nexam}。"
+              f"要更多题就加大 --nglobal 或提高测试束比例,不是这里的 bug")
     return exam
 
 
@@ -211,6 +220,8 @@ def main():
     ap.add_argument("--ngen-eval", type=int, default=40)
     ap.add_argument("--nref", type=int, default=300)
     ap.add_argument("--nexam", type=int, default=76)
+    ap.add_argument("--min-feas-ref", type=int, default=5,
+                    help="参考前沿至少要有几个可行设计,少于此数整题剔除")
     ap.add_argument("--epochs", type=int, default=200)
     ap.add_argument("--zdim", type=int, default=3)
     ap.add_argument("--workers", type=int, default=8)
@@ -257,10 +268,11 @@ def main():
     t0 = time.time()
     with ProcessPoolExecutor(max_workers=args.workers) as ex:
         exam = build_exam(ex, pools, te_b, prior, args.nref, args.nexam,
-                          os.path.join(args.out, "exam.json"))
+                          os.path.join(args.out, "exam.json"),
+                          min_feas_ref=args.min_feas_ref)
         if not exam:
             raise SystemExit("[e5v2] 考卷为空:测试束里没有任何有解的题,检查工况范围")
-        print(f"[e5v2] 冻结考卷 {len(exam)} 题(无解题已剔除)  ({time.time()-t0:.0f}s)")
+        print(f"[e5v2] 冻结考卷就绪  ({time.time()-t0:.0f}s)")
 
         for rd in range(start, args.rounds + 1):
             C_tr, U_tr = build_pairs(pools, tr_b, args.kscen)

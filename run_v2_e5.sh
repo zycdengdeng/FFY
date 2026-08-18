@@ -2,7 +2,7 @@
 # v2 专家迭代:按臂顺序跑自提升循环(接生物先验、按束防泄漏、结构判据在线)
 #
 #   PILOT=1 bash run_v2_e5.sh                    # G2 小试:主臂 8 轮,约 25 分钟
-#   bash run_v2_e5.sh                            # 主臂 bio 85 轮,约 4–5 小时
+#   bash run_v2_e5.sh                            # 主臂 bio 40 轮,约 2 小时(可续跑加轮)
 #   ARMS="bio geo elastic none" ROUNDS=20 bash run_v2_e5.sh   # 四臂消融,约 4 小时
 #
 # 单轮成本(A100 128 并行,约 0.7 s/仿真):
@@ -18,7 +18,7 @@ ARMS="${ARMS:-bio}"
 if [[ "${PILOT:-0}" == "1" ]]; then
   ROUNDS="${ROUNDS:-8}"; SUF="_pilot"; NREF="${NREF:-120}"; NEXAM="${NEXAM:-40}"
 else
-  ROUNDS="${ROUNDS:-85}"; SUF=""; NREF="${NREF:-300}"; NEXAM="${NEXAM:-76}"
+  ROUNDS="${ROUNDS:-40}"; SUF=""; NREF="${NREF:-300}"; NEXAM="${NEXAM:-72}"
 fi
 KGEN="${KGEN:-24}"; NGEN="${NGEN:-40}"; KSCEN="${KSCEN:-6}"; SEED="${SEED:-0}"
 
@@ -62,10 +62,10 @@ for a in arms:
     print(f"{a:<10}{len(t):>5}{g[0]:>9.1f}%{min(g):>8.1f}%"
           f"{np.median(g[-5:]):>11.1f}%{t[-1]['feas_rate']*100:>9.0f}%"
           f"{t[-1]['fail']:>10}{t[-1]['pool']:>10}")
-print("\nG2 检查清单(小试跑完必须逐条看):")
-print("  1. 考卷题数是否接近 --nexam?剔除太多说明工况范围里无解题过多")
-print("  2. r0 的可行率 ≥ 20%?过低则 gap 会被'找不到可行解'主导,曲线没意义")
-print("  3. gap 是否单调下降?末 5 轮是否已平?没平就加轮数")
-print("  4. 崩盘数是否随轮次下降到 0 附近?")
+print("\n检查清单:")
+print("  1. 考卷:看 [e5v2] 那行的 无解剔除/参考过薄剔除 各是多少")
+print("  2. r0 可行率 ≥ 20%?过低则 gap 被'找不到可行解'主导,曲线没意义")
+print("  3. gap 末 5 轮是否已平?没平就加 ROUNDS 重跑(自动续跑,不重做已完成的轮)")
+print("  4. 崩盘数是否降到 0 附近?")
 PY
 el
