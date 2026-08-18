@@ -52,49 +52,90 @@ def to_arr(rows):
     return np.array([[np.nan if v is None else v for v in r] for r in rows], float)
 
 
-def resolve_ckpt(p):
-    """--model 允许给文件,也允许给目录:目录则递归找轮次最大的 cvae_r*.pt。
+SEED_KEYS = ("best_seed", "picked_seed", "selected_seed", "val_seed",
+             "official_seed", "seed_pick", "pick", "best")
 
-    存档命名在多种子/续跑之间变过好几次,写死路径迟早再炸一次,这里一次解决。
+
+def _pick_seed_from_summary(d):
+    """尽力从同目录的摘要 json 里读出"验证集选中的种子";读不到返回 None。"""
+    import glob as _g
+    for fp in _g.glob(os.path.join(d, "*.json")):
+        try:
+            o = json.load(open(fp))
+        except Exception:
+            continue
+        if not isinstance(o, dict):
+            continue
+        for k in SEED_KEYS:
+            v = o.get(k)
+            if isinstance(v, bool):
+                continue
+            if isinstance(v, int):
+                return v, f"{os.path.basename(fp)}:{k}"
+            if isinstance(v, dict) and isinstance(v.get("seed"), int):
+                return v["seed"], f"{os.path.basename(fp)}:{k}.seed"
+    return None, None
+
+
+def resolve_ckpts(p):
+    """--model 给文件或目录,返回 (全部存档列表, 主存档, 说明)。
+
+    两种命名语义完全不同,不能一视同仁:
+      cvae_r{N}.pt —— 逐轮存档,有先后,取轮次最大者;
+      cvae_s{N}.pt —— 多种子并行存档,**没有先后**,取"最大"是错的。
+                      主存档按摘要里记录的验证集选种;读不到则回退 s1(E5c 官方种子)。
+    A 项(零仿真)会跑遍全部存档,B/C 用主存档。
     """
     import glob as _g
     import re as _re
     if os.path.isfile(p):
-        return p
+        return [p], p, f"指定文件 {p}"
     if not os.path.isdir(p):
-        # 也许给的是 outputs/gen_e5c/cvae_r85.pt 但实际在别的轮次
         d = os.path.dirname(p) or "."
         if not os.path.isdir(d):
             raise SystemExit(f"[e14] 找不到 {p},其所在目录也不存在")
         p = d
-    cands = _g.glob(os.path.join(p, "**", "cvae_r*.pt"), recursive=True)
-    if cands:
-        def rd(f):
-            m = _re.search(r"cvae_r(\d+)\.pt$", f)
-            return int(m.group(1)) if m else -1
-        # 并列时取层级最浅的(多种子目录下不要静默挑到某个非官方种子)
-        best = max(cands, key=lambda f: (rd(f), -f.count(os.sep)))
-        dirs = sorted({os.path.dirname(f) for f in cands})
-        print(f"[e14] 目录 {p} 下找到 {len(cands)} 个存档,取轮次最大: {best}")
-        if len(dirs) > 1:
-            print(f"[e14] 注意:存档分布在 {len(dirs)} 个子目录 {dirs};"
-                  f"若要指定种子请直接把 --model 指到具体文件")
-        return best
-    plain = _g.glob(os.path.join(p, "**", "cvae.pt"), recursive=True)
-    if plain:
-        print(f"[e14] 未见 cvae_r*.pt,改用 {plain[0]}")
-        return plain[0]
+
+    rs = sorted(_g.glob(os.path.join(p, "**", "cvae_r*.pt"), recursive=True))
+    ss = sorted(_g.glob(os.path.join(p, "**", "cvae_s*.pt"), recursive=True))
+    pl = sorted(_g.glob(os.path.join(p, "**", "cvae.pt"), recursive=True))
+
+    def num(f, pre):
+        m = _re.search(rf"cvae_{pre}(\d+)\.pt$", f)
+        return int(m.group(1)) if m else -1
+
+    if ss:                                   # 多种子:全部参与 A,主存档需选定
+        ss.sort(key=lambda f: num(f, "s"))
+        sel, src = _pick_seed_from_summary(p)
+        main = None
+        if sel is not None:
+            main = next((f for f in ss if num(f, "s") == sel), None)
+        if main is not None:
+            note = f"{len(ss)} 个种子存档;主存档 = 种子 {sel}(来自 {src})"
+        else:
+            main = next((f for f in ss if num(f, "s") == 1), ss[0])
+            note = (f"{len(ss)} 个种子存档;摘要里未记录选种,回退主存档 "
+                    f"{os.path.basename(main)}(E5c 官方为验证集选出的 seed 1)")
+        return ss, main, note
+
+    if rs:                                   # 逐轮:取轮次最大
+        rs.sort(key=lambda f: num(f, "r"))
+        main = max(rs, key=lambda f: (num(f, "r"), -f.count(os.sep)))
+        return [main], main, f"{len(rs)} 个逐轮存档,取轮次最大 {os.path.basename(main)}"
+
+    if pl:
+        return [pl[0]], pl[0], f"仅有 {pl[0]}"
+
     raise SystemExit(f"[e14] {p} 下没有任何 cvae*.pt。用 "
                      f"`find outputs -name 'cvae*.pt' | head` 看看存档在哪。")
 
 
-def load_model(fp):
-    fp = resolve_ckpt(fp)
+def load_ckpt(fp):
     ck = torch.load(fp, map_location="cpu", weights_only=False)
     meta = ck["meta"]
     mdl = CVAE(xd=ck["xd"], cd=len(meta["c_lo"]), z=ck["zdim"])
     mdl.load_state_dict(ck["state"]); mdl.eval()
-    return mdl, meta, fp
+    return mdl, meta
 
 
 # --------------------------------------------------------------- A 解码器灵敏度
@@ -206,8 +247,10 @@ def probe_invariance(ex, masses, ndes=24, v0=1.2, seed=2):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="outputs/gen_e5c",
-                    help="存档文件,或目录(自动取轮次最大的 cvae_r*.pt)")
+    ap.add_argument("--model", default="outputs/gen_e5c_r85",
+                    help="存档文件,或目录(自动识别 cvae_r*.pt 逐轮 / cvae_s*.pt 多种子)")
+    ap.add_argument("--main-ckpt", default=None,
+                    help="显式指定 B/C 用哪个存档,覆盖自动选种")
     ap.add_argument("--out", default="outputs/gen_e14")
     ap.add_argument("--workers", type=int, default=32)
     ap.add_argument("--masses", default="1,2,4,8,12")
@@ -217,17 +260,33 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     masses = [float(v) for v in args.masses.split(",")]
 
-    mdl, meta, args.model = load_model(args.model)
-    print(f"[e14] 模型 {args.model}  xd={mdl.dec[-2].out_features} zdim={mdl.zdim}")
+    ckpts, main_fp, note = resolve_ckpts(args.model)
+    if args.main_ckpt:
+        main_fp = args.main_ckpt; note += f";B/C 按 --main-ckpt 用 {main_fp}"
+    print(f"[e14] {note}")
 
-    print("\n=== A 解码器灵敏度(0 仿真:固定 z,单独扫每一维工况)===")
-    A = probe_decoder(mdl, meta)
-    print(f"{'工况维':<12}{'设计位移(归一化L2)':>20}{'相对最大':>10}{'ΔL1(mm)':>10}")
-    for k, v in A.items():
-        print(f"{k:<12}{v['move_L2']:>20.4f}{v['relative']:>10.3f}{v['dL1_mm']:>10.1f}")
+    # === A 解码器灵敏度:零仿真,所以跑遍全部存档,顺带得到跨种子稳健性 ===
+    print("\n=== A 解码器灵敏度(0 仿真:固定 z,单独把每一维工况从 lo 推到 hi)===")
+    A_all = {}
+    for fp in ckpts:
+        mdl_i, meta_i = load_ckpt(fp)
+        A_all[os.path.basename(fp)] = probe_decoder(mdl_i, meta_i)
+    names = list(next(iter(A_all.values())).keys())
+    print(f"{'存档':<16}" + "".join(f"{n:>13}" for n in names) + "     (设计位移,相对最大维)")
+    for k, A in A_all.items():
+        print(f"{k:<16}" + "".join(f"{A[n]['relative']:>13.3f}" for n in names))
+    if len(A_all) > 1:
+        med = {n: float(np.median([A[n]["relative"] for A in A_all.values()])) for n in names}
+        print(f"{'中位数':<16}" + "".join(f"{med[n]:>13.3f}" for n in names))
+    else:
+        med = {n: A_all[list(A_all)[0]][n]["relative"] for n in names}
+    print("  ΔL1(mm):" + "  ".join(
+        f"{n}={A_all[os.path.basename(main_fp)][n]['dL1_mm']:+.1f}" for n in names))
 
+    mdl, meta = load_ckpt(main_fp)
     with ProcessPoolExecutor(max_workers=args.workers) as ex:
-        print("\n=== B 跨质量移植(为 m_i 设计的腿,拿到 m_j 上摔)===")
+        print(f"\n=== B 跨质量移植(存档 {os.path.basename(main_fp)}:"
+              f"为 m_i 设计的腿,拿到 m_j 上摔)===")
         B = probe_transplant(mdl, meta, ex, masses, ngen=args.ngen)
         hdr = "".join(f"{m:>9g}" for m in masses)
         lbl = "设计\\测试"
@@ -236,11 +295,11 @@ def main():
             row = "".join(f"{B['table'][f'{md:g}->{mt:g}']['peak_g']:>9.3f}" for mt in masses)
             print(f"{md:<12g}{row}")
         print("每一列的离散度 / 专属设计的优势:")
-        for s in B["summary"]:
-            print(f"  m={s['m_test']:>4g}kg  列内极差 {s['col_spread_pct']:6.2f}%   "
-                  f"专属设计优势 {s['own_advantage_pct']:+6.2f}%")
+        for sm_ in B["summary"]:
+            print(f"  m={sm_['m_test']:>4g}kg  列内极差 {sm_['col_spread_pct']:6.2f}%   "
+                  f"专属设计优势 {sm_['own_advantage_pct']:+6.2f}%")
 
-        print("\n=== C 不变性验尸(固定设计扫 m)===")
+        print("\n=== C 不变性验尸(固定设计扫 m,与模型无关)===")
         C = probe_invariance(ex, masses, ndes=args.ndes)
         for k, v in C["rel_spread"].items():
             print(f"  {k:<8} 沿 m 的相对极差(中位) = {v:.3e}")
@@ -248,15 +307,20 @@ def main():
               f"{[round(v, 4) for v in C['Fpeak_ratio_mean']]}")
         print(f"  {'':>34}理论 {[round(v, 4) for v in C['Fpeak_ratio_expected']]}")
 
-    res = dict(model=args.model, decoder_sensitivity=A, transplant=B, invariance=C)
-    fp = os.path.join(args.out, "e14_mass_probe.json")
-    json.dump(res, open(fp, "w"), indent=2, ensure_ascii=False)
-    print(f"\n[e14] → {fp}")
+    res = dict(model=main_fp, ckpts=ckpts, note=note,
+               decoder_sensitivity=A_all.get(os.path.basename(main_fp)),
+               decoder_sensitivity_all=A_all, decoder_relative_median=med,
+               transplant=B, invariance=C)
+    fpo = os.path.join(args.out, "e14_mass_probe.json")
+    json.dump(res, open(fpo, "w"), indent=2, ensure_ascii=False)
+    print(f"\n[e14] → {fpo}")
 
-    sm = max(v["relative"] for k, v in A.items() if k.startswith("m("))
+    sm = max(v for k, v in med.items() if k.startswith("m("))
     inv = C["rel_spread"]["peak_a"]
-    print("\n[结论] " + ("质量维确认为死维:" if (sm < 0.35 and inv < 1e-6) else "存在质量依赖:")
-          + f" 解码器 m 相对灵敏度 {sm:.3f}, 响应沿 m 相对极差 {inv:.1e}")
+    dead = sm < 0.35 and inv < 1e-6
+    print("\n[结论] " + ("质量维确认为死维:" if dead else "存在质量依赖:")
+          + f" 解码器 m 相对灵敏度中位 {sm:.3f}(跨 {len(A_all)} 个存档), "
+            f"响应沿 m 相对极差 {inv:.1e}")
 
 
 if __name__ == "__main__":
