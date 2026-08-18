@@ -52,6 +52,11 @@ def main():
 
     refs = json.load(open(args.refs))
     rounds = parse_rounds(args.rounds, args.model_dir)
+    if not rounds:                      # 静默空转会让上游脚本误以为成功,必须显式失败
+        raise SystemExit(f"[eval] 错误:{args.model_dir} 下没有匹配 --rounds "
+                         f"'{args.rounds}' 的 cvae_r*.pt 存档,无事可做")
+    if not refs:
+        raise SystemExit(f"[eval] 错误:考卷为空:{args.refs}")
     print(f"[eval] 存档 {len(rounds)} 轮 × 考题 {len(refs)} × {args.ngen_eval} 设计 "
           f"= {len(rounds) * len(refs) * args.ngen_eval} 次仿真")
 
