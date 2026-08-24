@@ -74,6 +74,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dir", default="outputs", help="含 v2_e5_{arm}/cvae_r20.pt")
     ap.add_argument("--round", default="r20")
+    ap.add_argument("--suffix", default="", help="存档目录后缀,如 _s1(多种子)")
+    ap.add_argument("--refs", default=None,
+                    help="已有 union_refs.json 的路径:换种子重考时复用参考,只跑生成侧")
     ap.add_argument("--nq", type=int, default=72)
     ap.add_argument("--nref", type=int, default=120, help="每盒每题参考采样数")
     ap.add_argument("--ngen", type=int, default=40)
@@ -88,7 +91,7 @@ def main():
     t0 = time.time()
 
     # ---------------------------------------------------------- ① 并集参考
-    ref_fp = os.path.join(args.out, "union_refs.json")
+    ref_fp = args.refs or os.path.join(args.out, "union_refs.json")
     if os.path.exists(ref_fp):
         exam = json.load(open(ref_fp))
         print(f"[e19] 参考已缓存:{len(exam)} 题")
@@ -139,7 +142,7 @@ def main():
     results = {}
     with ProcessPoolExecutor(max_workers=args.workers) as ex:
         for arm in ARM_LIST:
-            fp = os.path.join(args.dir, f"v2_e5_{arm}", f"cvae_{args.round}.pt")
+            fp = os.path.join(args.dir, f"v2_e5_{arm}{args.suffix}", f"cvae_{args.round}.pt")
             if not os.path.exists(fp):
                 print(f"[e19] 缺 {fp},跳过"); continue
             model, meta = load_ck(fp)

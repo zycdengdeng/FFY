@@ -1,0 +1,1453 @@
+<!DOCTYPE html><html><head>
+      <title>质量耦合改造方案_v2</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\ZihanWANG\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.30\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-details{margin:0;padding:0;border:none}.markdown-preview .md-toc summary.md-toc-link-wrapper{cursor:pointer;list-style-position:outside}.markdown-preview .md-toc summary.md-toc-link-wrapper::marker{font-size:.85em}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='0']{margin-left:12px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='1']{margin-left:28px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='2']{margin-left:44px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='3']{margin-left:60px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='4']{margin-left:76px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='5']{margin-left:80px}.markdown-preview a.tag,.markdown-preview a.tag:active,.markdown-preview a.tag:link,.markdown-preview a.tag:visited,.markdown-preview span.tag:not(.token){display:inline-block;background-color:var(--vscode-badge-background,rgba(127,127,127,.18));color:var(--vscode-badge-foreground,currentColor);border-radius:2em;font-size:.85em;font-weight:500;padding:.05em .55em;line-height:1.5;white-space:nowrap;text-decoration:none;text-shadow:none;box-shadow:none;transition:background-color .12s ease,opacity .12s ease}.markdown-preview a.tag{cursor:pointer}.markdown-preview a.tag:focus,.markdown-preview a.tag:hover{background-color:var(--vscode-badge-background,rgba(127,127,127,.32));color:var(--vscode-badge-foreground,currentColor);opacity:.85;text-decoration:none;outline:0}.markdown-preview .wikilink-embed-content{border-left:3px solid var(--vscode-textBlockQuote-border,rgba(128,128,128,.3));background:var(--vscode-textBlockQuote-background,rgba(128,128,128,.05));margin:.5em 0;padding:.5em .75em;border-radius:0 3px 3px 0}.markdown-preview .wikilink-embed-content.wikilink-embed-error{border-left-color:var(--vscode-errorForeground,#cf222e);color:var(--vscode-errorForeground,#cf222e);font-style:italic;opacity:.8}.markdown-preview .wikilink-embed-content h1:first-child,.markdown-preview .wikilink-embed-content h2:first-child,.markdown-preview .wikilink-embed-content h3:first-child,.markdown-preview .wikilink-embed-content h4:first-child,.markdown-preview .wikilink-embed-content h5:first-child,.markdown-preview .wikilink-embed-content h6:first-child{margin-top:.25em}.markdown-preview .wikilink-embed-content .wikilink-embed-content{margin:.25em 0;padding:.25em .5em}.markdown-preview .block-id{display:none}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));border:4px solid var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));background-clip:content-box}.scrollbar-style::-webkit-scrollbar-thumb:hover{background-color:var(--vscode-scrollbarSlider-hoverBackground,rgba(120,120,120,.66))}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));border:4px solid var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb:hover{background-color:var(--vscode-scrollbarSlider-hoverBackground,rgba(120,120,120,.66))}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-details{margin:0;padding:0;border:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='0']{padding-left:0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='1']{padding-left:16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='2']{padding-left:32px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='3']{padding-left:48px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='4']{padding-left:64px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='5']{padding-left:80px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. -->
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script>
+    </head>
+    <body for="html-export">
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="v2-改造方案让质量真正进入问题一次改到位不打补丁">v2 改造方案:让质量真正进入问题(一次改到位,不打补丁) </h1>
+<blockquote>
+<p>目标:把"m 是死维"从<strong>建模缺陷</strong>变成<strong>已解决的设计要素</strong>,并顺手把仿生消融<br>
+升级成教科书级的对照。原则:<strong>不为了让 m 活而乱改参数化,只把写错的物理写对。</strong></p>
+</blockquote>
+<hr>
+<h2 id="一-诊断三处独立缺陷">一、诊断:三处独立缺陷 </h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>缺陷</th>
+<th>位置</th>
+<th>后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B1</td>
+<td>每个力都写成 m 的正比量(k=κmgL、kc=4000mg、杆件质量=5%m)</td>
+<td><code>models.bird_size_x</code></td>
+<td>a=F/m 中 m 约掉 ⇒ 归一化响应严格不变</td>
+</tr>
+<tr>
+<td>B2</td>
+<td>工况 LHS 与设计 LHS 相互独立</td>
+<td><code>data_factory.main</code></td>
+<td>训练集里 m 与形态互信息 = 0 ⇒ 无从学起</td>
+</tr>
+<tr>
+<td>B3</td>
+<td>kc 同时扮演"数值罚刚度"与"真实地面刚度"</td>
+<td><code>bird_size_x</code> + <code>e13</code></td>
+<td>E13 的地形扰动解释站不住</td>
+</tr>
+</tbody>
+</table>
+<p><strong>必须同时修</strong>:只修 B2 得到"先验背书的形态"(物理上没意义);只修 B1 得到"物理有依赖但先验里没有生物学"。</p>
+<hr>
+<h2 id="二-修法">二、修法 </h2>
+<h3 id="p1--物理去归一化改-3-处是全部改动的核心">P1 · 物理去归一化(改 3 处,是全部改动的核心) </h3>
+<p><strong>P1.1 接触改为绝对介质属性,并升为工况维</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>F_contact(δ, δ̇) = k_c·δ + c_c·δ̇ + ½·ρC_dA·δ̇²        (δ&gt;0)
+</code></pre><ul>
+<li><code>k_c</code> [N/m]、<code>c_c</code> [N·s/m]、<code>ρC_dA</code> [kg/m] 全部<strong>绝对单位</strong>,与 m 无关</li>
+<li>硬地:k_c≈2e6,拖曳项=0;软地/湿滩:k_c≈1e4–1e5;<strong>水面着陆</strong>:k_c 小 + 拖曳项主导</li>
+<li>一举三得:(a) 破坏不变性;(b) 修好 B3,E13 的 ±30% 变成真正的"地形/介质变化";<br>
+(c) 把课题真正的场景(水鸟<strong>着水</strong>)纳入模型,而不是只做硬地落震</li>
+</ul>
+<p><em>为什么 m 就活了</em>:接触频率 ω_c=√(k_c/m) ∝ m^(-1/2),而腿的频率 ω_leg=√(κg/L_leg) 与 m 无关。<br>
+两者之比在 m: 1→12 kg 上变化 3.46 倍。软端更狠:静沉陷 δ=mg/k_c,k_c=1e4 时 1 kg 沉 1 mm、<br>
+12 kg 沉 12 mm——而 s_max 只有 8–40 mm。<strong>重机器在软地上要先赔掉一半行程预算。</strong></p>
+<p><strong>P1.2 杆件质量由结构定尺导出,不再是 5%·m</strong></p>
+<p>复用 <code>e8_struct.py</code> 的链条(关节力矩 → 薄壁管 t=0.1D → 弯曲+轴向应力 + 欧拉屈曲,SF=2):</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>弯曲控制:  D ∝ (m·L)^(1/3)          杆质量 ∝ ρ·L·D² ∝ m^(2/3)·L^(5/3)
+屈曲控制:  D ∝ (m·L²)^(1/4)
+</code></pre><p>配合 L ∝ m^0.39,<strong>腿质量分数 ∝ m^0.32</strong>(1→12 kg 增长 2.2 倍)——这就是平方立方律。</p>
+<blockquote>
+<p>实施细节:一次仿真 → 关节力矩 → 定尺 → 可行性 + 导出质量。是否需要第二遍<br>
+(新质量回代再仿真)用 200 个设计的抽样实测决定;若二次迭代对 peak_a 的影响 &lt; 1%,<br>
+就只做一遍并把残差写进报告。<strong>不假设,实测。</strong></p>
+</blockquote>
+<p><strong>P1.3 结构判据上线成在线可行性</strong></p>
+<p>v1 里应力/屈曲只是事后分析(E8),v2 里进入可行性门:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>可行 ⇔ peak_a ≤ g_cap  ∧  stroke ≤ s_max  ∧  回弹比 ≤ 5%
+       ∧ σ_max ≤ σ_y/2  ∧  P_axial ≤ P_euler/2  ∧  F_peak ≤ F_max
+</code></pre><p><code>σ_y</code>、<code>E</code>、<code>F_max</code> 全是绝对量,<strong>不随 m 缩放</strong> ⇒ 可行域随 m 单调收缩。这是最干净的质量依赖。</p>
+<p><strong>P1.4 保持不变的部分(重要)</strong></p>
+<p>κ = k/(m·g·L_leg)、ζ、r2、r3 <strong>继续用无量纲形式</strong>。它们是良构的无量纲群,<br>
+换成绝对单位只会让 1 kg 与 12 kg 的取值范围失配,那是把问题搞坏而不是搞对。<br>
+不变性由 P1.1–P1.3 的<strong>绝对量</strong>打破,这才是物理上正确的破缺路径。</p>
+<h3 id="p2--生物先验条件化-pxm">P2 · 生物先验条件化 p(x|m) </h3>
+<p>把几何三维改成<strong>相对生物学基线的 z 分数</strong>,网络的盒子因此保持固定且与 m 无关:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>log L1 = a + b·log m + σ_L·u_L          u_L ∈ [-2, +2]
+r2     = r̄2(m) + σ_2·u_2                u_2 ∈ [-2, +2]
+r3     = r̄3(m) + σ_3·u_3                u_3 ∈ [-2, +2]
+</code></pre><ul>
+<li>(a, b, σ_L) 由 AVONET 214 种水鸟拟合,现有值 <strong>b = 0.39 ± 0.03</strong></li>
+<li>r̄2/r̄3 先检验 Watanabe 91 种里是否存在质量趋势;无趋势就退化为常数(即 v1 的边缘盒)</li>
+<li>网络输入 x_net = (u_L, u_2, u_3, κ_踝, κ_膝, κ_髋, ζ),<strong>全部与 m 无关</strong> ⇒ cVAE 结构一行不用改</li>
+<li>数据工厂改动:先采 (m, v0, 介质),再采 u,最后用 m 展开成物理 x。<strong>约 5 行</strong></li>
+</ul>
+<h3 id="p3--消融升级从选盒子改成选标度指数">P3 · 消融升级:从"选盒子"改成"选标度指数" </h3>
+<p>v1 的 bio/wide/shift 三盒消融最大的软肋是"你是不是挑了个不好的 shift 盒"。<br>
+v2 里三臂退化成<strong>同一个 b 的四个取值</strong>,每一个都是文献里有名有姓的零假设:</p>
+<table>
+<thead>
+<tr>
+<th>臂</th>
+<th>b</th>
+<th>出处</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>bio</strong></td>
+<td>0.39</td>
+<td>AVONET 实测</td>
+<td>水鸟腿的正向异速生长</td>
+</tr>
+<tr>
+<td>geo</td>
+<td>1/3</td>
+<td>几何相似</td>
+<td>等比例放大</td>
+</tr>
+<tr>
+<td>elastic</td>
+<td>1/4</td>
+<td>McMahon 弹性相似</td>
+<td>抗屈曲优先</td>
+</tr>
+<tr>
+<td>none</td>
+<td>0</td>
+<td>= v1 的边缘盒</td>
+<td>无尺度知识</td>
+</tr>
+</tbody>
+</table>
+<p>四臂<strong>盒子体积、形状、位置全部由同一公式生成</strong>,只差一个标量 ⇒ "精挑细选"的质疑自动消失。<br>
+而且这个消融现在回答的是一个真问题:<strong>AI 该不该继承生物的标度律?</strong></p>
+<hr>
+<h2 id="三-验收门不通过就不烧算力">三、验收门(不通过就不烧算力) </h2>
+<table>
+<thead>
+<tr>
+<th>门</th>
+<th>判据</th>
+<th>成本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G0</td>
+<td>v1 验尸:解码器 m 相对灵敏度 &lt; 0.35 且响应沿 m 相对极差 &lt; 1e-6</td>
+<td>~10 分钟</td>
+</tr>
+<tr>
+<td>G1</td>
+<td>v2 反验:同一设计扫 m,<strong>peak_a 相对极差 ≥ 10%</strong>;可行率随 m <strong>单调下降</strong></td>
+<td>~20 分钟</td>
+</tr>
+<tr>
+<td>G2</td>
+<td>小试:200×60 工厂 + 10 轮 1 种子,按 m 分层的 gap <strong>出现显著差异</strong>;e14 的 A 项里 S(m) 与 S(v0) 同量级</td>
+<td>~6 小时</td>
+</tr>
+<tr>
+<td>G3</td>
+<td>全量重建</td>
+<td>~2–3 天</td>
+</tr>
+</tbody>
+</table>
+<p><strong>G1 不过就回头调物理参数,不进 G2。</strong> 这是"一次改到位"与"盲目重跑"的分界线。</p>
+<hr>
+<h2 id="四-工作量与顺序">四、工作量与顺序 </h2>
+<table>
+<thead>
+<tr>
+<th>步</th>
+<th>内容</th>
+<th>我的耗时</th>
+<th>机器耗时</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>冻结 v1 + 跑 E14 验尸</td>
+<td>已备好脚本</td>
+<td>10 min</td>
+</tr>
+<tr>
+<td>1</td>
+<td>改 <code>hf_exudyn</code> 接触律、<code>models.bird_size_x</code>、<code>data_factory</code> 先验、<code>e6_exam</code> 可行性门</td>
+<td>~3 h</td>
+<td>—</td>
+</tr>
+<tr>
+<td>2</td>
+<td>G1 反验脚本 <code>e15_mass_check.py</code></td>
+<td>~0.5 h</td>
+<td>20 min</td>
+</tr>
+<tr>
+<td>3</td>
+<td>小试(G2)</td>
+<td>—</td>
+<td>6 h</td>
+</tr>
+<tr>
+<td>4</td>
+<td>全量:工厂 500×120 → 85 轮 → 8 种子 → E6/E7/E8/E12/E13 重跑 + 四臂 b 消融</td>
+<td>—</td>
+<td>2–3 天</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="五-这次改造顺带解决的旧账">五、这次改造顺带解决的旧账 </h2>
+<ul>
+<li>E13 的 kc 扰动获得物理解释(地形/介质变化)</li>
+<li>E6 的质量分层重新有意义(可行域随 m 收缩,分层不再是空的)</li>
+<li>E8 从"事后分析"变成"在线判据",结构线与生成线合并成一条线</li>
+<li>E11 的"精挑细选"质疑被 b 指数消融结构性消除</li>
+<li>"多工况条件生成"的表述第一次名副其实:m、v0、介质刚度、约束松紧四个方向都活</li>
+</ul>
+<hr>
+<h1 id="附v2-数据采集协议采纳-condition-path但只在数据层">附:V2 数据采集协议(采纳 condition-path,但只在数据层) </h1>
+<h2 id="六-判断采纳顺序不变">六、判断:采纳,顺序不变 </h2>
+<p>Codex 的核心判断正确且必须执行:<strong>先修物理,再埋路径</strong>。补充一条更强的理由——<br>
+在 v1 物理上做质量 walk 不只是"得到一条平线没用",而是<strong>有害</strong>:<br>
+若再加 path-consistency 损失,等于用损失函数<strong>显式地把 ∂x/∂m = 0 这个人为假象钉死</strong>。<br>
+这比"白跑"严重。</p>
+<h3 id="61-v1-里已经做对的一件事">6.1 v1 里已经做对的一件事 </h3>
+<p>Codex 建议区分 c_phys=(m, v0, 介质) 与 r=(g_cap, s_max, η_min),并指出改 r 不必重仿真。<br>
+<strong>这在 v1 中已经是既定设计</strong>:<code>data_factory.py</code> 只扫 (m, v0)×设计并存全部指标,<br>
+g_cap/s_max 在 <code>build_dataset.py</code> 构训练对时才抽签。</p>
+<p>由此得到一个<strong>零成本</strong>的机会:<strong>要求空间的路径可以从冻结的 v1 池里直接造,一次仿真都不用跑。</strong><br>
+配合 v0 在 v1 物理里本来就是活维,于是——</p>
+<blockquote>
+<p><strong>可以在 v1 冻结池上先把整套 path 机制跑通:数据格式、按束切分、path 损失、<br>
+防泄漏评测。这件事零算力、零墙钟(我写 v2 代码时机器本来空着),<br>
+而且能在建 v2 之前就回答"同等仿真预算下,path 数据是否真的强于独立 LHS"。</strong></p>
+</blockquote>
+<p>如果答案是否,我们就不必建 V2-PathLoss,省下的是数天。这是这轮讨论里 ROI 最高的一步。</p>
+<h2 id="七-路径协议两遍不是一遍">七、路径协议(两遍,不是一遍) </h2>
+<p><strong>Codex 的 60/25/15 有一处结构性问题:边界加密无法与前两者同批产出</strong>——<br>
+它需要先有可行性模型才知道边界在哪。所以必须分两遍:</p>
+<table>
+<thead>
+<tr>
+<th>遍</th>
+<th>内容</th>
+<th>仿真量</th>
+<th>占比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td>全局块:375 工况 × 120 设计</td>
+<td>45,000</td>
+<td>63%</td>
+</tr>
+<tr>
+<td>①</td>
+<td>路径束:25 束 × 120 锚点 × 5 工况</td>
+<td>15,000</td>
+<td>21%</td>
+</tr>
+<tr>
+<td>②</td>
+<td>边界加密:用 ① 训出的 FeasNet 定位 p_feas≈0.5 等值面,附近 100 工况 × 120 设计</td>
+<td>12,000</td>
+<td>17%</td>
+</tr>
+<tr>
+<td></td>
+<td><strong>合计</strong></td>
+<td><strong>72,000</strong></td>
+<td>(v1 为 60,000,+20%)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>路径束的构成</strong>(每束 = 同一批 120 个锚点设计,沿一条工况线走 5 步):</p>
+<table>
+<thead>
+<tr>
+<th>束型</th>
+<th>数量</th>
+<th>走法</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v0</code></td>
+<td>10</td>
+<td>v0: 0.6→1.6,Δ=0.25</td>
+<td>最强动力学效应,边界穿越最清楚</td>
+</tr>
+<tr>
+<td><code>m_allo</code></td>
+<td>6</td>
+<td><strong>固定 u_L 走 m</strong>,L1 按 exp(a+b·log m+σu_L) 同步变</td>
+<td>保持异速生长的工况路径:追踪"同一形态型"随体重的演化</td>
+</tr>
+<tr>
+<td><code>m_iso</code></td>
+<td>4</td>
+<td><strong>固定绝对 x 走 m</strong></td>
+<td>反事实对照:纯物理的质量效应</td>
+</tr>
+<tr>
+<td><code>medium</code></td>
+<td>5</td>
+<td>k_c: 1e4→2e6 对数等距</td>
+<td>硬地↔软地↔水面</td>
+</tr>
+</tbody>
+</table>
+<p><code>m_allo</code> 与 <code>m_iso</code> 成对存在,是因为它们直接给出一个<strong>分解</strong>:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>dy/dm |_allo  =  ∂y/∂m |_x        +      (∂y/∂x)·(dx/dm)|_bio
+   (总效应)      (m_iso:纯物理)         (差值:生物先验的贡献)
+</code></pre><p><strong>这个分解本身就是结果</strong>,不只是训练数据——它量化"生物的标度律在多大程度上补偿了体重增长"。</p>
+<h2 id="八-把-m_allo-从采样技巧升级成主实验">八、把 <code>m_allo</code> 从采样技巧升级成主实验 </h2>
+<p>Codex 把 allometry-preserving path 当作更合理的采样方式。我认为它应该是<strong>主图</strong>:</p>
+<p>沿 <code>m_allo</code> 路径把 m 一直推到可行性失效,得到</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>m*(u_L, b) = 某个形态型仍能在 g_cap 内着陆的最大体重
+</code></pre><p>这是一条<strong>尺度极限曲线</strong>。结合 §二 P3 的 b 指数消融,直接提出一个可证伪的问题:</p>
+<blockquote>
+<p><strong>实测的生物标度指数 b = 0.39 是否使可行体重范围最大?</strong></p>
+</blockquote>
+<ul>
+<li>若是 → "生物的标度律对着陆任务近乎最优",强结论</li>
+<li>若否 → "生物在为别的功能(涉水、觅食)优化,着陆不是主约束",同样是结论</li>
+</ul>
+<p>无论哪个方向都是结果,且正好是博士方向那句话的实体化:<br>
+<strong>可行域与性能边界如何随生物尺度与工程工况连续演化。</strong></p>
+<h2 id="九-对-codex-另外两条建议的修正">九、对 Codex 另外两条建议的修正 </h2>
+<h3 id="91-三头架构f-性能--c-可行--g-生成采纳分解拒绝共享主干">9.1 三头架构(F 性能 / C 可行 / G 生成):采纳分解,拒绝共享主干 </h3>
+<p>理由是项目特有的:</p>
+<ol>
+<li><strong>C 已经存在</strong>且很好(E12 FeasNet,AUC 0.9991),不需要重新接线。</li>
+<li><strong>E5 循环里刻意没有代理模型</strong>——真值裁判是 Exudyn。"零在线仿真下比 BO 好 6 倍"<br>
+是这条线最干净的卖点;挂一个共享主干的性能头 F,评审很容易读成<br>
+"又变回代理模型优化了",而且引入 F↔G 的训练耦合,又多一个要消融的东西。</li>
+<li>Codex 自己的规矩是"别一次同时改物理/先验/采样/架构/损失"——<strong>共享主干就是架构改动</strong>,<br>
+按他自己的规矩,V2-Base 里不该有。</li>
+</ol>
+<p>→ <strong>三个独立模型共用同一个池子</strong>,不共享编码器。共享主干推迟到 V2.5,且以 path 数据先证明有效为前提。</p>
+<h3 id="92-消融阶梯v1-frozen-不是一个臂">9.2 消融阶梯:V1-Frozen 不是一个臂 </h3>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>是否可与其它臂同表比较</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>V1-Frozen</td>
+<td>❌ 物理不同,只能作叙事参照("我们修了什么"),数字不能进同一张表</td>
+</tr>
+<tr>
+<td>V2-Base</td>
+<td>✅ 修正物理 + p_bio(x|m),普通 LHS + cVAE</td>
+</tr>
+<tr>
+<td>V2-PathData</td>
+<td>✅ 同物理,路径样本当普通样本用,<strong>同仿真预算</strong></td>
+</tr>
+<tr>
+<td>V2-PathLoss</td>
+<td>✅ 同数据,加显式连续性/边界损失</td>
+</tr>
+</tbody>
+</table>
+<p>公平比较的唯一口径是<strong>同仿真预算</strong>下 Base vs PathData vs PathLoss。</p>
+<h3 id="93-切分纪律具体会炸在哪里">9.3 切分纪律:具体会炸在哪里 </h3>
+<p>Codex 的"整条路径必须整体进训练或测试"是对的。<strong>我们这里的具体炸点</strong>是:<br>
+E5 的"防考题泄露"防线按 <strong>cid(工况编号)</strong> 切分,而一个路径束把同一批设计放进 K 个不同 cid。<br>
+按 cid 切 ⇒ 同一个设计同时出现在训练与测试侧 ⇒ 静默泄漏。</p>
+<p>→ <strong>切分单元必须从 cid 改成 bundle_id</strong>;非路径块的 bundle_id = 自身 cid。改动约 10 行,<br>
+但不改就会得到一个虚高且很难自己发现的数字。</p>
+<h2 id="十-与-geoptwu-et-al-icml-2026的关系">十、与 GeoPT(Wu et al., ICML 2026)的关系 </h2>
+<p>课题组另一条线在读的 GeoPT 与本项目<strong>方向相反但共用同一条理论</strong>,值得在论文里引一次:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>GeoPT</th>
+<th>本项目</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>什么便宜</td>
+<td>几何(web 规模现成模型)</td>
+<td><strong>物理</strong>(Exudyn 约 1 s/次)</td>
+</tr>
+<tr>
+<td>什么贵</td>
+<td>物理标签(单样本 6.1×10⁴ CPU·小时)</td>
+<td><strong>生物几何</strong>(214 种,不可增)</td>
+</tr>
+<tr>
+<td>做法</td>
+<td>合成<strong>动力学</strong> v~Unif(B),把 G 提升到 (G, V)</td>
+<td>合成<strong>几何</strong>:用拟合的标度律把 214 个离散 (m_i, x_i) 提升成连续流形 x(m, u)</td>
+</tr>
+<tr>
+<td>尺度</td>
+<td>1.6 亿网格,Transformer 主干</td>
+<td>7 维标量,小 MLP</td>
+</tr>
+</tbody>
+</table>
+<p><strong>共用的理论是它的 Remark 4.2</strong>:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>slice( E_V [ F_lifted(x; G, V) ] ) = F_native(x; G)
+</code></pre><p>即:只在原生空间预训练,学到的是<strong>沿被忽略维度取期望</strong>的那个塌缩表示,信息有损。</p>
+<p>这正是 v1 的病理的精确描述:因为响应流形沿 m 是平的,我们的 cVAE 学到的是 <strong>E_m[·]</strong>——<br>
+一个沿质量维塌缩的表示。GeoPT 因此给了我们两样东西:</p>
+<ol>
+<li><strong>给自己的 bug 一个可引用的名字</strong>(degenerate / reduced representation,沿无监督信号的条件维塌缩);</li>
+<li><strong>给 condition-path 一个可引用的理由</strong>:i.i.d. 的 (x_i, c_i) 只能学到 c 的切片期望,<br>
+同一 x 在多个 c 上的配对才监督"张成的流形"而非"切片"。</li>
+</ol>
+<p>另外可引用其<strong>负迁移</strong>结论(只用几何预训练反而变差)来加固 E11 的立论:<br>
+<strong>先验加在错误的轴上会有害</strong>——这正是我们的消融要测的。</p>
+<p>不应借鉴的是它的规模与架构。7 维问题 + 秒级求解器,与 1.6 亿网格 + 6 万 CPU·小时是两个世界;<br>
+"把 GeoPT 搬到起落架上"是错的表述,"两者是同一枚硬币的两面"才是。</p>
+<hr>
+<h1 id="实施记录-1p1-物理改造完成g1-门通过2026-08-18">实施记录 ①:P1 物理改造完成,G1 门通过(2026-08-18) </h1>
+<p>代码:<code>src/stage10_v2/{physics_v2.py, bioprior.py, e15_mass_check.py}</code>(v1 代码一行未动,<br>
+两版可并存复现)。以下数字全部在沙箱实测,不是估算。</p>
+<h2 id="一-g1-反验质量活了">一、G1 反验:质量活了 </h2>
+<p>12 个随机设计 × 3 地形 × 5 个质量(1/2/4/8/12 kg),每次两遍仿真。</p>
+<table>
+<thead>
+<tr>
+<th>地形</th>
+<th>k_c (N/m)</th>
+<th>peak_a 沿 m 相对极差</th>
+<th>stroke</th>
+<th>F_peak</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>concrete</td>
+<td>2.0e6</td>
+<td><strong>28.5%</strong></td>
+<td>4.8%</td>
+<td>228%</td>
+</tr>
+<tr>
+<td>turf</td>
+<td>2.0e5</td>
+<td><strong>60.9%</strong></td>
+<td>44.9%</td>
+<td>192%</td>
+</tr>
+</tbody>
+</table>
+<p>判据是 ≥10%,实测 28–61%。<strong>G1-a 通过。</strong></p>
+<p>可行率(g_cap=10g, s_max=24mm)随 m 的走向:turf 30→30→20→20→10%,<strong>单调下降,G1-b 通过。</strong><br>
+卡人的约束随质量换手——低质量端全是 g_cap,高质量端变成<strong>slenderness</strong><br>
+(m=12 kg 时 slenderness×6 vs gcap×3):<strong>平方立方律确实咬到人了。</strong></p>
+<h2 id="二-通道归因哪一处改动在起作用">二、通道归因:哪一处改动在起作用 </h2>
+<p>把 v2 的改动逐个退回 v1 写法(turf 地形):</p>
+<table>
+<thead>
+<tr>
+<th>组合</th>
+<th>k_c</th>
+<th>杆件质量</th>
+<th>接触阻尼</th>
+<th>peak_a 沿 m 相对极差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A 全 v1 口径</td>
+<td>4000mg</td>
+<td>5%·m</td>
+<td>0.01k_c</td>
+<td><strong>0.00%</strong></td>
+</tr>
+<tr>
+<td>B 接触(刚度+阻尼)</td>
+<td>绝对</td>
+<td>5%·m</td>
+<td>2ζ√(k_c m)</td>
+<td>76.9%</td>
+</tr>
+<tr>
+<td>B2 只绝对化刚度</td>
+<td>绝对</td>
+<td>5%·m</td>
+<td>0.01k_c</td>
+<td>96.1%</td>
+</tr>
+<tr>
+<td>C 只改杆件质量</td>
+<td>4000mg</td>
+<td>定尺导出</td>
+<td>0.01k_c</td>
+<td><strong>0.38%</strong></td>
+</tr>
+<tr>
+<td>D 全 v2</td>
+<td>绝对</td>
+<td>定尺导出</td>
+<td>2ζ√(k_c m)</td>
+<td>77.8%</td>
+</tr>
+</tbody>
+</table>
+<p>三条读数:</p>
+<ol>
+<li><strong>A 组精确复现 0.00%</strong> —— 独立于 E14 再次确认 v1 的不变性,同时证明 v2 代码没有<br>
+引入无关改动(退回 v1 参数就得到 v1 结果)。这是最好的回归测试。</li>
+<li><strong>质量效应几乎全部来自接触的绝对化</strong>。这符合物理:地面刚度是地形属性,<br>
+v1 把它写成 4000·m·g 等于假定"地面对更重的机体更硬",这是全部人为不变性的主源。</li>
+<li><strong>杆件质量导出对动力学几乎无贡献(0.38%)</strong>——因为腿只占机体质量 0.2–4%。<br>
+但它<strong>不是白改</strong>:它的作用在<strong>可行域</strong>而不在响应(见 §一 的 slenderness 换手)。<br>
+论文里要把这句话说清楚,否则会被问"既然只有 0.38%,为什么要改"。</li>
+</ol>
+<h2 id="三-实测确定的几个工程细节">三、实测确定的几个工程细节 </h2>
+<ul>
+<li><strong>两遍质量回代必须做</strong>:第二遍对 peak_a 的影响中位 2.2%、P90 4.1%、最大 33.6%。<br>
+代价是仿真量翻倍,但 33.6% 的尾巴不能忽略。</li>
+<li><strong>腿质量分数</strong>:中位 0.88%,范围 0.22–3.96%,与 E8 独立得到的 0.5–1.5% 一致。</li>
+<li><strong>软端有模型上限</strong>:k_c=1.2e4(泥)时 m≥4 kg 全部失败——动态侵入深度超过足端球<br>
+半径 8 mm,球-面罚接触模型本身失效,不是物理。因此 <code>KC_RANGE</code> 收窄到<br>
+<strong>[3e4, 2e6]</strong>(湿沙→混凝土,约 2 个数量级)。泥/水这类大侵入介质需要<br>
+v²拖曳+附加质量的入水模型,列为 <strong>v2.1</strong>,不阻塞主线。</li>
+<li><strong>几何上限是关键</strong>:<code>D ≤ 0.25×段长</code>。没有这条,应力和屈曲永远可以靠把管加粗化解,<br>
+平方立方律根本咬不到人。加上之后高质量端才会出现 slenderness 失效。</li>
+</ul>
+<h2 id="四-p2-生物先验四臂已就位">四、P2 生物先验:四臂已就位 </h2>
+<p><code>bioprior.py</code>,AVONET 拟合 log10(L1_mm) = 0.4790 + 0.3911·log10(m_g),r²=0.754,n=214。<br>
+残差 σ 由 (b, ci95, n) 的回归恒等式反推 = <strong>0.0784</strong>(1σ ≈ ×1.20);<br>
+条件盒取 ±2.5σ,四臂在几何平均质量 3.464 kg 处<strong>强制同点</strong>(73.0 mm),只差斜率:</p>
+<table>
+<thead>
+<tr>
+<th>臂</th>
+<th>b</th>
+<th>L1@1 kg</th>
+<th>L1@3.46 kg</th>
+<th>L1@12 kg</th>
+<th>出实测全距比例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>bio</strong></td>
+<td>0.391</td>
+<td>28.6–70.5 (44.9)</td>
+<td>46.5–114.6 (73.0)</td>
+<td>75.6–186.4 (118.7)</td>
+<td>11.3%</td>
+</tr>
+<tr>
+<td>geo</td>
+<td>1/3</td>
+<td>30.7–75.8 (48.3)</td>
+<td>同上</td>
+<td>70.4–173.4 (110.5)</td>
+<td>8.9%</td>
+</tr>
+<tr>
+<td>elastic</td>
+<td>1/4</td>
+<td>34.1–84.0 (53.5)</td>
+<td>同上</td>
+<td>63.5–156.4 (99.6)</td>
+<td>5.8%</td>
+</tr>
+<tr>
+<td>none</td>
+<td>0</td>
+<td>46.5–114.6 (73.0)</td>
+<td>同上</td>
+<td>46.5–114.6 (73.0)</td>
+<td>0.0%</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>网络输入仍是 [0,1]^7 且与 m 无关,<code>expand/contract</code> 往返误差 2.2e-16;<br>
+<strong>cVAE 结构一行不用改</strong>。</li>
+<li>"出实测全距比例"是诚实披露的诊断:大质量端样本稀疏,大残差没被采到,<br>
+所以 ±2.5σ 会略微越出 [33,121] mm。<strong>默认不裁剪</strong>——裁剪会让四臂盒子形状不同,<br>
+毁掉消融的干净性。<code>clip=True</code> 保留给 rebuttal。</li>
+<li>σ 的反推依赖样本 log10(体重) 的散布估计 0.35。拿到 AVONET 原始表后应直接算残差 σ<br>
+覆盖它;但消融四臂共用同一个 σ,<strong>σ 的误差不影响臂间比较</strong>。</li>
+</ul>
+<h2 id="五-待办按顺序">五、待办(按顺序) </h2>
+<ol>
+<li><strong>A100 上放大跑 G1</strong>(沙箱只有 2 核,n=12 太小,concrete 那一栏还非单调):<br>
+<code>--ndes 60 --workers 128</code>,顺便把 <code>--channels</code> 也放大到 n=40。</li>
+<li>v2 数据工厂:条件向量扩成 (m, v0, k_c, ζ_c) + 事后抽签的 (g_cap, s_max),<br>
+并按 §七 的协议预埋 25% 路径束。</li>
+<li><code>e5_loop</code> 接 <code>bioprior.expand</code>(改动集中在采样与反归一化两处)。</li>
+<li>G2 小试 → 全量重建。</li>
+</ol>
+<hr>
+<h1 id="实施记录-2a100-放大验证暴露一个-bug-和一条错判据2026-08-18">实施记录 ②:A100 放大验证暴露一个 bug 和一条错判据(2026-08-18) </h1>
+<p>n 从 12 提到 200 之后,G1-a 更强,但两件事必须改。</p>
+<h2 id="一-g1-a-通过且随地面变软而增强">一、G1-a 通过,且随地面变软而增强 </h2>
+<table>
+<thead>
+<tr>
+<th>地形</th>
+<th>k_c (N/m)</th>
+<th>peak_a 沿 m 相对极差</th>
+<th>有效设计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>concrete</td>
+<td>2.0e6</td>
+<td>36.3%</td>
+<td>198/200</td>
+</tr>
+<tr>
+<td>asphalt</td>
+<td>8.0e5</td>
+<td>50.8%</td>
+<td>198/200</td>
+</tr>
+<tr>
+<td>turf</td>
+<td>2.0e5</td>
+<td><strong>75.8%</strong></td>
+<td>193/200</td>
+</tr>
+</tbody>
+</table>
+<p>通道归因(n=120)与沙箱一致:A 全 v1 口径 <strong>0.00%</strong>、B 接触 72.7%、B2 只绝对化刚度 92.2%、<br>
+C 只改杆件质量 <strong>0.49%</strong>、D 全 v2 72.0%。<strong>A 组精确复现 0.00% 是最好的回归测试。</strong></p>
+<h2 id="二-bug软地形下腿塌了是误判">二、Bug:软地形下"腿塌了"是误判 </h2>
+<p>v1 的塌陷判据 <code>stroke &gt; 0.6·L_leg</code> 里,<code>stroke</code> 是<strong>机体总下沉</strong>。硬地上它约等于腿的<br>
+压缩量,所以没出事;软地上它 = 腿压缩 + <strong>地面下陷</strong>,于是把"陷进去"误判成"腿塌了"。<br>
+后果:wetsand 在 m=8/12 kg 上 200 个设计全军覆没(collapse×200),整栏 n=0。</p>
+<p><strong>修法</strong>:加足端传感器,把两者分开——</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th>含义</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stroke</code></td>
+<td>机体总下沉</td>
+<td>报告</td>
+</tr>
+<tr>
+<td><code>sink</code></td>
+<td>地面下陷(足球心低于半径的部分)</td>
+<td>报告 + 模型有效性判据</td>
+</tr>
+<tr>
+<td><code>leg_stroke</code> = stroke − sink</td>
+<td>起落架自身行程</td>
+<td><strong>塌陷判据与 s_max 都改用它</strong></td>
+</tr>
+</tbody>
+</table>
+<p>同时把"模型失效"与"物理不可行"彻底分家:<code>fail="deep_sink"</code>(侵入 &gt; 0.9×足端半径,<br>
+罚接触模型出界)vs <code>fail="collapse"</code>(扣除下陷后腿仍被压塌,是设计不行)。<br>
+<strong>这两件事以后绝不会再混在一起。</strong></p>
+<h2 id="三-顺带修一处-v1-遗留的不自洽足端半径">三、顺带修一处 v1 遗留的不自洽:足端半径 </h2>
+<p>v1 里 <code>r_foot</code> 固定 8 mm,而跗跖长在 33–121 mm 之间变——同一个足端伺候 3.7 倍的腿。<br>
+v2 改为 <code>r_foot = 0.20·L1</code>(蹼足,随腿缩放),<code>gap0</code> 同步缩放。修完之后模型有效范围:</p>
+<table>
+<thead>
+<tr>
+<th>k_c (N/m)</th>
+<th>m=1</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>12</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.0e6</td>
+<td>5.37g / 0.0mm</td>
+<td>5.38 / 0.1</td>
+<td>5.39 / 0.1</td>
+<td>5.40 / 0.3</td>
+<td>5.40 / 0.4</td>
+</tr>
+<tr>
+<td>2.0e5</td>
+<td>5.37 / 0.3</td>
+<td>5.36 / 0.6</td>
+<td>5.30 / 1.2</td>
+<td>5.17 / 2.4</td>
+<td>5.04 / 3.5</td>
+</tr>
+<tr>
+<td>5.0e4</td>
+<td>5.21 / 1.2</td>
+<td>5.03 / 2.3</td>
+<td>4.72 / 4.3</td>
+<td>4.26 / 7.8</td>
+<td><strong>3.93 / 10.9</strong></td>
+</tr>
+<tr>
+<td>2.0e4</td>
+<td>4.90 / 2.8</td>
+<td>4.54 / 5.1</td>
+<td>4.04 / 9.1</td>
+<td>3.40 / 15.6</td>
+<td>deep_sink</td>
+</tr>
+</tbody>
+</table>
+<p>(格式:峰值 g / 地面下陷 mm。同一个设计。)<br>
+<code>KC_RANGE</code> 定为 <strong>[5e4, 2e6]</strong>——在 m∈[1,12] kg 全程有效。</p>
+<h2 id="四-错判据可行率随-m-单调下降是我写窄了">四、错判据:"可行率随 m 单调下降"是我写窄了 </h2>
+<p>实测:concrete 单调↓(11.0→5.0%),turf <strong>非单调</strong>(14→16→19→18.5→16.5%),<br>
+wetsand 更是先升后崩。原因在上表里看得很清楚——<strong>两个质量通道方向相反</strong>:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>地面变软 → 重机体被垫得更软(峰值 5.21g → 3.93g,降 25%)   ← 有利
+         → 但陷得更深(1.2mm → 10.9mm,吃掉行程预算)        ← 不利
+</code></pre><p>于是<strong>可行域在质量方向上出现内部最优</strong>:太轻则地面显得硬(g 超标),太重则陷穿行程预算。<br>
+这不是噪声,是阻抗匹配。</p>
+<p><strong>判据据此改写</strong>(G1-b 原文作废):</p>
+<blockquote>
+<p>旧:可行率随 m 单调下降<br>
+新:<strong>可行域随 m 显著改变形状,且卡人的约束发生换手</strong></p>
+</blockquote>
+<p>实测的换手极其干净(turf,n=200):</p>
+<table>
+<thead>
+<tr>
+<th>m (kg)</th>
+<th>1</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>12</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>g_cap 失效</td>
+<td>172</td>
+<td>167</td>
+<td>156</td>
+<td>128</td>
+<td><strong>87</strong></td>
+</tr>
+<tr>
+<td>slenderness 失效</td>
+<td>0</td>
+<td>0</td>
+<td>6</td>
+<td>32</td>
+<td><strong>77</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>低质量端是"加速度太大",高质量端是"管子粗到不成其为杆件"。</strong> 平方立方律接管了设计问题。<br>
+这比原来那条单调判据更强,也更是我们想讲的故事——可行域的<strong>演化</strong>,不是可行域的<strong>平移</strong>。</p>
+<h2 id="五-新增kc--m-能力图-map">五、新增:kc × m 能力图(<code>--map</code>) </h2>
+<p>上面那张表升格成正式产物 <code>e15_map.json</code>:6 档地面刚度 × 质量 × 设计,<br>
+报峰值/下陷/腿行程的中位与沿 m 的相对极差,以及可行率与"内部最优在哪个质量"。<br>
+这就是方案 §五 要的两张主图之一,现在有数据了。</p>
+<hr>
+<h1 id="实施记录-3修完-bug-后的定版-g1-结果--能力图2026-08-18">实施记录 ③:修完 bug 后的定版 G1 结果 + 能力图(2026-08-18) </h1>
+<h2 id="一-g1-定版通过">一、G1 定版通过 </h2>
+<table>
+<thead>
+<tr>
+<th>地形</th>
+<th>k_c (N/m)</th>
+<th>peak_a 沿 m 相对极差</th>
+<th>stroke</th>
+<th>有效设计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>concrete</td>
+<td>2.0e6</td>
+<td>36.7%</td>
+<td>7.2%</td>
+<td>198/200</td>
+</tr>
+<tr>
+<td>asphalt</td>
+<td>8.0e5</td>
+<td>51.4%</td>
+<td>21.6%</td>
+<td>198/200</td>
+</tr>
+<tr>
+<td>turf</td>
+<td>2.0e5</td>
+<td>75.1%</td>
+<td>45.6%</td>
+<td>179/200</td>
+</tr>
+<tr>
+<td>wetsand</td>
+<td>5.0e4</td>
+<td><strong>88.0%</strong></td>
+<td>60.2%</td>
+<td>101/200</td>
+</tr>
+</tbody>
+</table>
+<p><strong>质量效应随地面变软单调增强</strong>——因为破坏不变性的机制正是"绝对地面对更重的机体<br>
+相对更软"。通道归因(n=120)锁死了这一点:A 全 v1 口径 <strong>0.00%</strong>、B 接触 73.2%、<br>
+B2 只绝对化刚度 103.6%、C 只改杆件质量 <strong>0.50%</strong>、D 全 v2 72.2%。</p>
+<p>约束换手(每格 200 个随机设计里的失效数):</p>
+<table>
+<thead>
+<tr>
+<th>地形</th>
+<th>m=1</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>12</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>concrete</td>
+<td>gcap 179</td>
+<td>gcap 179</td>
+<td>gcap 178, slen 6</td>
+<td>gcap 175, slen 12</td>
+<td>gcap 174, <strong>slen 18</strong></td>
+</tr>
+<tr>
+<td>turf</td>
+<td>gcap 172</td>
+<td>gcap 170</td>
+<td>gcap 161, slen 7</td>
+<td>gcap 134, slen 28</td>
+<td>gcap 82, <strong>slen 67</strong></td>
+</tr>
+<tr>
+<td>wetsand</td>
+<td>gcap 154</td>
+<td>gcap 120</td>
+<td><strong>slen 58</strong>, sink 12</td>
+<td>slen 55, sink 55</td>
+<td><strong>sink 99, smax 50</strong></td>
+</tr>
+</tbody>
+</table>
+<p>低质量端一律是"加速度太大",高质量端换成"管子粗到不成其为杆件"。<strong>平方立方律接管了设计问题。</strong></p>
+<h2 id="二-能力图两个质量通道方向相反fig_v2_mappng">二、能力图:两个质量通道方向相反(<code>fig_v2_map.png</code>) </h2>
+<p>峰值加速度中位(g),60 个随机设计:</p>
+<table>
+<thead>
+<tr>
+<th>k_c</th>
+<th>m=1</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>12</th>
+<th>沿 m 极差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.0e6</td>
+<td>35.1</td>
+<td>32.1</td>
+<td>28.9</td>
+<td>25.4</td>
+<td>23.2</td>
+<td>41%</td>
+</tr>
+<tr>
+<td>3.0e5</td>
+<td>24.7</td>
+<td>21.1</td>
+<td>17.5</td>
+<td>13.8</td>
+<td>12.0</td>
+<td>73%</td>
+</tr>
+<tr>
+<td>5.0e4</td>
+<td>14.3</td>
+<td>11.1</td>
+<td>8.3</td>
+<td>6.0</td>
+<td>5.0</td>
+<td>112%</td>
+</tr>
+<tr>
+<td>2.0e4</td>
+<td>10.3</td>
+<td>7.6</td>
+<td>5.4</td>
+<td>3.8</td>
+<td>2.8</td>
+<td><strong>140%</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>行程的两个来源必须分开看</strong>(这正是那个 bug 的价值所在):</p>
+<table>
+<thead>
+<tr>
+<th>k_c</th>
+<th>量</th>
+<th>m=1</th>
+<th>12</th>
+<th>沿 m 极差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.0e6</td>
+<td>腿行程</td>
+<td>8.47</td>
+<td>8.01</td>
+<td><strong>6.1%</strong></td>
+</tr>
+<tr>
+<td>2.0e6</td>
+<td>地面下陷</td>
+<td>0.18</td>
+<td>1.42</td>
+<td>211%</td>
+</tr>
+<tr>
+<td>2.0e4</td>
+<td>腿行程</td>
+<td>8.50</td>
+<td>20.29</td>
+<td>114%</td>
+</tr>
+<tr>
+<td>2.0e4</td>
+<td>地面下陷</td>
+<td>4.52</td>
+<td>19.20</td>
+<td>142%</td>
+</tr>
+</tbody>
+</table>
+<p>硬地上<strong>起落架自身行程几乎与质量无关(6%)</strong>——质量效应全在地面下陷里;<br>
+软地上两者一起爆。若不分开,就会把"陷进去"记成"腿塌了"(v1 判据的原 bug)。</p>
+<p>可行率(%,g_cap=10g, s_max=24mm):</p>
+<table>
+<thead>
+<tr>
+<th>k_c</th>
+<th>m=1</th>
+<th>2</th>
+<th>4</th>
+<th>8</th>
+<th>12</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.0e6</td>
+<td>6.7</td>
+<td>8.3</td>
+<td>5.0</td>
+<td>3.3</td>
+<td>3.3</td>
+</tr>
+<tr>
+<td>1.2e5</td>
+<td>13.3</td>
+<td>16.7</td>
+<td>21.7</td>
+<td><strong>25.0</strong></td>
+<td>10.0</td>
+</tr>
+<tr>
+<td>5.0e4</td>
+<td>23.3</td>
+<td>35.0</td>
+<td><strong>51.7</strong></td>
+<td>26.7</td>
+<td>13.3</td>
+</tr>
+<tr>
+<td>2.0e4</td>
+<td>40.0</td>
+<td><strong>73.3</strong></td>
+<td>43.3</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>可行域在 (k_c, m) 平面上是一条脊,不是一个单调面。</strong> 太轻则地面显得硬(g 超标),<br>
+太重则陷穿行程预算;最优质量随地面变软而<strong>先增后减</strong>。这就是"可行域及其性能边界<br>
+如何随尺度与工况连续演化"的实体。</p>
+<h2 id="三-必须诚实记下的两点">三、必须诚实记下的两点 </h2>
+<ol>
+<li><strong>硬地上随机设计几乎全不可行</strong>(可行率 3–8%,峰值中位 23–35 g vs g_cap 4–15 g)。<br>
+原因是设计盒(κ 范围)承袭自 v1,而 v1 的地面等效 k_c 只有 4000·m·g<br>
+(m=5 时约 2e5),从没见过 2e6 这么硬的地。<strong>这不一定是问题</strong>——生成器的职责<br>
+就是在稀疏可行区里找解,可行率低正是任务难度的体现。但 G2 必须检查:<br>
+若某些工况下 120 个 LHS 设计<strong>一个可行的都没有</strong>,该工况就没有参考前沿,<br>
+必须像 v1 的 <code>build_union_refs</code> 那样整题剔除,否则考卷会被污染。</li>
+<li><strong>wetsand 在 m≥8 的失效以 <code>deep_sink</code> 为主</strong>,那是<strong>罚接触模型出界</strong>而非物理。<br>
+<code>KC_RANGE</code> 已定在 [5e4, 2e6],工厂不会采到 2e4;能力图里保留 2e4 那一行只作<br>
+趋势展示,<strong>不得用于任何定量结论</strong>。</li>
+</ol>
+<hr>
+<h1 id="实施记录-4pilot-数据推翻了实施记录-3-的一个说法2026-08-18">实施记录 ④:pilot 数据推翻了实施记录 ③ 的一个说法(2026-08-18) </h1>
+<h2 id="一-更正高质量端平方立方律接管是检查顺序的伪影">一、更正:"高质量端平方立方律接管"是<strong>检查顺序的伪影</strong> </h2>
+<p>实施记录 ③ 里我写:turf 上 slenderness 失效从 m=1 的 0 涨到 m=12 的 67,结论是<br>
+"平方立方律接管了设计问题"。<strong>这个结论不成立,现予撤回。</strong></p>
+<p>原因:<code>feasible_v2</code> 当时<strong>只报第一个</strong>违反的判据,顺序是 g_cap → s_max → slenderness。<br>
+低质量端峰值高、g_cap 先失效,把这些设计的结构状态整个遮住;高质量端峰值低、<br>
+过了 g_cap,才轮得到结构判据被检查。<strong>看上去的"换手",一半是遮蔽解除。</strong></p>
+<p>pilot 的 10,200 次仿真里<strong>独立</strong>评估结构判据(不看检查顺序):</p>
+<table>
+<thead>
+<tr>
+<th>质量档</th>
+<th>n</th>
+<th>slenderness 失效率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1–2 kg</td>
+<td>3109</td>
+<td><strong>61.3%</strong></td>
+</tr>
+<tr>
+<td>2–4 kg</td>
+<td>2812</td>
+<td>59.7%</td>
+</tr>
+<tr>
+<td>4–8 kg</td>
+<td>2799</td>
+<td>55.6%</td>
+</tr>
+<tr>
+<td>8–12 kg</td>
+<td>1428</td>
+<td><strong>50.2%</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>是轻微下降,不是上升。</strong> 机制上说得通,而且比原来的说法更有意思:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>平方立方律      载荷 ∝ m,截面 ∝ L² ∝ m^0.78  ⇒ 管径需求相对变粗   ← 不利
+质量-地面耦合  绝对地面对重机体相对更软,峰值降 51%(24.7→12.0 g) ⇒ 载荷少涨   ← 有利
+                                                        两者几乎抵消,净剩 6% 有利
+</code></pre><p><strong>两个质量通道在结构判据上互相抵消。</strong> 这是新结论,也是能力图那张脊的结构侧对应物。</p>
+<p><strong>代码已修</strong>:<code>feasible_v2</code> 改为返回<strong>全部</strong>违反项而非第一个,统计不再带顺序伪影。</p>
+<h2 id="二-slenderness-仍然是有效判别器不是一刀切">二、slenderness 仍然是有效判别器,不是一刀切 </h2>
+<p>按峰值分档(独立评估):</p>
+<table>
+<thead>
+<tr>
+<th>峰值</th>
+<th>n</th>
+<th>slenderness 失效率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–8 g</td>
+<td>1798</td>
+<td>10.1%</td>
+</tr>
+<tr>
+<td>8–15 g</td>
+<td>2913</td>
+<td>40.0%</td>
+</tr>
+<tr>
+<td>15–25 g</td>
+<td>2755</td>
+<td>72.2%</td>
+</tr>
+<tr>
+<td>25–40 g</td>
+<td>1765</td>
+<td>91.4%</td>
+</tr>
+<tr>
+<td>&gt;40 g</td>
+<td>917</td>
+<td>99.2%</td>
+</tr>
+</tbody>
+</table>
+<p>低载荷设计基本都能造,高载荷设计基本造不出来——正是想要的行为。<br>
+(材料敏感性:管径 ∝ σ_y^(−1/3),换 al7075 管径 ×0.52、ti64 ×0.43,<br>
+slenderness 几乎不再卡人。默认沿用 E8 的 cfnylon,消融四臂同材料,可比。)</p>
+<h2 id="三-pilot-暴露的范围失配已按数据定标">三、pilot 暴露的范围失配,已按数据定标 </h2>
+<p>物理很稳:10,200 次仿真里 <strong>ok 99.5%</strong>、solver 0.4%、deep_sink 0.2%。<br>
+问题在<strong>工况范围与设计盒不匹配</strong>:峰值中位 16.0 g,而 g_cap 只抽到 15 g 封顶<br>
+—— 中位设计比最宽松的要求还超标。逐工况可行率中位 6.7%,<strong>28% 的工况零可行</strong>。</p>
+<p>按 pilot 数据扫参(逐工况可行率中位 / 零可行工况占比):</p>
+<table>
+<thead>
+<tr>
+<th>g_cap 上限</th>
+<th>k_c≤2e6</th>
+<th>k_c≤1e6</th>
+<th>k_c≤5e5</th>
+<th>k_c≤3e5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15 g</td>
+<td>6.4% / 4%</td>
+<td>8.6% / 3%</td>
+<td>10.0% / 1%</td>
+<td>18.1% / 0%</td>
+</tr>
+<tr>
+<td>20 g</td>
+<td>11.5% / 0%</td>
+<td>13.9% / 0%</td>
+<td>18.9% / 0%</td>
+<td>28.3% / 0%</td>
+</tr>
+<tr>
+<td><strong>25 g</strong></td>
+<td>15.7% / 0%</td>
+<td><strong>19.2% / 0%</strong></td>
+<td>23.3% / 0%</td>
+<td>35.3% / 0%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>定标结果(两处都有物理依据,不是为了让数字好看):</strong></p>
+<ol>
+<li><code>KC_RANGE</code> 上界 2e6 → <strong>1e6</strong>。依据:足端不是刚体,弹性足垫与地面<strong>串联</strong>,<br>
+有效接触刚度由较软者封顶;2e6 N/m 经一个 20 mm 半径的足垫传递并不现实。</li>
+<li><code>GCAP_RANGE</code> 上界 15 → <strong>25 g</strong>。依据:[4,15] 是按 v1 那个唯一且偏软的等效<br>
+地面(4000·m·g,m=5 时约 2e5)标定的;v2 地形跨到 1e6,硬地上生物设计盒里<br>
+<strong>没有任何设计</strong>能进 15 g。要求区间必须跟着环境区间一起放宽,否则任务本身无解。</li>
+</ol>
+<p>定标后:逐工况可行率中位 19.2%,<strong>零可行工况 0%</strong>。</p>
+<h2 id="四-还有一条不能忽视的物理下限">四、还有一条不能忽视的物理下限 </h2>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>v0 = 1.2 m/s,腿行程 8.4 mm(中位) → a = v²/(2s) = 8.7 g
+要压到 5 g,需要行程 14.7 mm
+</code></pre><p><strong>峰值是被行程卡住的,不是被地面卡住的。</strong> 而行程又受制于 κ 的下限——<br>
+κ = k/(m·g·L_leg) 是簧扭矩比重力扭矩,κ 太小腿撑不住自重。<br>
+所以"把腿调软到任意程度"在物理上不成立,这是设计空间的硬边界,应写进论文。</p>
+<hr>
+<h1 id="实施记录-5g2-小试通过v2-全链条跑通2026-08-18">实施记录 ⑤:G2 小试通过,v2 全链条跑通(2026-08-18) </h1>
+<p>范围定标后重建 pilot 池,训练对可行率 <strong>14.9% → 24.0%</strong>,零可行工况 0%。<br>
+随后跑 8 轮自提升(<code>outputs/v2_e5_bio_pilot</code>):</p>
+<table>
+<thead>
+<tr>
+<th>轮</th>
+<th>gap 中位</th>
+<th>gap 均值</th>
+<th>可行率</th>
+<th>覆盖</th>
+<th>崩盘</th>
+<th>训练对</th>
+<th>池</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>40.8%</td>
+<td>51.8%</td>
+<td>79%</td>
+<td>49%</td>
+<td>3</td>
+<td>3211</td>
+<td>10,200</td>
+</tr>
+<tr>
+<td>2</td>
+<td>18.5%</td>
+<td>35.5%</td>
+<td>86%</td>
+<td>36%</td>
+<td>2</td>
+<td>3942</td>
+<td>15,490</td>
+</tr>
+<tr>
+<td>4</td>
+<td>14.0%</td>
+<td>25.9%</td>
+<td>84%</td>
+<td>30%</td>
+<td>2</td>
+<td>4130</td>
+<td>20,780</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>3.2%</strong></td>
+<td>12.5%</td>
+<td>85%</td>
+<td>35%</td>
+<td>1</td>
+<td>4244</td>
+<td>26,070</td>
+</tr>
+<tr>
+<td>8</td>
+<td>4.9%</td>
+<td>10.6%</td>
+<td>86%</td>
+<td>29%</td>
+<td>1</td>
+<td>4342</td>
+<td>31,360</td>
+</tr>
+</tbody>
+</table>
+<p><strong>40.8% → 3.3%(末 3 轮中位),8 轮。可行率 79%→86%,崩盘 3→1。</strong><br>
+v2 全链条(质量条件先验 → 路径预埋工厂 → 按束防泄漏 → 结构判据在线 → 专家迭代)通。</p>
+<p>对比 v1 需要 85 轮才到 5.9%——但两者考卷与物理都不同,<strong>不可直接比较</strong>,<br>
+只能说 v2 的机制没有因为改物理而失效。</p>
+<h2 id="一-小试暴露的两个考卷质量问题已修">一、小试暴露的两个考卷质量问题(已修) </h2>
+<ol>
+<li><strong>考卷只有 20 题,而 <code>--nexam 40</code></strong>。不是无解题太多,是<strong>测试块本身就只有 20 个</strong>:<br>
+pilot 只有 130 束,15% 测试 = 19 束,多数是独立块(1 块/束)。<br>
+已加打印,把"测试块总数 / 抽题数 / 无解剔除 / 参考过薄剔除"分开报,<br>
+以后一眼能分清"题源不足"和"死题太多"。<br>
+全量规模下:400 束 → 测试束 60 → <strong>测试块 72</strong>,故 <code>--nexam</code> 默认改为 72。</li>
+<li><strong>2/20 的题只有 1–2 个可行参考设计</strong>(300 个 LHS 里)。参考前沿是"最小值",<br>
+由 1 个样本决定的最小值不可靠,这种题的 gap 是噪声。<br>
+已加 <code>--min-feas-ref</code>(默认 5):参考可行数少于 5 的题整题剔除。</li>
+</ol>
+<h2 id="二-可以观察到的一个现象覆盖率随轮次下降">二、可以观察到的一个现象:覆盖率随轮次下降 </h2>
+<p>覆盖 49% → 29%。生成器在收敛过程中从"铺开"转向"开采",这与 v1 的观察一致。<br>
+不是错误,但如果论文要强调"生成设计族而非单点",需要在报告里如实写明<br>
+<strong>这是精英化的代价</strong>,并给出覆盖-性能的权衡曲线。</p>
+<h2 id="三-全量运行参数据小试定标">三、全量运行参数(据小试定标) </h2>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">bash</span> run_v2_factory.sh                       <span class="token comment"># 主臂 bio 全量池, 15–25 分钟</span>
+<span class="token function">bash</span> run_v2_e5.sh                            <span class="token comment"># 40 轮, 约 2 小时</span>
+<span class="token assign-left variable">ARMS</span><span class="token operator">=</span><span class="token string">"geo elastic none"</span> <span class="token assign-left variable">ROUNDS</span><span class="token operator">=</span><span class="token number">20</span> <span class="token function">bash</span> run_v2_factory.sh <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+<span class="token assign-left variable">ARMS</span><span class="token operator">=</span><span class="token string">"geo elastic none"</span> <span class="token assign-left variable">ROUNDS</span><span class="token operator">=</span><span class="token number">20</span> <span class="token function">bash</span> run_v2_e5.sh    <span class="token comment"># 三个消融臂, 约 3 小时</span>
+</code></pre><p>轮数从 85 降到 40:小试第 6 轮就到底了,而且<strong>循环可续跑</strong><br>
+(<code>trajectory.json</code> + <code>pool_increments.jsonl</code>),末 5 轮没平再加轮即可,不必一次押满。</p>
+<hr>
+<h1 id="实施记录-6e17-涌现标度指数物理投了票2026-08-20">实施记录 ⑥:E17 涌现标度指数——物理投了票(2026-08-20) </h1>
+<p>想法来自组会复盘:与其比四臂的 gap(被自家标尺约掉),不如直接看<strong>训练后的生成器<br>
+实际产出什么样的"腿长-体重律"</strong>。零仿真:沿 m 扫条件生成设计,log-log 回归出 b_eff。</p>
+<table>
+<thead>
+<tr>
+<th>臂</th>
+<th>先验 b</th>
+<th>涌现 b_eff (95%CI)</th>
+<th>修正量</th>
+<th>u 贴墙率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bio</td>
+<td>0.391</td>
+<td>0.249 [0.245, 0.253]</td>
+<td><strong>−0.142</strong></td>
+<td>0.0%</td>
+</tr>
+<tr>
+<td>geo</td>
+<td>0.333</td>
+<td>0.222 [0.217, 0.226]</td>
+<td>−0.111</td>
+<td>0.0%</td>
+</tr>
+<tr>
+<td>elastic</td>
+<td>0.250</td>
+<td>0.198 [0.193, 0.202]</td>
+<td>−0.052</td>
+<td>0.0%</td>
+</tr>
+<tr>
+<td>none</td>
+<td>0.000</td>
+<td>0.076 [0.071, 0.081]</td>
+<td><strong>+0.076</strong></td>
+<td>0.5%</td>
+</tr>
+</tbody>
+</table>
+<p>三条读数:</p>
+<ol>
+<li><strong>方向全体一致:每个臂都被往 0.15–0.25 的带子里拽</strong>——高于它的往下拽(bio −0.14),<br>
+低于它的往上拽(none +0.08)。<strong>纯着陆物理偏好一条比生物(0.391)更平的标度律。</strong></li>
+<li><strong>不是表达能力限制</strong>:修正量远小于表达上限 ±0.363,u 无一贴墙(≤0.5%)。<br>
+20 轮只走了这么远,说明物理对腿长斜率的偏好<strong>真实但温和</strong>——这同时解释了<br>
+四臂 gap 打平:腿长在可行域内是"软"变量,刚度阻尼才是硬通货。</li>
+<li><strong>终极问题的"否"分支拿到第一份定量证据</strong>:生物的 0.391 &gt; 着陆物理的偏好区<br>
+⇒ <strong>水鸟的长腿对着陆而言是"超配"</strong>,溢出的部分应归因于涉水/觅食等其它功能<br>
+(与 Zeffer 2003 的栖息地-腿形态关联一致)。这不再是推测,是涌现量的读数。</li>
+</ol>
+<p>已补两项(2026-08-20 晚):</p>
+<ul>
+<li><strong>bio r40 vs r20</strong>:b_eff = 0.247 vs 0.249——<strong>基本不动</strong>。拽力在前 20 轮内走完,<br>
+之后停在平衡点。故"唯一吸引子 b*"的强说法<strong>不成立</strong>;成立的是弱版本:<br>
+<strong>物理施加一致方向的拉力,每臂在"先验锚点 ↔ 物理拉力"之间各自平衡</strong><br>
+(bio 停 0.25、geo 0.22、elastic 0.20、none 0.08——平衡点仍随先验排序)。</li>
+<li><strong>按 g_cap 紧(4–8g)/松(18–25g)分层</strong>:四臂的 b_eff 分层差均 &lt;0.01——<br>
+<strong>物理偏好的斜率对要求强度不敏感</strong>,是接触/结构物理的性质,不是约束抽签的伪影。</li>
+</ul>
+<p>仍待:③ 多种子(消融四臂 seed=1 挂夜);④ m*(u,b) 尺度极限曲线互证(可行性侧独立读数)。<br>
+代码 <code>src/stage10_v2/e17_emergent_b.py</code>,零仿真,任何存档一分钟可复算。</p>
+<hr>
+<h1 id="实施记录-7e18-走廊--e19-并集互考三条证据链闭合2026-08-21">实施记录 ⑦:E18 走廊 + E19 并集互考——三条证据链闭合(2026-08-21) </h1>
+<h2 id="e18--可行体重走廊kc1e5-gcap10g-smax24mm">E18 · 可行体重走廊(kc=1e5, gcap=10g, smax=24mm) </h2>
+<p><strong>b=0 的走廊在重端塌掉,b&gt;0 的三臂顶到扫描上限:</strong></p>
+<table>
+<thead>
+<tr>
+<th>臂</th>
+<th>b</th>
+<th>走廊上限 m_hi(随 u)</th>
+<th>概括</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bio</td>
+<td>0.391</td>
+<td>60⁺…60⁺, 长腿端回落 41.5/28.7</td>
+<td>重端上不封顶(除极长腿形态)</td>
+</tr>
+<tr>
+<td>geo</td>
+<td>1/3</td>
+<td>几乎全 60⁺</td>
+<td>最宽</td>
+</tr>
+<tr>
+<td>elastic</td>
+<td>1/4</td>
+<td>短腿端回落 28.7–41.5,其余 60⁺</td>
+<td>略窄于 geo</td>
+</tr>
+<tr>
+<td><strong>none</strong></td>
+<td>0</td>
+<td><strong>3.2 – 28.7,强烈依赖 u</strong></td>
+<td><strong>重端崩塌:u=−2 只撑到 3.2 kg</strong></td>
+</tr>
+</tbody>
+</table>
+<p>机理直白:盒子不随体重长,重机器要的长腿(60 kg 按异速律 ≈190 mm)在 none 的<br>
+固定盒(≤114.6 mm)里根本不存在——<strong>"平顶山中央是平的,悬崖边先验决定生死"</strong><br>
+在可行性侧被直接画了出来。b&gt;0 三臂间的差异是二阶的(各自在极端形态处小幅回落)。<br>
+注:下限 m_lo 在低可行率区受探针噪声影响(0.5–2.2 kg 抖动),重端结论更可靠。</p>
+<h2 id="e19--并集互考61-题--4盒120-参考--480-样本题的公共标尺">E19 · 并集互考(61 题 × 4盒×120 参考 = 480 样本/题的公共标尺) </h2>
+<p><strong>换成同一把尺后,排序随 b 单调浮现:</strong></p>
+<table>
+<thead>
+<tr>
+<th>臂</th>
+<th>gap 中位</th>
+<th>gap 均值</th>
+<th>崩盘</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>bio</strong></td>
+<td><strong>2.3%</strong></td>
+<td>3.2%</td>
+<td>0</td>
+</tr>
+<tr>
+<td>geo</td>
+<td>3.0%</td>
+<td>3.2%</td>
+<td>0</td>
+</tr>
+<tr>
+<td>elastic</td>
+<td>4.5%</td>
+<td>3.5%</td>
+<td>0</td>
+</tr>
+<tr>
+<td>none</td>
+<td>6.4%</td>
+<td>4.8%</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>配对逐题差:bio−none 中位 −1.97pp,bio−geo −0.36pp(单种子;bio↔geo 在噪声内,<br>
+bio↔none 的分离量级明确)。<strong>盒子较量(零模型)</strong>:四盒作为随机搜索几乎等强<br>
+(提供并集最优 10–19/61,盒最优/并集最优中位 1.05–1.11)——<strong>所以 E19 的排序<br>
+不是盒子好坏,是"生成器跨体重跟踪能力"的排序</strong>。</p>
+<h2 id="三条证据链的合流汇报叙事定稿">三条证据链的合流(汇报叙事定稿) </h2>
+<ol>
+<li><strong>E17(生成侧)</strong>:工况段内部,物理只温和偏好更平的斜率,各臂停在按先验排序的<br>
+平衡位(0.27/0.25/0.22/0.10);u 无贴墙 → 先验不是表达瓶颈,是<strong>到达瓶颈</strong>。</li>
+<li><strong>E18(可行性侧)</strong>:走出工况段,b=0 在重端塌方,b&gt;0 都活着 → <strong>尺度先验的<br>
+价值在边界与外推,不在中央</strong>。</li>
+<li><strong>E19(绝对成绩侧)</strong>:整个工况分布合起来考,bio 的生成器总分第一,排序随 b 单调<br>
+→ none 的 b_eff=0.10 不足以跨体重跟踪(它的表达上限 0.363 够,但 20 轮学习<br>
+只把它推到 0.10)——<strong>先验的作用 = 把起点放到物理温和拉力够得着最优的位置</strong>。</li>
+</ol>
+<p>一句话:<strong>平顶山中央,谁站哪儿无所谓;但把整场比赛(全工况+边界)算总分,<br>
+从生物侧上山的队伍赢了——不是因为生物先验点对了,而是它离"够得着"最近。</strong></p>
+<p>待办:E19 多种子(bio↔geo 分不分得开)、E18 扫描上限提到 120 kg(60 处饱和)。</p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>

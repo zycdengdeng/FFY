@@ -49,15 +49,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arms", default="bio,geo,elastic,none")
     ap.add_argument("--nu", type=int, default=9, help="u 网格点数(±2σ)")
-    ap.add_argument("--nm", type=int, default=14, help="体重梯级数(0.5–60 kg 对数)")
+    ap.add_argument("--nm", type=int, default=14, help="体重梯级数(mlo–mhi 对数)")
     ap.add_argument("--nprobe", type=int, default=32, help="每级撒多少刚度/阻尼样本")
+    ap.add_argument("--mlo", type=float, default=0.5, help="体重梯子下端 (kg)")
+    ap.add_argument("--mhi", type=float, default=60.0, help="体重梯子上端 (kg);60 处饱和时提到 120")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--out", default="outputs/v2_e18")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
     uls = np.array([0.0]) if args.nu == 1 else np.linspace(-2.0, 2.0, args.nu)
-    ms = 10 ** np.linspace(np.log10(0.5), np.log10(60.0), args.nm)
+    ms = 10 ** np.linspace(np.log10(args.mlo), np.log10(args.mhi), args.nm)
     arms = args.arms.split(",")
 
     # 一次性打平全部任务,吃满核
