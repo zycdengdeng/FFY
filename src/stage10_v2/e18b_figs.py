@@ -18,27 +18,20 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.font_manager  # noqa: F401
 
 
 
-def _pick_cjk_font():
-    """自动挑一款可用的中文字体。不同机器(容器/A100/Windows)装的名字不一样,
-    写死一个名字就会静默回退到 DejaVu 变方框。找不到就明确报警,不静默。"""
-    from matplotlib import font_manager as fm
-    have = {f.name for f in fm.fontManager.ttflist}
-    for c in ("Noto Sans CJK SC", "Noto Sans CJK JP", "Noto Sans CJK TC",
-              "Source Han Sans SC", "Source Han Sans CN", "WenQuanYi Zen Hei",
-              "WenQuanYi Micro Hei", "Microsoft YaHei", "SimHei", "PingFang SC"):
-        if c in have:
-            return c
-    print("[warn] 未找到中文字体,图上中文会变方框。"
-          "Linux 装 fonts-noto-cjk 或 fonts-wqy-zenhei 即可。")
-    return None
-
-
-_CJK = _pick_cjk_font()
-if _CJK:
-    plt.rcParams["font.sans-serif"] = [_CJK] + plt.rcParams["font.sans-serif"]
+try:
+    from cjkfont import setup as _cjk_setup
+    _CJK = _cjk_setup()
+except Exception:                       # 独立运行、没有 cjkfont.py 时的退路
+    _CJK = None
+    for _c in ("Noto Sans CJK SC", "Noto Sans CJK JP", "Microsoft YaHei", "SimHei"):
+        if _c in {f.name for f in matplotlib.font_manager.fontManager.ttflist}:
+            plt.rcParams["font.sans-serif"] = [_c] + plt.rcParams["font.sans-serif"]
+            _CJK = _c
+            break
 plt.rcParams["axes.unicode_minus"] = False
 
 SURF = "#fcfcfb"

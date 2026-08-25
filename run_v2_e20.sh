@@ -26,19 +26,10 @@ if ! ls "$RAND"/e18b_*.json >/dev/null 2>&1; then
   echo "!! 找不到 $RAND/e18b_*.json —— 请先跑 e18b_corridor_multi.py,否则图 A 没有随机基线对照"
   exit 1
 fi
-# 中文字体:缺了图上全是方框,跑完才发现很亏,所以先查
-if python - <<'PY'
-from matplotlib import font_manager as fm
-have={f.name for f in fm.fontManager.ttflist}
-ok=[c for c in ("Noto Sans CJK SC","Noto Sans CJK JP","Noto Sans CJK TC",
-                "Source Han Sans SC","Source Han Sans CN","WenQuanYi Zen Hei",
-                "WenQuanYi Micro Hei","Microsoft YaHei","SimHei") if c in have]
-print("中文字体:", ok[0] if ok else "无")
-raise SystemExit(0 if ok else 1)
-PY
-then :; else
-  echo "!! 没有中文字体,图上中文会变方框。装一下再跑:  sudo apt-get install -y fonts-noto-cjk"
-  echo "!! 若确认不在意,设 IGNORE_FONT=1 继续"
+# 中文字体:缺了图上全是方框,跑完才发现很亏,所以先查(cjkfont 会自己修缓存、扫 conda 目录)
+if python src/stage10_v2/cjkfont.py; then :; else
+  echo "!! 上面的办法装完字体再跑。确认不在意方框就用:  IGNORE_FONT=1 bash run_v2_e20.sh"
+  echo "!! (注意 IGNORE_FONT=1 必须和 bash 写在同一行,单独一行设的变量子进程看不到)"
   [ "${IGNORE_FONT:-0}" = "1" ] || exit 1
 fi
 echo "臂=$ARMS  每格样本=$NZ  并行=$WORKERS  输出=$OUT"
