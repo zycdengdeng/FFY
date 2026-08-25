@@ -138,6 +138,16 @@ def exu_eval_v2(x7, s):
     sFoot = mbs.AddSensor(SensorBody(                     # 足端球心,用于分离地面下陷
         bodyNumber=tarso, storeInternal=True, localPosition=[-0.5 * l1, 0., 0.],
         outputVariableType=exu.OutputVariableType.Position))
+    # 踝(A)与膝(K)的实测位置:动画复原骨架用,不参与任何判据
+    sAnk = mbs.AddSensor(SensorBody(
+        bodyNumber=tarso, storeInternal=True, localPosition=[0.5 * l1, 0., 0.],
+        outputVariableType=exu.OutputVariableType.Position))
+    sKne = mbs.AddSensor(SensorBody(
+        bodyNumber=tibio, storeInternal=True, localPosition=[0.5 * l2, 0., 0.],
+        outputVariableType=exu.OutputVariableType.Position))
+    sHip = mbs.AddSensor(SensorBody(
+        bodyNumber=femur, storeInternal=True, localPosition=[0.5 * l3, 0., 0.],
+        outputVariableType=exu.OutputVariableType.Position))
     mbs.Assemble()
     ss = exu.SimulationSettings()
     ss.timeIntegration.endTime = s["T"]
@@ -164,6 +174,7 @@ def exu_eval_v2(x7, s):
     if sink > 0.9 * s["r_foot"]:
         return dict(fail="deep_sink")    # 侵入超过足端球半径 → 罚接触模型失效,非物理
     rot = [mbs.GetSensorStoredData(si)[:, 2] for si in sRot]
+    footxyz = mbs.GetSensorStoredData(sFoot)[:, 1:4]
     h = t[1] - t[0]
     dth = dict(hip=rot[0] - rot[0][0],
                knee=(rot[1] - rot[0]) - (rot[1][0] - rot[0][0]),
@@ -178,6 +189,21 @@ def exu_eval_v2(x7, s):
     met.update(_metrics(t, z, az, m, g, v0))
     met.update(M_hip=Mj["hip"], M_knee=Mj["knee"], M_ankle=Mj["ankle"],
                seg_len=[l1, l2, l3], sink=sink, leg_stroke=leg_stroke)
+    if s.get("keep_history"):
+        # 留下整条时程供动画重播。默认关闭:一条时程约 40 万个数,批量跑时不要开。
+        def _M(jn, kk_, cc_):
+            th = dth[jn]
+            return kk_ * th + cc_ * np.gradient(th, h)
+        met["hist"] = dict(
+            t=t, az=az, z=z, foot=footxyz,
+            ankle_p=mbs.GetSensorStoredData(sAnk)[:, 1:4],
+            knee_p=mbs.GetSensorStoredData(sKne)[:, 1:4],
+            hip_p=mbs.GetSensorStoredData(sHip)[:, 1:4],
+            th_hip=dth["hip"], th_knee=dth["knee"], th_ankle=dth["ankle"],
+            M_hip=_M("hip", s["k_hip"], s["c_hip"]),
+            M_knee=_M("knee", s["k_knee"], s["c_knee"]),
+            M_ankle=_M("ankle", s["k_ankle"], s["c_ankle"]),
+            seg_len=[l1, l2, l3], r_foot=s["r_foot"], m=m, g=g, v0=v0)
     return met
 
 
@@ -206,7 +232,8 @@ def size_structure(met, mat=MAT_DEFAULT, sf=SF, nlegs=NLEGS):
 
 
 def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
-            legacy_kc=False, legacy_segmass=False, legacy_cc=False):
+            legacy_kc=False, legacy_segmass=False, legacy_cc=False,
+            keep_history=False):
     """完整 v2 评价:落震 → 结构定尺 → 质量回代重算 → 可行性所需的全部量。
 
     两遍定点:第一遍用 2%·m 的杆件质量猜测跑出力矩,定尺得到真实杆件质量,
@@ -228,6 +255,8 @@ def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
     for it in range(max(1, npass)):
         s = size_x_v2(scen, x7,
                       seg_mass=([0.05 * float(m)] * 3 if legacy_segmass else segm))
+        # 只在最后一遍留时程:前一遍用的是猜测杆件质量,不是最终结果
+        s["keep_history"] = bool(keep_history and it == max(1, npass) - 1)
         met = exu_eval_v2(x7, s)
         if met.get("fail"):
             return dict(met)
