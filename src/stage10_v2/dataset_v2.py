@@ -24,6 +24,8 @@ import sys
 
 import numpy as np
 
+ND_U = 7   # 运行时由 factory_meta.json 的 u_dim 覆盖(v2.1 为 9)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from factory_v2 import KEYS_V2                    # noqa: E402
@@ -95,6 +97,9 @@ def main():
         raise SystemExit(f"[dataset] 空工厂:{args.factory}")
     meta_f = json.load(open(os.path.join(os.path.dirname(args.factory),
                                          "factory_meta.json")))
+    global ND_U
+    ND_U = int(meta_f.get("u_dim", 7))
+    print(f"[dataset] 设计维 u_dim = {ND_U}")
     rng = np.random.default_rng(args.seed)
     tr_b, va_b, te_b = split_by_bid([b["bid"] for b in blocks], rng)
     print(f"[dataset] 块 {len(blocks)}  束 {len(tr_b)+len(va_b)+len(te_b)} "
@@ -129,7 +134,7 @@ def main():
     arrs = {}
     for k in ("tr", "va", "te"):
         C = np.array(buckets[k][0], float).reshape(-1, 5)
-        U = np.array(buckets[k][1], float).reshape(-1, 7)
+        U = np.array(buckets[k][1], float).reshape(-1, ND_U)
         arrs[f"C_{k}"], arrs[f"U_{k}"] = C, U
         print(f"  {k}: {len(C):6d} 对")
     np.savez(os.path.join(args.out, "dataset.npz"), **arrs)
@@ -151,7 +156,8 @@ def main():
               indent=2, ensure_ascii=False)
 
     json.dump(dict(c_order=["log10_m", "v0", "log10_kc", "gcap_ms2", "smax_m"],
-                   c_lo=c_lo, c_hi=c_hi, u_dim=7, arm=meta_f["arm"],
+                   c_lo=c_lo, c_hi=c_hi, u_dim=ND_U, arm=meta_f["arm"],
+                   v21=meta_f.get("v21", False),
                    prior=meta_f["prior"], keys=KEYS_V2,
                    gcap_range=GCAP_RANGE, smax_range=SMAX_RANGE,
                    nreq=args.nreq, ktop=args.ktop,

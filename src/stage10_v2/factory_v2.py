@@ -79,8 +79,9 @@ def loguni(u, rg):
 
 
 def _eval_one(a):
-    x7, m, v0, kc, zc, npass = a
-    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass)
+    x7, m, v0, kc, zc, npass, v21 = a
+    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True} if v21 else None)
+    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base)
     if r is None or r.get("fail"):
         return [None] * len(KEYS_V2) + [(r or {}).get("fail", "none")]
     out = []
@@ -100,7 +101,7 @@ def make_global_blocks(n, nd, prior, rng):
         m = float(loguni(C[i, 0], M_RANGE))
         v0 = float(V0_RANGE[0] + (V0_RANGE[1] - V0_RANGE[0]) * C[i, 1])
         kc = float(loguni(C[i, 2], KC_RANGE))
-        U = lhs(nd, 7, np.random.default_rng(20_000 + i))
+        U = lhs(nd, prior.ndim, np.random.default_rng(20_000 + i))
         out.append(dict(kind="global", walk=None, step=0,
                         m=m, v0=v0, kc=kc, U=U))
     return out
@@ -117,7 +118,7 @@ def make_path_bundles(npath, nd, K, prior, rng, mix=WALK_MIX):
     out = []
     for bi, walk in enumerate(plan):
         arng = np.random.default_rng(50_000 + bi)
-        U0 = lhs(nd, 7, arng)                       # 锚点设计(u 空间),整束共用
+        U0 = lhs(nd, prior.ndim, arng)                       # 锚点设计(u 空间),整束共用
         m0 = float(loguni(arng.random(), M_RANGE))
         v00 = float(V0_RANGE[0] + (V0_RANGE[1] - V0_RANGE[0]) * arng.random())
         kc0 = float(loguni(arng.random(), KC_RANGE))
@@ -156,12 +157,14 @@ def main():
     ap.add_argument("--npass", type=int, default=2)
     ap.add_argument("--workers", type=int, default=32)
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--v21", action="store_true",
+                    help="v2.1 物理:9 维设计(含姿态)+ 髋阻尼统一式 + 放宽的 κ/τ 盒")
     ap.add_argument("--out", default="outputs/v2_data_bio")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     fp = os.path.join(args.out, "factory.jsonl")
 
-    prior = BioPrior(args.arm)
+    prior = BioPrior(args.arm, v21=args.v21)
     rng = np.random.default_rng(args.seed)
     blocks = make_global_blocks(args.nglobal, args.nd, prior, rng)
     blocks += make_path_bundles(args.npath, args.nd, args.K, prior, rng)
@@ -186,6 +189,7 @@ def main():
         print(f"[factory-v2] 续跑:已完成 {len(done)} 块")
 
     json.dump(dict(arm=args.arm, prior=prior.describe(), keys=KEYS_V2,
+                   v21=bool(args.v21), u_dim=prior.ndim,
                    c_phys_order=["m", "v0", "kc"],
                    m_range=M_RANGE, v0_range=V0_RANGE, kc_range=list(KC_RANGE),
                    nglobal=args.nglobal, npath=args.npath, K=args.K, nd=args.nd,
@@ -202,8 +206,8 @@ def main():
             U, X = block_designs(blk, prior)
             zc = zeta_of_kc(blk["kc"])
             Y = list(ex.map(_eval_one,
-                            [(x, blk["m"], blk["v0"], blk["kc"], zc, args.npass)
-                             for x in X], chunksize=2))
+                            [(x, blk["m"], blk["v0"], blk["kc"], zc, args.npass,
+                              args.v21) for x in X], chunksize=2))
             fails = [y[-1] for y in Y]
             f.write(json.dumps(dict(
                 cid=blk["cid"], bid=blk["bid"], kind=blk["kind"], walk=blk["walk"],

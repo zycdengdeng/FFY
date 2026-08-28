@@ -71,9 +71,13 @@ class PoolV2:
         return len(fresh)
 
 
+V21 = False   # 运行时由 factory_meta 的 v21 覆盖;True 时髋阻尼用统一式 c=τ·k
+
+
 def _eval_one(a):
     x7, m, v0, kc, zc, npass = a
-    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass)
+    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True} if V21 else None)
+    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base)
     if r is None or r.get("fail"):
         return [None] * len(KEYS_V2)
     out = []
@@ -233,8 +237,12 @@ def main():
 
     fmeta = json.load(open(os.path.join(os.path.dirname(args.factory),
                                         "factory_meta.json")))
+    global DU, V21
+    DU = int(fmeta.get("u_dim", 7))
+    V21 = bool(fmeta.get("v21", False))
+    print(f"[e5] 设计维 DU = {DU}  v21 = {V21}")
     prior = BioPrior(fmeta["arm"], sigma=fmeta["prior"]["sigma"],
-                     u_max=fmeta["prior"]["u_max"])
+                     u_max=fmeta["prior"]["u_max"], v21=V21)
     pools = load_pools(args.factory)
     tr_b, va_b, te_b = split_by_bid([p.bid for p in pools.values()],
                                     np.random.default_rng(3))

@@ -66,7 +66,8 @@ SEG_FRAC_GUESS = 0.02    # 第一遍的杆件质量猜测(占 m 的比例)
 
 def size_x_v2(scen, x7, seg_mass=None):
     """把 7 维设计尺寸化成 Exudyn 场景。与 v1 的差别只在接触与杆件质量。"""
-    L1, r2, r3, ka, kk, kh, z = [float(v) for v in x7]
+    xv = [float(v) for v in x7]
+    L1, r2, r3, ka, kk, kh, z = xv[:7]
     l1 = L1 / 1000.0
     Lleg = l1 * (1.0 + r2 + r3)
     mgL = scen["m"] * scen["g"] * Lleg
@@ -86,6 +87,8 @@ def size_x_v2(scen, x7, seg_mass=None):
     s["seg_len"] = [l1, r2 * l1, r3 * l1]
     s["r_foot"] = FOOT_RATIO * l1
     s["gap0"] = 0.3 * s["r_foot"]          # 初始离地间隙随足端一起缩放
+    if len(xv) >= 9:                       # v2.1:姿态(度)是设计向量的第 8/9 维
+        s["thetaA"] = np.radians(xv[7]); s["thetaK"] = np.radians(xv[8])
     return s
 
 

@@ -45,6 +45,17 @@ R3_RANGE = (0.84, 1.28)
 KAP_RANGE = [(1.5, 8.0), (1.5, 8.0), (6.0, 32.0)]      # 踝 / 膝 / 髋
 ZETA_RANGE = (0.01, 0.10)
 
+# ---- v2.1(2026-08-28):三处改动,与 v2 并存,由 BioPrior(v21=True) 选择 ----
+# 1) 姿态进设计向量(度):范围 = Duong 12 段着水视频 water_contact 帧实测全距。
+#    依据 P3:姿态是目前量到的最大杠杆(峰值 +34%~184%),冻结在任何常数都不对。
+THA_RANGE = (113.0, 160.0)     # 踝角 thetaA(中位 144°)
+THK_RANGE = (118.0, 157.0)     # 膝角 thetaK(中位 133°)
+# 2) 下界放宽:P1 实测统一阻尼式下 κ髋 最优压在旧下界 6.0 上;
+#    E20 实测 τ 与 κ踝 也贴旧下界跑(盒内 2–11% / 6–28%)。
+KAP_RANGE_V21 = [(0.75, 8.0), (1.5, 8.0), (3.0, 32.0)]
+ZETA_RANGE_V21 = (0.005, 0.10)
+# 3) 髋阻尼统一式 c=τ·k 不在此处——由场景旗标 hip_damp_unified 控制(见 physics_v2)
+
 ARMS = {"bio": None, "geo": 1.0 / 3.0, "elastic": 0.25, "none": 0.0}
 # 观测到的 L1 全距(v1 边缘盒,101 种 1–12 kg 水鸟实测)。条件盒子在质量两端会
 # 略微超出它——因为大鸟样本稀疏,大残差没被采到,不是拟合有问题。默认**不裁剪**
@@ -75,9 +86,13 @@ class BioPrior:
     """质量条件设计先验。expand: [0,1]^7 × m → 物理设计;contract 为其逆。"""
 
     def __init__(self, arm="bio", fit=None, sigma=None, u_max=U_MAX,
-                 m_ref_kg=M_REF_KG, clip=False):
+                 m_ref_kg=M_REF_KG, clip=False, v21=False):
         self.arm = arm
         self.clip = bool(clip)
+        self.v21 = bool(v21)
+        self.ndim = 9 if v21 else 7
+        self.kap_range = KAP_RANGE_V21 if v21 else KAP_RANGE
+        self.zeta_range = ZETA_RANGE_V21 if v21 else ZETA_RANGE
         self.fit = fit or load_fit()
         self.sigma = float(sigma if sigma is not None else sigma_of_fit(self.fit))
         self.u_max = float(u_max)
@@ -106,9 +121,12 @@ class BioPrior:
         if self.clip:
             L1 = np.clip(L1, *L1_OBSERVED)
         cols = [L1, self._lin(u[:, 1:2], R2_RANGE), self._lin(u[:, 2:3], R3_RANGE)]
-        for j, rg in enumerate(KAP_RANGE):
+        for j, rg in enumerate(self.kap_range):
             cols.append(self._lin(u[:, 3 + j:4 + j], rg))
-        cols.append(self._lin(u[:, 6:7], ZETA_RANGE))
+        cols.append(self._lin(u[:, 6:7], self.zeta_range))
+        if self.v21:                                   # 第 8/9 维:触地姿态(度)
+            cols.append(self._lin(u[:, 7:8], THA_RANGE))
+            cols.append(self._lin(u[:, 8:9], THK_RANGE))
         x = np.concatenate(cols, 1)
         return x[0] if np.ndim(u01) == 1 else x
 
@@ -119,9 +137,12 @@ class BioPrior:
         uL = (np.log10(x[:, 0:1]) - self.a - self.b * np.log10(m * 1000.0)) / self.sigma
         cols = [0.5 * (uL / self.u_max + 1.0),
                 self._inv(x[:, 1:2], R2_RANGE), self._inv(x[:, 2:3], R3_RANGE)]
-        for j, rg in enumerate(KAP_RANGE):
+        for j, rg in enumerate(self.kap_range):
             cols.append(self._inv(x[:, 3 + j:4 + j], rg))
-        cols.append(self._inv(x[:, 6:7], ZETA_RANGE))
+        cols.append(self._inv(x[:, 6:7], self.zeta_range))
+        if self.v21:
+            cols.append(self._inv(x[:, 7:8], THA_RANGE))
+            cols.append(self._inv(x[:, 8:9], THK_RANGE))
         u = np.concatenate(cols, 1)
         return u[0] if np.ndim(x7) == 1 else u
 
@@ -146,6 +167,11 @@ class BioPrior:
     def describe(self):
         return dict(arm=self.arm, a=self.a, b=self.b, sigma=self.sigma,
                     u_max=self.u_max, L1_ref_mm=self.L1_ref_mm, clip=self.clip,
+                    v21=self.v21, ndim=self.ndim,
+                    kap_range=[list(r) for r in self.kap_range],
+                    zeta_range=list(self.zeta_range),
+                    tha_range=(list(THA_RANGE) if self.v21 else None),
+                    thk_range=(list(THK_RANGE) if self.v21 else None),
                     outside_observed=self.outside_observed(),
                     fit_n=self.fit["n"], fit_r2=self.fit.get("r2"))
 
