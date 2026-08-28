@@ -73,7 +73,10 @@ def size_x_v2(scen, x7, seg_mass=None):
     s = dict(scen)
     s["k_ankle"] = ka * mgL; s["k_knee"] = kk * mgL; s["k_hip"] = kh * mgL
     s["c_ankle"] = z * s["k_ankle"]; s["c_knee"] = z * s["k_knee"]
-    s["c_hip"] = (z / 0.03) * 0.2 * s["k_hip"]
+    # P1 对照开关:hip_damp_unified=True 时髋与踝/膝同式 c = τ·k;
+    # 默认保持 v1 遗留特例式(等效松弛时间为踝/膝的 6.67 倍),不影响任何既有结果
+    s["c_hip"] = (z * s["k_hip"] if scen.get("hip_damp_unified")
+                  else (z / 0.03) * 0.2 * s["k_hip"])
     # —— 这两行是 v2 的全部要害 ——
     s["kc"] = float(scen["kc"])                                   # 绝对,不含 m
     s["cc"] = (0.01 * s["kc"] if scen.get("legacy_cc") else

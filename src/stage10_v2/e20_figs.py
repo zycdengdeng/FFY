@@ -63,9 +63,21 @@ def shade(ax, xhi):
 def load_gen(d):
     out = {}
     for fp in sorted(glob.glob(os.path.join(d, "e20_*.json"))):
-        j = json.load(open(fp, encoding="utf-8")); out[j["arm"]] = j
+        j = json.load(open(fp, encoding="utf-8"))
+        if isinstance(j, dict) and "arm" in j:      # 跳过 e20_why.json 等辅助文件
+            out[j["arm"]] = j
     assert out, f"{d} 里没有 e20_*.json"
     return out
+
+
+def gen_cv(gendir, arm, g, cname, ng):
+    """每格 nz 个样本在 7 维上的中位变异系数(%)。
+    若 ≈0,说明解码器忽略了隐变量 z(后验塌缩)——那么"可行率"就不是
+    "一群设计里有多少可行",而是"模型给的那一个设计过不过关"。这个区别必须写在图上。"""
+    z = np.load(os.path.join(gendir, f"e20_{arm}_raw.npz"))
+    X = z[f"{cname}__x7"][:ng]
+    cv = X.std(1) / np.maximum(np.abs(X.mean(1)), 1e-12) * 100
+    return np.median(cv, axis=1)
 
 
 def load_rand(d):
@@ -76,7 +88,7 @@ def load_rand(d):
 
 
 # --------------------------------------------------------------- 图 A
-def fig_vs_random(G, R, arm, outfp):
+def fig_vs_random(G, R, arm, outfp, gendir):
     g = G[arm]; ms = np.array(g["m_grid"]); conds = list(g["conds"])
     nc = len(conds); ncol = min(3, nc); nrow = int(np.ceil(nc / ncol))
     fig, axes = plt.subplots(nrow, ncol, figsize=(4.7 * ncol, 3.6 * nrow),
@@ -89,7 +101,7 @@ def fig_vs_random(G, R, arm, outfp):
         ax.plot(ms, y, color="#2a78d6", lw=2.4, zorder=4)
         ax.plot(ms, y, "o", color="#2a78d6", ms=3.4, zorder=4)
         i = int(round(0.72 * (len(ms) - 1)))
-        ax.annotate("cVAE 生成", (ms[i], y[i]), textcoords="offset points",
+        ax.annotate("cVAE 输出", (ms[i], y[i]), textcoords="offset points",
                     xytext=(0, 9), fontsize=8.6, color="#2a78d6", ha="center",
                     fontweight="bold", zorder=6,
                     bbox=dict(boxstyle="round,pad=0.15", fc=SURF, ec="none", alpha=.85))
@@ -97,7 +109,7 @@ def fig_vs_random(G, R, arm, outfp):
             yr = np.array(R[cn]["arms"].get(arm, R[cn]["arms"]["bio"])["pooled"])
             ax.plot(ms, yr, color=MUTED, lw=2.0, ls=(0, (4, 2.5)), zorder=3)
             j = int(round(0.34 * (len(ms) - 1)))
-            ax.annotate("盒内随机抓", (ms[j], yr[j]), textcoords="offset points",
+            ax.annotate("盒内随机抓一个", (ms[j], yr[j]), textcoords="offset points",
                         xytext=(0, -16), fontsize=8.6, color=MUTED, ha="center",
                         fontweight="bold", zorder=6,
                         bbox=dict(boxstyle="round,pad=0.15", fc=SURF, ec="none", alpha=.85))
@@ -111,7 +123,7 @@ def fig_vs_random(G, R, arm, outfp):
             ax.spines[sp].set_visible(False)
         ax.tick_params(colors=INK2, labelsize=8.5)
         if k % ncol == 0:
-            ax.set_ylabel("可行率", fontsize=9.5, color=INK2)
+            ax.set_ylabel("通过判据的比例", fontsize=9.5, color=INK2)
         if k // ncol == nrow - 1:
             ax.set_xlabel("机体质量 m / kg", fontsize=9.5, color=INK2)
         if k == 0:
@@ -122,10 +134,16 @@ def fig_vs_random(G, R, arm, outfp):
     fig.suptitle(f"盒子 vs 模型:同工况、同体重、同判官,只差设计从哪来  "
                  f"（{arm} 臂 · {g['ckpt']} · 每格 {g['nz']} 个样本）",
                  fontsize=12.5, color=INK, x=.012, ha="left", y=.985)
-    fig.text(.012, .012, "灰虚线=在生物先验盒里闭眼随机抓(E18b);蓝实线=cVAE 条件生成。"
-             "两者共用同一个盒子,差值即模型本身的贡献。",
+    cvs = [gen_cv(gendir, arm, g, cn, len(ms)) for cn in conds]
+    cvm = float(np.nanmedian(np.concatenate(cvs)))
+    fig.text(.012, .026, "灰虚线=在生物先验盒里闭眼随机抓一个(E18b,样本彼此不同);"
+             "蓝实线=cVAE 按条件输出。两者共用同一个盒子,差值即模型本身的贡献。",
              fontsize=8, color=MUTED)
-    fig.tight_layout(rect=[0, .035, 1, .95])
+    fig.text(.012, .008, f"注:cVAE 的 {g['nz']} 次采样在 7 个设计维上的中位变异系数仅 "
+             f"{cvm:.2f}%——解码器基本忽略隐变量 z,同一条件下输出的其实是同一个设计。"
+             "故蓝线读作「模型给的那个设计过不过关」,近似 0/1,不是「一群设计里有多少可行」。",
+             fontsize=8, color="#8E2A34")
+    fig.tight_layout(rect=[0, .052, 1, .95])
     fig.savefig(outfp, facecolor=SURF); print("→", outfp)
 
 
@@ -172,27 +190,43 @@ def fig_metrics(G, arm, gendir, outfp, feasible_only=True):
 
 
 # --------------------------------------------------------------- 图 C
+WHYCN = {"gcap": "过载超限", "smax": "行程超限", "slenderness": "细长比超限",
+         "massbudget": "质量超预算", "deep_sink": "模型失效(侵入超界)",
+         "collapse": "腿压塌", "solver": "求解器失败", "nonfinite": "数值发散"}
+
+
 def fig_anchors(G, arm, gendir, outfp):
+    """真实机型锚点成绩单。判定原因来自 e20_why.json(每格 1 个代表设计的完整判据),
+    没有它就只报数字 —— 只给数字不给'为什么不过'会让读者误以为是随机失败。"""
     g = G[arm]
     z = np.load(os.path.join(gendir, f"e20_{arm}_raw.npz"))
     ng = len(g["m_grid"]); anc = sorted(float(k) for k in g["anchors"])
     MI = {k: i for i, k in enumerate(g["met"])}
+    whyfp = os.path.join(gendir, "e20_why.json")
+    W = {}
+    if os.path.exists(whyfp):
+        for o in json.load(open(whyfp, encoding="utf-8")):
+            W[(o["cond"], round(o["m_kg"], 3))] = o
     rows, conds = [], [c for c in g["conds"] if c.endswith("1.2")]
     for cn in conds:
         for i, m in enumerate(anc):
             ok = z[f"{cn}__ok"][ng + i]; mv = z[f"{cn}__met"][ng + i]
             sel = ok if ok.sum() >= 5 else np.ones_like(ok, bool)
+            w = W.get((cn, round(m, 3)))
+            verdict = ("✓ 可行" if (w and w["ok"]) else
+                       "、".join(WHYCN.get(x, x) for x in w["why"]) if w else "—")
+            def med(k, f="{:.1f}"):
+                v = np.nanmedian(mv[sel, MI[k]])
+                return "—" if not np.isfinite(v) else f.format(v)
             rows.append([g["conds"][cn]["label"].split(" ")[0], f"{m:.0f}",
-                         f"{ok.mean()*100:.0f}%",
-                         f"{np.nanmedian(mv[sel, MI['peak_g']]):.1f}",
-                         f"{np.nanmedian(mv[sel, MI['eta']]):.2f}",
-                         f"{np.nanmedian(mv[sel, MI['leg_stroke_mm']]):.1f}",
-                         f"{np.nanmedian(mv[sel, MI['leg_mass_g']]):.0f}",
-                         f"{np.nanmedian(mv[sel, MI['mass_frac']])*100:.2f}%"])
-    hdr = ["地形", "m/kg", "可行率", "峰值/g", "η", "行程/mm", "腿重/g", "占比"]
-    fig, ax = plt.subplots(figsize=(11.0, 0.42 * (len(rows) + 3)), dpi=200)
+                         f"{ok.mean()*100:.0f}%", med("peak_g", "{:.1f}"),
+                         med("eta", "{:.2f}"), med("leg_stroke_mm"),
+                         med("leg_mass_g", "{:.0f}"), verdict])
+    hdr = ["地形", "m/kg", "通过率", "峰值/g", "η", "行程/mm", "腿重/g", "判定 / 卡在哪一条"]
+    fig, ax = plt.subplots(figsize=(12.6, 0.42 * (len(rows) + 3)), dpi=200)
     fig.patch.set_facecolor(SURF); ax.axis("off")
-    t = ax.table(cellText=rows, colLabels=hdr, loc="center", cellLoc="center")
+    t = ax.table(cellText=rows, colLabels=hdr, loc="center", cellLoc="center",
+                 colWidths=[.09, .07, .08, .08, .07, .09, .08, .30])
     t.auto_set_font_size(False); t.set_fontsize(9.5); t.scale(1, 1.5)
     for (r, c), cell in t.get_celld().items():
         cell.set_edgecolor("#e6e4df")
@@ -200,15 +234,21 @@ def fig_anchors(G, arm, gendir, outfp):
             cell.set_facecolor("#8E2A34"); cell.set_text_props(color="w", weight="bold")
         else:
             cell.set_facecolor("#faf8f6" if r % 2 else "#ffffff")
-    ax.set_title("真实机型量级上的成绩单（v0 = 1.2 m/s · 全部在外推区，仅供体量参考）\n"
+            if c == len(hdr) - 1:
+                good = rows[r - 1][-1].startswith("✓")
+                cell.set_text_props(color=("#2E8B57" if good else "#8E2A34"),
+                                    weight="bold")
+    ax.set_title("真实机型量级上的成绩单(v0 = 1.2 m/s · 30 kg 以上全部在外推区)\n"
                  "锚点:30 kg 货运级 · 65 kg FlyCart 30 空机 · 85 kg 半载 · 95 kg 最大起飞重量",
                  fontsize=11.5, color=INK, loc="left", pad=14)
-    fig.text(.012, .01, "多旋翼货运机为垂直可控降落,与固定翼着陆不同;"
-             "此表只用于给出体量感,不代表可直接用于该机型。", fontsize=8, color=MUTED)
+    fig.text(.012, .015, "「通过率」是 216 次采样的通过比例,但解码器近乎确定性,故实为 0/1;"
+             "判定列来自每格 1 个代表设计的完整判据。"
+             "多旋翼货运机为垂直可控降落,与固定翼着陆不同,此表只用于给出体量感。",
+             fontsize=8, color=MUTED)
     fig.tight_layout(); fig.savefig(outfp, facecolor=SURF); print("→", outfp)
 
 
-def summary(G, R, arm):
+def summary(G, R, arm, gdir):
     g = G[arm]; ms = np.array(g["m_grid"])
     print("\n" + "=" * 86)
     print(f"{arm} 臂 · 可行率(%):模型 vs 随机")
@@ -219,7 +259,12 @@ def summary(G, R, arm):
         if cn in R:
             yr = R[cn]["arms"].get(arm, R[cn]["arms"]["bio"])["pooled"]
             print(f"{'':<20}{'随机':<7}" + "".join(f"{v*100:>6.0f}" for v in yr))
-    print("\n真实机型锚点可行率(%)")
+    print("\n生成多样性自检:每格采样在 7 维上的中位变异系数(%)  ← 接近 0 = 解码器忽略 z")
+    for cn, c in g["conds"].items():
+        cv = gen_cv(gdir, arm, g, cn, len(ms))
+        print(f"  {c['label']:<20}" + "".join(f"{v:>6.2f}" for v in cv))
+
+    print("\n真实机型锚点通过率(%)")
     for cn, c in g["conds"].items():
         print(f"  {c['label']:<20}" +
               "  ".join(f"{k}kg:{v*100:.0f}" for k, v in c["anchor_feas"].items()))
@@ -232,7 +277,7 @@ if __name__ == "__main__":
     ap.add_argument("--arm", default="bio")
     a = ap.parse_args()
     G = load_gen(a.gen); R = load_rand(a.rand)
-    fig_vs_random(G, R, a.arm, os.path.join(a.gen, "fig_e20_vs_random.png"))
+    fig_vs_random(G, R, a.arm, os.path.join(a.gen, "fig_e20_vs_random.png"), a.gen)
     fig_metrics(G, a.arm, a.gen, os.path.join(a.gen, "fig_e20_metrics.png"))
     fig_anchors(G, a.arm, a.gen, os.path.join(a.gen, "fig_e20_anchors.png"))
-    summary(G, R, a.arm)
+    summary(G, R, a.arm, a.gen)

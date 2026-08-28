@@ -5,7 +5,7 @@ B 各科 u 地段图:回应"为什么不按科建先验"
 C Watanabe 比例窄带 + 尺寸趋势检验(欠账 A2)
 D 标度指数森林图:自测/分科/文献/理论/涌现 一图对齐
 """
-import csv, json
+import argparse, csv, json
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -36,7 +36,13 @@ se_b = sigma / (np.std(x, ddof=1) * np.sqrt(n - 1)); ci = 1.96 * se_b
 r2f = float(np.corrcoef(x, y)[0, 1] ** 2)
 print(f"合并拟合: b={b:.3f}±{ci:.3f}  a={a:.3f}  σ={sigma:.4f}  r²={r2f:.3f}  n={n}")
 
-designs = json.load(open("/tmp/designs.json"))
+ap = argparse.ArgumentParser()
+ap.add_argument("--no-ai", action="store_true", help="A 图不画 AI 设计的星")
+ap.add_argument("--no-abl", action="store_true",
+                help="A 图不画几何/弹性相似两条参考线(不讲消融时用)")
+ap.add_argument("--out", default="/tmp/bio", help="输出目录")
+ARGS, _ = ap.parse_known_args()
+designs = [] if ARGS.no_ai else json.load(open("/tmp/designs.json"))
 
 # ============ A 异速生长主图 ============
 fig, ax = plt.subplots(figsize=(7.4, 5.0))
@@ -51,18 +57,24 @@ ax.fill_between(10**mg/1000, 10**(a + b*mg - 2.5*sigma), 10**(a + b*mg + 2.5*sig
                 color=CRIM, alpha=.08, lw=0, label="条件先验带 ±2.5σ")
 mref = np.log10(3464)
 lref = a + b*mref
-for bh, ls, lab in [(1/3, "--", "几何相似 b=1/3"), (0.25, ":", "弹性相似 b=1/4")]:
-    ax.plot(10**mg/1000, 10**(lref + bh*(mg-mref)), ls, color="#555", lw=1.3, label=lab)
-dm = np.array([d["m"] for d in designs]); dl = np.array([d["L_mm"][0] for d in designs])
-ax.plot(dm, dl, "*", ms=17, mfc="#F0A030", mec="k", mew=.8, zorder=5,
-        label="AI 生成设计(实测可行)")
+if not ARGS.no_abl:
+    for bh, ls, lab in [(1/3, "--", "几何相似 b=1/3"), (0.25, ":", "弹性相似 b=1/4")]:
+        ax.plot(10**mg/1000, 10**(lref + bh*(mg-mref)), ls, color="#555", lw=1.3,
+                label=lab)
+if designs:
+    dm = np.array([d["m"] for d in designs]); dl = np.array([d["L_mm"][0] for d in designs])
+    ax.plot(dm, dl, "*", ms=17, mfc="#F0A030", mec="k", mew=.8, zorder=5,
+            label="AI 生成设计(实测可行)")
 ax.set_xscale("log"); ax.set_yscale("log")
 ax.set_xticks([0.1,0.3,1,3,10]); ax.set_xticklabels(["0.1","0.3","1","3","10"])
 ax.set_yticks([20,40,80,120]); ax.set_yticklabels(["20","40","80","120"])
 ax.set_xlabel("体重 (kg)"); ax.set_ylabel("跗跖骨长 L₁ (mm)")
-ax.set_title("水鸟腿长异速生长律(AVONET 213 种)与 AI 设计的落点", loc="left", fontsize=11)
-ax.legend(frameon=False, fontsize=7.6, loc="upper left", ncol=2)
-fig.tight_layout(); fig.savefig("/tmp/bio/figA_allometry.png", dpi=250, bbox_inches="tight")
+ax.set_title("水鸟腿长异速生长律(AVONET 213 种)与 AI 设计的落点" if designs
+             else f"水鸟腿长异速生长律:{n} 种水鸟实测与条件先验带",
+             loc="left", fontsize=11)
+ax.legend(frameon=False, fontsize=7.6, loc="upper left",
+          ncol=2 if (designs or not ARGS.no_abl) else 1)
+fig.tight_layout(); fig.savefig(f"{ARGS.out}/figA_allometry.png", dpi=250, bbox_inches="tight")
 plt.close(fig)
 
 # ============ B 各科 u 地段图 ============
@@ -92,39 +104,56 @@ w = list(csv.DictReader(open("/tmp/pipeline_code/data/skeletal/watanabe2017_anat
 wv = [r for r in w if r["group"] == "Volant"]
 r2a = np.array([float(r["r2"]) for r in wv]); r3a = np.array([float(r["r3"]) for r in wv])
 tmt = np.array([float(r["tmt_mm"]) for r in wv]); lt = np.log10(tmt)
+tib = np.array([float(r["tib_mm"]) for r in wv]); fem = np.array([float(r["fem_mm"]) for r in wv])
+
+# (b) 用**原始段长**做 log-log 回归,不用比值。
+# 比值 r=L_seg/L1 与 L1 共用分母,回归会产生伪负相关(Pearson 1897);
+# 直接回归 log L_seg ~ log L1 没有这个问题,而且天然有参照点:几何相似 = 1.0。
 out = {}
-for nm, arr in (("r2", r2a), ("r3", r3a)):
-    sl, ic = np.polyfit(lt, arr, 1)
-    res = arr - (ic + sl*lt)
-    se = np.std(res, ddof=2) / (np.std(lt, ddof=1)*np.sqrt(len(arr)-1))
-    out[nm] = (sl, 1.96*se)
-fig, axs = plt.subplots(1, 2, figsize=(9.6, 3.7), width_ratios=[1, 1.15])
+for nm, arr in (("L2", tib), ("L3", fem)):
+    pw, ic = np.polyfit(lt, np.log10(arr), 1)
+    res = np.log10(arr) - (ic + pw*lt)
+    se = np.std(res, ddof=2) / (np.std(lt, ddof=0)*np.sqrt(len(arr)))
+    out[nm] = (pw, ic, 1.96*se, abs((pw-1.0)/se))
+
+fig, axs = plt.subplots(1, 2, figsize=(9.8, 3.9), width_ratios=[1, 1.12])
 ax = axs[0]
-ax.scatter(r2a, r3a, s=18, color="#3A6EA5", alpha=.8, lw=0, label=f"Watanabe 会飞种 (n={len(wv)})")
+ax.scatter(r2a, r3a, s=18, color="#3A6EA5", alpha=.8, lw=0, label=f"Watanabe 2017 会飞种 (n={len(wv)})")
 ax.add_patch(plt.Rectangle((1.49,0.84), 2.09-1.49, 1.28-0.84, fill=False,
-             ec=CRIM, lw=1.8, label="bio 设计盒(实测全距)"))
-ax.add_patch(plt.Rectangle((2.20,0.30), 0.60, 0.44, fill=False, ec="#888", lw=1.2,
-             ls="--", label="v1 消融 shift 盒(非生物区)"))
+             ec=CRIM, lw=1.8, label="设计盒(实测全距)"))
 ax.plot(1.764, 0.951, "D", ms=9, mfc="#F0A030", mec="k", label="天鹅(课题组前期蓝本)")
-ax.set_xlabel("r₂ = 胫/跗跖"); ax.set_ylabel("r₃ = 股/跗跖")
+ax.set_xlabel("r₂ = 胫跗骨 / 跗跖骨"); ax.set_ylabel("r₃ = 股骨 / 跗跖骨")
 ax.set_title("(a) 腿骨比例的生物窄带", loc="left", fontsize=10.5)
-ax.legend(frameon=False, fontsize=7.2, loc="lower right"); ax.set_xlim(1.3, 2.95); ax.set_ylim(0.25, 1.35)
+ax.legend(frameon=False, fontsize=7.6, loc="lower right")
+ax.set_xlim(1.38, 2.22); ax.set_ylim(0.72, 1.42)
+
 ax = axs[1]
-for nm, arr, c, off in (("r₂", r2a, "#3A6EA5", 0), ("r₃", r3a, "#4E8D7C", 0)):
-    ax.scatter(tmt, arr, s=16, color=c, alpha=.8, lw=0, label=nm)
-    sl, ci_ = out["r2" if nm=="r₂" else "r3"]
-    xs = np.linspace(lt.min(), lt.max(), 20)
-    icpt = np.mean(arr) - sl*np.mean(lt)
-    ax.plot(10**xs, icpt + sl*xs, "-", color=c, lw=1.6)
-ax.set_xscale("log"); ax.set_xticks([30,60,120]); ax.set_xticklabels(["30","60","120"])
-ax.set_xlabel("跗跖长 TMT (mm,体型代理)"); ax.set_ylabel("比例值")
-t2 = out["r2"]; t3 = out["r3"]
-ax.set_title(f"(b) 比例随体型的趋势检验:斜率 r₂ {t2[0]:+.3f}±{t2[1]:.3f} / dex,"
-             f" r₃ {t3[0]:+.3f}±{t3[1]:.3f} / dex", loc="left", fontsize=9.5)
-ax.legend(frameon=False, fontsize=8)
-fig.tight_layout(); fig.savefig("/tmp/bio/figC_ratios.png", dpi=250, bbox_inches="tight")
+xs = np.linspace(lt.min(), lt.max(), 20)
+for nm, arr, c, cn in (("L2", tib, "#3A6EA5", "L₂ 胫跗骨"), ("L3", fem, "#4E8D7C", "L₃ 股骨")):
+    pw, ic, ci_, tv = out[nm]
+    ax.scatter(tmt, arr, s=16, color=c, alpha=.75, lw=0,
+               label=f"{cn}   p = {pw:.3f} ± {ci_:.3f}")
+    ax.plot(10**xs, 10**(ic + pw*xs), "-", color=c, lw=1.8, zorder=4)
+    ic1 = np.mean(np.log10(arr)) - 1.0*np.mean(lt)          # 同质心的 p=1 参照
+    ax.plot(10**xs, 10**(ic1 + 1.0*xs), "--", color="#999", lw=1.2, zorder=3)
+ax.plot([], [], "--", color="#999", lw=1.2, label="几何相似 p = 1.0(形状不变)")
+ax.set_xscale("log"); ax.set_yscale("log")
+from matplotlib.ticker import NullFormatter, NullLocator
+ax.set_xticks([30,60,120]); ax.set_xticklabels(["30","60","120"])
+ax.set_yticks([30,60,120,240]); ax.set_yticklabels(["30","60","120","240"])
+ax.xaxis.set_minor_locator(NullLocator()); ax.xaxis.set_minor_formatter(NullFormatter())
+ax.yaxis.set_minor_locator(NullLocator()); ax.yaxis.set_minor_formatter(NullFormatter())
+ax.set_xlabel("跗跖骨长 L₁ (mm)"); ax.set_ylabel("该段骨长 (mm)")
+ax.set_title("(b) 分段骨长的相对生长:$L_{seg} \\propto L_1^{\\,p}$", loc="left", fontsize=10.5)
+ax.legend(frameon=False, fontsize=7.8, loc="upper left")
+ax.text(.98, .04, f"两段均显著低于 1.0(|t| = {out['L2'][3]:.1f} / {out['L3'][3]:.1f},n = {len(wv)})\n"
+        "→ 跗跖骨每长 1 倍,胫跗骨只长 %.2f 倍、股骨只长 %.2f 倍" % (out["L2"][0], out["L3"][0]),
+        transform=ax.transAxes, fontsize=7.8, color="#555", ha="right", va="bottom",
+        linespacing=1.6)
+fig.tight_layout(); fig.savefig(f"{ARGS.out}/figC_ratios.png", dpi=250, bbox_inches="tight")
 plt.close(fig)
-print(f"r2 斜率 {out['r2'][0]:+.3f}±{out['r2'][1]:.3f}  r3 斜率 {out['r3'][0]:+.3f}±{out['r3'][1]:.3f} (每十倍 TMT)")
+print(f"相对生长: L2 p={out['L2'][0]:.3f}±{out['L2'][2]:.3f} |t|={out['L2'][3]:.1f}  "
+      f"L3 p={out['L3'][0]:.3f}±{out['L3'][2]:.3f} |t|={out['L3'][3]:.1f}")
 
 # ============ D 标度指数森林图 ============
 fits = json.load(open("/tmp/pipeline_code/outputs/bird_pareto/avonet_allometry.json"))["fits"]
