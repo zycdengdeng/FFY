@@ -43,7 +43,10 @@ import physics_v2 as P                       # noqa: E402
 from bioprior import BioPrior, ARMS          # noqa: E402
 
 # 工况范围
-M_RANGE = (1.0, 12.0)          # kg,对数均匀(尺度研究应按对数均匀铺)
+# kg,对数均匀(尺度研究应按对数均匀铺)。可由 --m-range 覆盖。
+# v2.1 用 (1,12);v2.2 起改为 (4,36):产品区间定为小型固定翼无人机 5–30 kg,
+# 两端各留 ~15%(对数)余量,使 5 与 30 kg 都落在训练区内而不是边界外推。
+M_RANGE = (4.0, 36.0)
 V0_RANGE = (0.5, 2.0)          # m/s,均匀
 KC_RANGE = P.KC_RANGE          # N/m,对数均匀,[5e4, 2e6] 内模型全程有效
 
@@ -157,6 +160,8 @@ def main():
     ap.add_argument("--npass", type=int, default=2)
     ap.add_argument("--workers", type=int, default=32)
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--m-range", default=None,
+                    help='质量范围,如 "4,36"(默认)或 "1,12"(v2.1 老口径)')
     ap.add_argument("--v21", action="store_true",
                     help="v2.1 物理:9 维设计(含姿态)+ 髋阻尼统一式 + 放宽的 κ/τ 盒")
     ap.add_argument("--out", default="outputs/v2_data_bio")
@@ -164,6 +169,10 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     fp = os.path.join(args.out, "factory.jsonl")
 
+    if args.m_range:
+        global M_RANGE
+        M_RANGE = tuple(float(v) for v in args.m_range.split(","))
+    print(f"[factory-v2] 质量范围 {M_RANGE[0]:g}–{M_RANGE[1]:g} kg")
     prior = BioPrior(args.arm, v21=args.v21)
     rng = np.random.default_rng(args.seed)
     blocks = make_global_blocks(args.nglobal, args.nd, prior, rng)
