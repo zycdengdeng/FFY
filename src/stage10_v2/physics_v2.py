@@ -128,6 +128,23 @@ def exu_eval_v2(x7, s):
         mbs.CreateRevoluteJoint(bodyNumbers=[b0, b1], position=list(P), axis=[0, 1, 0])
         mbs.CreateTorsionalSpringDamper(bodyNumbers=[b0, b1], position=list(P),
                                         axis=[0, 1, 0], stiffness=kj, damping=cj)
+    # ---- P4c:膝-髋耦合连杆(无质量两力杆 ≡ 两点间距离约束) ----
+    # scen["couple_rod"] = dict(off_hip=米, off_knee=米);缺省不加,老路径完全不变。
+    cr = s.get("couple_rod")
+    if cr:
+        e = lambda a: np.array([-np.sin(a), 0., np.cos(a)])   # 面内法向(局部 z)
+        nf = e(a3); nf = -nf if nf[0] > 0 else nf             # 股骨法向,取同一侧
+        ns = e(a2); ns = -ns if ns[0] > 0 else ns             # 胫跗骨法向
+        Pb = H + nf * float(cr["off_hip"])                    # 机身(支座)端
+        Qg = K + ns * float(cr["off_knee"])                   # 胫跗骨端
+        com_t = 0.5 * (A + K)                                 # 胫跗骨质心
+        q_loc = [float(np.dot(Qg - com_t, d(a2))), 0.,
+                 float(np.dot(Qg - com_t, e(a2)))]
+        mbs.CreateDistanceConstraint(bodyNumbers=[body, tibio],
+                                     localPosition0=list(Pb - H),
+                                     localPosition1=q_loc,
+                                     distance=float(np.linalg.norm(Pb - Qg)))
+
     quad = [[-3., -3., 0.], [3., -3., 0.], [3., 3., 0.], [-3., 3., 0.]]
     mbs.CreateSphereQuadContact(bodyNumbers=[tarso, ground],
                                 localPosition0=[-0.5 * l1, 0., 0.],
