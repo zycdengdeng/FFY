@@ -60,6 +60,7 @@ NLEGS = 2                # 双腿分担
 MASS_FRAC_CAP = 0.06     # 腿总质量 / 机体质量 上限(6%,航空口径的结构质量预算)
 # 足端等效半径按跗跖长缩放(蹼足)。v1 固定 8 mm,与 33–121 mm 的跗跖长不自洽,
 # 且在软介质上会让侵入深度超过球半径,使球-面罚接触模型失效(被误判成"腿塌了")。
+ZENER_SUPPORTED = True   # P7:关节 Zener 化已实现(见 exu_eval_v2)
 FOOT_RATIO = 0.20
 SEG_FRAC_GUESS = 0.02    # 第一遍的杆件质量猜测(占 m 的比例)
 
@@ -122,12 +123,36 @@ def exu_eval_v2(x7, s):
                                inertia=InertiaSphere(mass=m, radius=0.12),
                                gravity=[0, 0, -g])
     mbs.CreatePrismaticJoint(bodyNumbers=[ground, body], position=list(H), axis=[0, 0, 1])
-    for (b0, b1, P, kj, cj) in [(body, femur, H, s["k_hip"], s["c_hip"]),
-                                (femur, tibio, K, s["k_knee"], s["c_knee"]),
-                                (tibio, tarso, A, s["k_ankle"], s["c_ankle"])]:
+    # P7:zener = dict(ratio=k2/k1, joints=("ankle","knee","hip")) → 该关节改为
+    # 标准线性固体 k1 ∥ (k2 串 c):加一个 ODE1 内部状态 y(Maxwell 阻尼器转角),
+    # ẏ = k2(θ−y)/c,力矩 = k1·θ + k2(θ−y)。无附加惯量,故不引入伪高频模态。
+    zen = s.get("zener"); zjoints = set(zen["joints"]) if zen else set()
+    _zstate = {}
+    for (jn, b0, b1, P, kj, cj) in [("hip", body, femur, H, s["k_hip"], s["c_hip"]),
+                                    ("knee", femur, tibio, K, s["k_knee"], s["c_knee"]),
+                                    ("ankle", tibio, tarso, A, s["k_ankle"], s["c_ankle"])]:
         mbs.CreateRevoluteJoint(bodyNumbers=[b0, b1], position=list(P), axis=[0, 1, 0])
-        mbs.CreateTorsionalSpringDamper(bodyNumbers=[b0, b1], position=list(P),
-                                        axis=[0, 1, 0], stiffness=kj, damping=cj)
+        if zen and jn in zjoints and cj > 0:
+            k2 = float(zen["ratio"]) * kj
+            nd = mbs.AddNode(NodeGenericODE1(referenceCoordinates=[0.],
+                                             initialCoordinates=[0.],
+                                             numberOfODE1Coordinates=1))
+            idx = len(_zstate); _zstate[jn] = dict(th=0.0, idx=idx)
+            st = _zstate[jn]
+            def _rhs(mbs_, t_, item_, q_, _k2=k2, _c=cj, _st=st):
+                return [_k2 * (_st["th"] - q_[0]) / _c]
+            mbs.AddObject(ObjectGenericODE1(nodeNumbers=[nd], rhsUserFunction=_rhs))
+            def _tq(mbs_, t_, item_, rot, rot_t, k_, d_, off_,
+                    _k2=k2, _st=st):
+                _st["th"] = rot
+                y = mbs_.systemData.GetODE1Coordinates()[_st["idx"]]
+                return k_ * rot + _k2 * (rot - y)
+            con = mbs.CreateTorsionalSpringDamper(bodyNumbers=[b0, b1], position=list(P),
+                                                  axis=[0, 1, 0], stiffness=kj, damping=0.0)
+            mbs.SetObjectParameter(con, "springTorqueUserFunction", _tq)
+        else:
+            mbs.CreateTorsionalSpringDamper(bodyNumbers=[b0, b1], position=list(P),
+                                            axis=[0, 1, 0], stiffness=kj, damping=cj)
     # ---- P4c:膝-髋耦合连杆(无质量两力杆 ≡ 两点间距离约束) ----
     # scen["couple_rod"] = dict(off_hip=米, off_knee=米);缺省不加,老路径完全不变。
     cr = s.get("couple_rod")

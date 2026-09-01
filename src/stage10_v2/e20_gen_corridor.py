@@ -46,7 +46,7 @@ from train_cvae import norm                         # noqa: E402
 from e18b_corridor_multi import CONDS, GCAP_G, SMAX  # noqa: E402  同一套工况与要求
 
 # 与 E18b 完全相同的体重梯子(0.5→120 kg, 16 级对数),保证两条曲线逐点可比
-M_GRID = 10 ** np.linspace(np.log10(0.5), np.log10(120.0), 16)
+M_GRID = 10 ** np.linspace(np.log10(0.5), np.log10(120.0), 16)   # 可由 --mgrid 覆盖
 # 额外的真实机型锚点,单独评价,不进梯子(否则两边网格不一致)
 ANCHORS = {30.0: "货运无人机量级", 65.0: "FlyCart 30 空机(含双电池)",
            85.0: "FlyCart 30 半载", 95.0: "FlyCart 30 最大起飞重量"}
@@ -55,10 +55,18 @@ MET = ["peak_g", "eta", "cfe", "peak_jerk", "leg_stroke_mm", "sink_mm",
        "leg_mass_g", "mass_frac", "F_peak"]
 
 
+BASE_V21 = None   # 由 --v21 设定;None 时完全走老路径,既有结果可复现
+
+
+def _base():
+    if BASE_V21 is None:
+        return None
+    return {**P.SCEN_BIRD_X, "hip_damp_unified": True}
+
 def _probe(a):
     """跑一个生成设计,回 (是否可行, 指标数组)。不可行也回指标,B 图要看分布。"""
     x7, m, v0, kc = a
-    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zeta_of_kc(kc), npass=2)
+    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zeta_of_kc(kc), npass=2, base=_base())
     ok, _ = P.feasible_v2(r, GCAP_G * 9.81, SMAX)
     if r is None or r.get("fail"):
         return False, [np.nan] * len(MET)
@@ -87,7 +95,7 @@ def gen_designs(model, meta, prior, m, v0, kc, nz, seed):
 def run_arm(arm, ckpt, conds, ms, nz, workers, outdir):
     model, meta = load_cvae(ckpt)
     pr = meta["prior"]
-    prior = BioPrior(arm, sigma=pr["sigma"], u_max=pr["u_max"])
+    prior = BioPrior(arm, sigma=pr["sigma"], u_max=pr["u_max"], v21=(BASE_V21 is not None))
     print(f"[{arm}] {os.path.basename(ckpt)}  zdim={model.zdim}  "
           f"训练质量区间 10^{meta['c_lo'][0]:.3f}–10^{meta['c_hi'][0]:.3f} kg", flush=True)
 
@@ -141,9 +149,21 @@ def main():
     ap.add_argument("--nz", type=int, default=216,
                     help="每格采多少隐变量。216 约 50 分钟(128 核);"
                          "432 与 E18b 每格样本数完全对齐,但要约 1.6 小时")
+    ap.add_argument("--v21", action="store_true",
+                    help="用 v2.1/v2.2 物理:9 维设计(含姿态)+ 髋阻尼统一式")
     ap.add_argument("--workers", type=int, default=8)
+    ap.add_argument("--mgrid", default=None, help='"lo,hi,n" 覆盖质量网格,如 "2,40,16"')
+    ap.add_argument("--anchors", default=None, help='"30:标签,20:标签" 覆盖锚点')
     ap.add_argument("--out", default="outputs/v2_e20")
     a = ap.parse_args()
+    global BASE_V21
+    if a.v21: BASE_V21 = True
+    global M_GRID, ANCHORS
+    if a.mgrid:
+        lo,hi,n = a.mgrid.split(','); M_GRID = 10 ** np.linspace(np.log10(float(lo)), np.log10(float(hi)), int(n))
+    if a.anchors:
+        ANCHORS = {float(k): v for k, v in (t.split(':') for t in a.anchors.split(','))}
+    print(f"[{__file__.split('/')[-1]}] v21 物理 = {BASE_V21 is not None}", flush=True)
     conds = [c for c in a.conds.split(",") if c in CONDS]
     assert conds, f"未知工况;可选 {list(CONDS)}"
     n = len(conds) * (len(M_GRID) + len(ANCHORS)) * a.nz

@@ -44,9 +44,17 @@ PICK = ["Tachybaptus ruficollis", "Aythya fuligula", "Anas platyrhynchos",
 MET = ["peak_g", "eta", "cfe", "leg_stroke_mm", "sink_mm", "leg_mass_g", "mass_frac"]
 
 
+BASE_V21 = None   # 由 --v21 设定;None 时完全走老路径,既有结果可复现
+
+
+def _base():
+    if BASE_V21 is None:
+        return None
+    return {**P.SCEN_BIRD_X, "hip_damp_unified": True}
+
 def _probe(a):
     x7, m, v0, kc = a
-    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zeta_of_kc(kc), npass=2)
+    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zeta_of_kc(kc), npass=2, base=_base())
     ok, why = P.feasible_v2(r, GCAP_G * 9.81, SMAX)
     if r is None or r.get("fail"):
         return dict(ok=False, why=[(r or {}).get("fail", "?")],
@@ -63,9 +71,14 @@ def main():
     ap.add_argument("--avonet", default="data/bio/avonet_waterbirds.csv")
     ap.add_argument("--ckpt", default="outputs/v2_e5_bio/cvae_r40.pt")
     ap.add_argument("--conds", default="concrete1.2,turf1.2,wetsand1.2")
+    ap.add_argument("--v21", action="store_true",
+                    help="用 v2.1/v2.2 物理:9 维设计(含姿态)+ 髋阻尼统一式")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--out", default="outputs/v2_e21")
     a = ap.parse_args()
+    global BASE_V21
+    if a.v21: BASE_V21 = True
+    print(f"[{__file__.split('/')[-1]}] v21 物理 = {BASE_V21 is not None}", flush=True)
 
     rows = [l.strip().split(",") for l in open(a.avonet, encoding="utf-8")][1:]
     db = {r[0]: (r[1], float(r[2]), float(r[3])) for r in rows if len(r) >= 4}
@@ -74,7 +87,7 @@ def main():
 
     model, meta = load_cvae(a.ckpt)
     pr = meta["prior"]
-    prior = BioPrior("bio", sigma=pr["sigma"], u_max=pr["u_max"])
+    prior = BioPrior("bio", sigma=pr["sigma"], u_max=pr["u_max"], v21=(BASE_V21 is not None))
     c_lo, c_hi = np.array(meta["c_lo"]), np.array(meta["c_hi"])
 
     jobs, tags = [], []

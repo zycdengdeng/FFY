@@ -57,6 +57,14 @@ MODELFAIL = ["deep_sink"]
 OTHER = ["collapse", "solver", "nonfinite", "none"]
 
 
+BASE_V21 = None   # 由 --v21 设定;None 时完全走老路径,既有结果可复现
+
+
+def _base():
+    if BASE_V21 is None:
+        return None
+    return {**P.SCEN_BIRD_X, "hip_damp_unified": True}
+
 def _seed(*parts):
     """确定性种子:不依赖 Python 的字符串 hash 随机化。"""
     return zlib.crc32(("|".join(map(str, parts))).encode()) % (2 ** 31)
@@ -65,7 +73,7 @@ def _seed(*parts):
 def _probe_one(a):
     """返回 (是否可行, 违反判据元组)。失败样本也带回原因,不吞掉。"""
     x7, m, v0, kc = a
-    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zeta_of_kc(kc), npass=2)
+    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zeta_of_kc(kc), npass=2, base=_base())
     ok, why = P.feasible_v2(r, GCAP_G * 9.81, SMAX)
     return (bool(ok), tuple(why))
 
@@ -75,10 +83,10 @@ def run_cond(cname, arms, uls, ms, nprobe, workers, outdir):
     kc, v0 = cd["kc"], cd["v0"]
     jobs, tags = [], []
     for arm in arms:
-        prior = BioPrior(arm)
+        prior = BioPrior(arm, v21=(BASE_V21 is not None))
         for ui, uL in enumerate(uls):
             for mi, m in enumerate(ms):
-                U = lhs(nprobe, 7, np.random.default_rng(_seed(cname, arm, ui, mi)))
+                U = lhs(nprobe, (9 if BASE_V21 is not None else 7), np.random.default_rng(_seed(cname, arm, ui, mi)))
                 U[:, 0] = 0.5 * (uL / prior.u_max + 1.0)   # 锁定形态型,只撒刚度/阻尼
                 for x in prior.expand(U, float(m)):
                     jobs.append((tuple(x), float(m), v0, kc))
@@ -118,7 +126,7 @@ def run_cond(cname, arms, uls, ms, nprobe, workers, outdir):
         pooled = [sum(acc[(arm, ui, mi)]["ok"] for ui in range(len(uls))) /
                   sum(acc[(arm, ui, mi)]["n"] for ui in range(len(uls)))
                   for mi in range(len(ms))]
-        res[arm] = dict(b=BioPrior(arm).b, rows=rows,
+        res[arm] = dict(b=BioPrior(arm, v21=(BASE_V21 is not None)).b, rows=rows,
                         pooled=[round(v, 4) for v in pooled])
 
     blob = dict(cond=cname, kc=kc, v0=v0, label=cd["label"],
@@ -146,6 +154,8 @@ def main():
     ap.add_argument("--nprobe", type=int, default=48)
     ap.add_argument("--mlo", type=float, default=0.5)
     ap.add_argument("--mhi", type=float, default=120.0)
+    ap.add_argument("--v21", action="store_true",
+                    help="用 v2.1/v2.2 物理:9 维设计(含姿态)+ 髋阻尼统一式")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--out", default="outputs/v2_e18b")
     args = ap.parse_args()
