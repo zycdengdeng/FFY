@@ -8,6 +8,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 WORKERS="${WORKERS:-128}"; ROUNDS="${ROUNDS:-40}"
+# 纪律:训练类指标进汇报前必须 ≥2 种子。写进脚本,不靠人记得。
+SEEDS="${SEEDS:-0 1}"
 OUT_F="${OUT_F:-outputs/v22_data_bio}"; OUT_E="${OUT_E:-outputs/v22_e5_bio}"
 mkdir -p logs; LOG="logs/v22_main_$(date +%Y%m%d_%H%M%S).log"
 exec > >(tee -a "$LOG") 2>&1
@@ -40,12 +42,16 @@ el
 echo "=========== 2. 训练集 ==========="
 python src/stage10_v2/dataset_v2.py --factory "$OUT_F/factory.jsonl" --out "$OUT_F"
 el
-echo "=========== 3. 自提升闭环 ×$ROUNDS ==========="
-python src/stage10_v2/e5_loop_v2.py --factory "$OUT_F/factory.jsonl" --out "$OUT_E" \
-  --rounds "$ROUNDS" --workers "$WORKERS"
-el
+for SD in $SEEDS; do
+  if [ "$SD" = "0" ]; then O="$OUT_E"; else O="${OUT_E}_s${SD}"; fi
+  echo "=========== 3. 自提升闭环 ×$ROUNDS  (seed $SD → $O) ==========="
+  python src/stage10_v2/e5_loop_v2.py --factory "$OUT_F/factory.jsonl" --out "$O" \
+    --rounds "$ROUNDS" --workers "$WORKERS" --seed "$SD"
+  el
+done
 echo; echo "=========== 完成 ==========="
-echo "下载: $OUT_E/trajectory.json  model_meta.json  cvae_r39.pt/cvae_r40.pt"
+echo "下载: 每个种子目录下的 trajectory.json / model_meta.json / cvae_r39.pt"
+echo "      种子目录: $OUT_E 以及 ${OUT_E}_s1 ..."
 echo "口径提醒:v2.2 与 v2.1 的条件分布不同,gap/覆盖不能跨版本直接比;"
 echo "         能比的是机制(通道使用、b_eff、走廊形状)。"
 echo "日志: $LOG"
