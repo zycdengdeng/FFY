@@ -65,6 +65,29 @@ def _base():
         return None
     return {**P.SCEN_BIRD_X, "hip_damp_unified": True}
 
+
+# --- 统计口径修正(2026-09-02):把三件事分开,不再塞进同一个分母 ---
+#  ok          可行
+#  infeasible  求解成功、模型有效,但违反 gcap/smax/slenderness/massbudget
+#  invalid     模型失效(deep_sink:侵入超过足端球半径,罚接触模型不适用)
+#  unsolved    数值失败(solver / nonfinite / none / collapse)
+# 真实可行率 f_judged = ok / (ok + infeasible) —— 分母只含"能判"的样本。
+# 旧口径 f_raw = ok / n 一并保留,便于与既有结果对照。
+CLS_OK, CLS_INFEAS, CLS_INVALID, CLS_UNSOLVED = "ok", "infeasible", "invalid", "unsolved"
+
+
+def classify(ok, why):
+    """feasible_v2 对失败是提前返回,why 为单元素,所以三档可以干净分开。"""
+    if ok:
+        return CLS_OK
+    w = set(why)
+    if w & set(OTHER):
+        return CLS_UNSOLVED
+    if w & set(MODELFAIL):
+        return CLS_INVALID
+    return CLS_INFEAS
+
+
 def _seed(*parts):
     """确定性种子:不依赖 Python 的字符串 hash 随机化。"""
     return zlib.crc32(("|".join(map(str, parts))).encode()) % (2 ** 31)
@@ -102,10 +125,11 @@ def run_cond(cname, arms, uls, ms, nprobe, workers, outdir):
     # 汇总:每个 (臂, u, 体重) 格子记可行率 + 各判据违反率
     acc = {}
     for tg, (ok, why) in zip(tags, out):
-        d = acc.setdefault(tg, dict(n=0, ok=0, **{c: 0 for c in
-                                                  CRIT + MODELFAIL + ["other"]}))
+        d = acc.setdefault(tg, dict(n=0, ok=0, infeasible=0, invalid=0, unsolved=0,
+                                    **{c: 0 for c in CRIT + MODELFAIL + ["other"]}))
         d["n"] += 1
         d["ok"] += int(ok)
+        d[classify(ok, why)] += 0 if ok else 1
         for w in why:
             if w in CRIT or w in MODELFAIL:
                 d[w] += 1
@@ -119,15 +143,24 @@ def run_cond(cname, arms, uls, ms, nprobe, workers, outdir):
             g = [acc[(arm, ui, mi)] for mi in range(len(ms))]
             rows.append(dict(
                 uL=float(uL),
-                f=[round(d["ok"] / d["n"], 4) for d in g],
+                f=[round(d["ok"] / d["n"], 4) for d in g],                    # 旧口径,保留可比
+                f_judged=[round(d["ok"] / max(d["ok"] + d["infeasible"], 1), 4) for d in g],
+                r_invalid=[round(d["invalid"] / d["n"], 4) for d in g],
+                r_unsolved=[round(d["unsolved"] / d["n"], 4) for d in g],
                 **{c: [round(d[c] / d["n"], 4) for d in g]
                    for c in CRIT + MODELFAIL + ["other"]}))
         # 池合并 u:整个设计盒的可行率,统计误差比单条 u 曲线小 3 倍
-        pooled = [sum(acc[(arm, ui, mi)]["ok"] for ui in range(len(uls))) /
-                  sum(acc[(arm, ui, mi)]["n"] for ui in range(len(uls)))
-                  for mi in range(len(ms))]
+        _sum = lambda mi, k: sum(acc[(arm, ui, mi)][k] for ui in range(len(uls)))
+        pooled = [_sum(mi, "ok") / _sum(mi, "n") for mi in range(len(ms))]
+        pooled_judged = [_sum(mi, "ok") / max(_sum(mi, "ok") + _sum(mi, "infeasible"), 1)
+                         for mi in range(len(ms))]
+        pooled_unsolved = [_sum(mi, "unsolved") / _sum(mi, "n") for mi in range(len(ms))]
+        pooled_invalid = [_sum(mi, "invalid") / _sum(mi, "n") for mi in range(len(ms))]
         res[arm] = dict(b=BioPrior(arm, v21=(BASE_V21 is not None)).b, rows=rows,
-                        pooled=[round(v, 4) for v in pooled])
+                        pooled=[round(v, 4) for v in pooled],
+                        pooled_judged=[round(v, 4) for v in pooled_judged],
+                        pooled_unsolved=[round(v, 4) for v in pooled_unsolved],
+                        pooled_invalid=[round(v, 4) for v in pooled_invalid])
 
     blob = dict(cond=cname, kc=kc, v0=v0, label=cd["label"],
                 gcap_g=GCAP_G, smax=SMAX, nprobe=nprobe,

@@ -58,6 +58,25 @@ MET = ["peak_g", "eta", "cfe", "peak_jerk", "leg_stroke_mm", "sink_mm",
 BASE_V21 = None   # 由 --v21 设定;None 时完全走老路径,既有结果可复现
 
 
+CRIT = ["gcap", "smax", "slenderness", "massbudget"]
+MODELFAIL = ["deep_sink"]
+OTHER = ["collapse", "solver", "nonfinite", "none"]
+# 统计口径(2026-09-02):可行 / 不可行 / 模型失效 / 数值失败 四分,
+# 真实可行率的分母只含"能判"的样本(ok + infeasible)。
+CLS_OK, CLS_INFEAS, CLS_INVALID, CLS_UNSOLVED = "ok", "infeasible", "invalid", "unsolved"
+
+
+def classify(ok, why):
+    if ok:
+        return CLS_OK
+    w = set(why)
+    if w & set(OTHER):
+        return CLS_UNSOLVED
+    if w & set(MODELFAIL):
+        return CLS_INVALID
+    return CLS_INFEAS
+
+
 def _base():
     if BASE_V21 is None:
         return None
@@ -67,13 +86,14 @@ def _probe(a):
     """跑一个生成设计,回 (是否可行, 指标数组)。不可行也回指标,B 图要看分布。"""
     x7, m, v0, kc = a
     r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zeta_of_kc(kc), npass=2, base=_base())
-    ok, _ = P.feasible_v2(r, GCAP_G * 9.81, SMAX)
+    ok, why = P.feasible_v2(r, GCAP_G * 9.81, SMAX)
+    cls = classify(ok, why)
     if r is None or r.get("fail"):
-        return False, [np.nan] * len(MET)
+        return False, [np.nan] * len(MET), cls
     return bool(ok), [
         r["peak_a"] / 9.81, r.get("eta", np.nan), r.get("cfe", np.nan),
         r.get("peak_jerk", np.nan), r["leg_stroke_mm"], r["sink_mm"],
-        r["leg_mass_kg"] * 1e3, r["mass_frac"], r.get("F_peak", np.nan)]
+        r["leg_mass_kg"] * 1e3, r["mass_frac"], r.get("F_peak", np.nan)], cls
 
 
 def latest_ckpt(root, arm):
@@ -119,17 +139,31 @@ def run_arm(arm, ckpt, conds, ms, nz, workers, outdir):
             out = list(ex.map(_probe, jobs, chunksize=4))
         okv = np.array([o[0] for o in out]).reshape(len(allm), nz)
         mv = np.array([o[1] for o in out], float).reshape(len(allm), nz, len(MET))
-        print(f"[{arm}/{cname}] {len(jobs)} 次 ({time.time()-t0:.0f}s)  "
-              f"可行率 " + " ".join(f"{v*100:.0f}" for v in okv.mean(1)), flush=True)
+        clsv = np.array([o[2] for o in out]).reshape(len(allm), nz)
+        n_ok = (clsv == CLS_OK).sum(1); n_inf = (clsv == CLS_INFEAS).sum(1)
+        n_inv = (clsv == CLS_INVALID).sum(1); n_uns = (clsv == CLS_UNSOLVED).sum(1)
+        f_judged = n_ok / np.maximum(n_ok + n_inf, 1)
+        print(f"[{arm}/{cname}] {len(jobs)} 次 ({time.time()-t0:.0f}s)", flush=True)
+        print(f"    可行率(旧口径 ok/n)   " + " ".join(f"{v*100:.0f}" for v in okv.mean(1)), flush=True)
+        print(f"    可行率(判得了的样本)  " + " ".join(f"{v*100:.0f}" for v in f_judged), flush=True)
+        if n_uns.sum() or n_inv.sum():
+            print(f"    数值失败 " + " ".join(f"{v}" for v in n_uns)
+                  + f"  |  模型失效(deep_sink) " + " ".join(f"{v}" for v in n_inv), flush=True)
 
         ng = len(ms)
         blob["conds"][cname] = dict(
             label=cd["label"], kc=cd["kc"], v0=cd["v0"],
             cn_m=[round(v, 4) for v in cn0[:ng]],
-            feas=[round(float(v), 4) for v in okv[:ng].mean(1)],
+            feas=[round(float(v), 4) for v in okv[:ng].mean(1)],           # 旧口径
+            feas_judged=[round(float(v), 4) for v in f_judged[:ng]],
+            n_ok=[int(v) for v in n_ok[:ng]], n_infeasible=[int(v) for v in n_inf[:ng]],
+            n_invalid=[int(v) for v in n_inv[:ng]], n_unsolved=[int(v) for v in n_uns[:ng]],
             anchor_feas={str(m): round(float(okv[ng + i].mean()), 4)
-                         for i, m in enumerate(sorted(ANCHORS))})
+                         for i, m in enumerate(sorted(ANCHORS))},
+            anchor_feas_judged={str(m): round(float(f_judged[ng + i]), 4)
+                                for i, m in enumerate(sorted(ANCHORS))})
         raw[f"{cname}__ok"] = okv
+        raw[f"{cname}__cls"] = clsv
         raw[f"{cname}__met"] = mv
         raw[f"{cname}__x7"] = np.stack(X7, 0)
 
