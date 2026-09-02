@@ -44,6 +44,24 @@ PICK = ["Tachybaptus ruficollis", "Aythya fuligula", "Anas platyrhynchos",
 MET = ["peak_g", "eta", "cfe", "leg_stroke_mm", "sink_mm", "leg_mass_g", "mass_frac"]
 
 
+AVONET_CANDIDATES = ("data/avonet_waterbirds.csv",
+                     "data/bio/avonet_waterbirds.csv",
+                     "outputs/bird_pareto/avonet_waterbirds.csv")
+
+
+def _find_avonet():
+    """按候选顺序找 AVONET 表;仓库里这个文件历史上放过两个位置。"""
+    import glob
+    for c in AVONET_CANDIDATES:
+        if os.path.exists(c):
+            return c
+    hits = glob.glob("**/avonet*waterbird*.csv", recursive=True)
+    if hits:
+        return hits[0]
+    raise SystemExit("[e21] 找不到 AVONET 表。试过:" + " / ".join(AVONET_CANDIDATES)
+                     + "\n  用 --avonet <路径> 显式指定。")
+
+
 BASE_V21 = None   # 由 --v21 设定;None 时完全走老路径,既有结果可复现
 
 
@@ -68,7 +86,8 @@ def _probe(a):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--avonet", default="data/bio/avonet_waterbirds.csv")
+    ap.add_argument("--avonet", default=None,
+                    help="AVONET 水鸟表;缺省时按 _find_avonet() 自动定位")
     ap.add_argument("--ckpt", default="outputs/v2_e5_bio/cvae_r40.pt")
     ap.add_argument("--conds", default="concrete1.2,turf1.2,wetsand1.2")
     ap.add_argument("--v21", action="store_true",
@@ -80,7 +99,9 @@ def main():
     if a.v21: BASE_V21 = True
     print(f"[{__file__.split('/')[-1]}] v21 物理 = {BASE_V21 is not None}", flush=True)
 
-    rows = [l.strip().split(",") for l in open(a.avonet, encoding="utf-8")][1:]
+    csv = a.avonet or _find_avonet()
+    print(f"[e21] AVONET 表: {csv}", flush=True)
+    rows = [l.strip().split(",") for l in open(csv, encoding="utf-8")][1:]
     db = {r[0]: (r[1], float(r[2]), float(r[3])) for r in rows if len(r) >= 4}
     birds = [(s, *db[s]) for s in PICK if s in db]
     assert birds, "AVONET 里找不到 PICK 中的物种,检查 --avonet 路径"
