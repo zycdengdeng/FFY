@@ -72,11 +72,13 @@ class PoolV2:
 
 
 V21 = False   # 运行时由 factory_meta 的 v21 覆盖;True 时髋阻尼用统一式 c=τ·k
+FOOT = "leg"  # 运行时由 factory_meta 的 foot_mode 覆盖;必须与工厂一致,否则训练集与评价不同物理
 
 
 def _eval_one(a):
     x7, m, v0, kc, zc, npass = a
-    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True} if V21 else None)
+    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": FOOT}
+            if V21 else None)
     r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base)
     if r is None or r.get("fail"):
         return [None] * len(KEYS_V2)
@@ -237,10 +239,11 @@ def main():
 
     fmeta = json.load(open(os.path.join(os.path.dirname(args.factory),
                                         "factory_meta.json")))
-    global DU, V21
+    global DU, V21, FOOT
     DU = int(fmeta.get("u_dim", 7))
     V21 = bool(fmeta.get("v21", False))
-    print(f"[e5] 设计维 DU = {DU}  v21 = {V21}")
+    FOOT = str(fmeta.get("foot_mode", "leg"))
+    print(f"[e5] 设计维 DU = {DU}  v21 = {V21}  足端定尺 = {FOOT}")
     prior = BioPrior(fmeta["arm"], sigma=fmeta["prior"]["sigma"],
                      u_max=fmeta["prior"]["u_max"], v21=V21)
     pools = load_pools(args.factory)

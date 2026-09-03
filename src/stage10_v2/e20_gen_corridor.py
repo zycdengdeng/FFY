@@ -56,6 +56,7 @@ MET = ["peak_g", "eta", "cfe", "peak_jerk", "leg_stroke_mm", "sink_mm",
 
 
 BASE_V21 = None   # 由 --v21 设定;None 时完全走老路径,既有结果可复现
+FOOT_MODE = "leg"  # 由 --foot 设定;"bearing" = v2.3 足端解绑
 
 
 CRIT = ["gcap", "smax", "slenderness", "massbudget"]
@@ -80,7 +81,7 @@ def classify(ok, why):
 def _base():
     if BASE_V21 is None:
         return None
-    return {**P.SCEN_BIRD_X, "hip_damp_unified": True}
+    return {**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": FOOT_MODE}
 
 def _probe(a):
     """跑一个生成设计,回 (是否可行, 指标数组)。不可行也回指标,B 图要看分布。"""
@@ -183,6 +184,8 @@ def main():
     ap.add_argument("--nz", type=int, default=216,
                     help="每格采多少隐变量。216 约 50 分钟(128 核);"
                          "432 与 E18b 每格样本数完全对齐,但要约 1.6 小时")
+    ap.add_argument("--foot", default="leg", choices=["leg", "bearing"],
+                    help='足端定尺:"leg"=0.20·L1;"bearing"=由 (m,k_c) 派生(v2.3)')
     ap.add_argument("--v21", action="store_true",
                     help="用 v2.1/v2.2 物理:9 维设计(含姿态)+ 髋阻尼统一式")
     ap.add_argument("--workers", type=int, default=8)
@@ -192,12 +195,14 @@ def main():
     a = ap.parse_args()
     global BASE_V21
     if a.v21: BASE_V21 = True
+    global FOOT_MODE
+    FOOT_MODE = a.foot
     global M_GRID, ANCHORS
     if a.mgrid:
         lo,hi,n = a.mgrid.split(','); M_GRID = 10 ** np.linspace(np.log10(float(lo)), np.log10(float(hi)), int(n))
     if a.anchors:
         ANCHORS = {float(k): v for k, v in (t.split(':') for t in a.anchors.split(','))}
-    print(f"[{__file__.split('/')[-1]}] v21 物理 = {BASE_V21 is not None}", flush=True)
+    print(f"[{__file__.split('/')[-1]}] v21 物理 = {BASE_V21 is not None}  足端 = {a.foot}", flush=True)
     conds = [c for c in a.conds.split(",") if c in CONDS]
     assert conds, f"未知工况;可选 {list(CONDS)}"
     n = len(conds) * (len(M_GRID) + len(ANCHORS)) * a.nz

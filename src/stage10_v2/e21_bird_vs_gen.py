@@ -63,12 +63,13 @@ def _find_avonet():
 
 
 BASE_V21 = None   # 由 --v21 设定;None 时完全走老路径,既有结果可复现
+FOOT_MODE = "leg"  # 由 --foot 设定;"bearing" = v2.3 足端解绑
 
 
 def _base():
     if BASE_V21 is None:
         return None
-    return {**P.SCEN_BIRD_X, "hip_damp_unified": True}
+    return {**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": FOOT_MODE}
 
 def _probe(a):
     x7, m, v0, kc = a
@@ -90,6 +91,8 @@ def main():
                     help="AVONET 水鸟表;缺省时按 _find_avonet() 自动定位")
     ap.add_argument("--ckpt", default="outputs/v2_e5_bio/cvae_r40.pt")
     ap.add_argument("--conds", default="concrete1.2,turf1.2,wetsand1.2")
+    ap.add_argument("--foot", default="leg", choices=["leg", "bearing"],
+                    help='足端定尺:"leg"=0.20·L1;"bearing"=由 (m,k_c) 派生(v2.3)')
     ap.add_argument("--v21", action="store_true",
                     help="用 v2.1/v2.2 物理:9 维设计(含姿态)+ 髋阻尼统一式")
     ap.add_argument("--workers", type=int, default=8)
@@ -97,7 +100,9 @@ def main():
     a = ap.parse_args()
     global BASE_V21
     if a.v21: BASE_V21 = True
-    print(f"[{__file__.split('/')[-1]}] v21 物理 = {BASE_V21 is not None}", flush=True)
+    global FOOT_MODE
+    FOOT_MODE = a.foot
+    print(f"[{__file__.split('/')[-1]}] v21 物理 = {BASE_V21 is not None}  足端 = {a.foot}", flush=True)
 
     csv = a.avonet or _find_avonet()
     print(f"[e21] AVONET 表: {csv}", flush=True)

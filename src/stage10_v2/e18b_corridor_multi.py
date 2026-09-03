@@ -58,12 +58,13 @@ OTHER = ["collapse", "solver", "nonfinite", "none"]
 
 
 BASE_V21 = None   # 由 --v21 设定;None 时完全走老路径,既有结果可复现
+FOOT_MODE = "leg"  # 由 --foot 设定;"bearing" = v2.3 足端解绑
 
 
 def _base():
     if BASE_V21 is None:
         return None
-    return {**P.SCEN_BIRD_X, "hip_damp_unified": True}
+    return {**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": FOOT_MODE}
 
 
 # --- 统计口径修正(2026-09-02):把三件事分开,不再塞进同一个分母 ---
@@ -187,6 +188,8 @@ def main():
     ap.add_argument("--nprobe", type=int, default=48)
     ap.add_argument("--mlo", type=float, default=0.5)
     ap.add_argument("--mhi", type=float, default=120.0)
+    ap.add_argument("--foot", default="leg", choices=["leg", "bearing"],
+                    help='足端定尺:"leg"=0.20·L1;"bearing"=由 (m,k_c) 派生(v2.3)')
     ap.add_argument("--v21", action="store_true",
                     help="用 v2.1/v2.2 物理:9 维设计(含姿态)+ 髋阻尼统一式")
     ap.add_argument("--workers", type=int, default=8)

@@ -82,8 +82,9 @@ def loguni(u, rg):
 
 
 def _eval_one(a):
-    x7, m, v0, kc, zc, npass, v21 = a
-    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True} if v21 else None)
+    x7, m, v0, kc, zc, npass, v21, foot = a
+    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": foot}
+            if v21 else None)
     r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base)
     if r is None or r.get("fail"):
         return [None] * len(KEYS_V2) + [(r or {}).get("fail", "none")]
@@ -162,6 +163,8 @@ def main():
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--m-range", default=None,
                     help='质量范围,如 "4,36"(默认)或 "1,12"(v2.1 老口径)')
+    ap.add_argument("--foot", default="leg", choices=["leg", "bearing"],
+                    help='足端定尺:"leg"=0.20·L1(v2.2 及以前);"bearing"=由 (m,k_c) 派生(v2.3)')
     ap.add_argument("--v21", action="store_true",
                     help="v2.1 物理:9 维设计(含姿态)+ 髋阻尼统一式 + 放宽的 κ/τ 盒")
     ap.add_argument("--out", default="outputs/v2_data_bio")
@@ -172,7 +175,7 @@ def main():
     if args.m_range:
         global M_RANGE
         M_RANGE = tuple(float(v) for v in args.m_range.split(","))
-    print(f"[factory-v2] 质量范围 {M_RANGE[0]:g}–{M_RANGE[1]:g} kg")
+    print(f"[factory-v2] 质量范围 {M_RANGE[0]:g}–{M_RANGE[1]:g} kg  ·  足端定尺 = {args.foot}")
     prior = BioPrior(args.arm, v21=args.v21)
     rng = np.random.default_rng(args.seed)
     blocks = make_global_blocks(args.nglobal, args.nd, prior, rng)
@@ -198,7 +201,7 @@ def main():
         print(f"[factory-v2] 续跑:已完成 {len(done)} 块")
 
     json.dump(dict(arm=args.arm, prior=prior.describe(), keys=KEYS_V2,
-                   v21=bool(args.v21), u_dim=prior.ndim,
+                   v21=bool(args.v21), u_dim=prior.ndim, foot_mode=args.foot,
                    c_phys_order=["m", "v0", "kc"],
                    m_range=M_RANGE, v0_range=V0_RANGE, kc_range=list(KC_RANGE),
                    nglobal=args.nglobal, npath=args.npath, K=args.K, nd=args.nd,
@@ -216,7 +219,7 @@ def main():
             zc = zeta_of_kc(blk["kc"])
             Y = list(ex.map(_eval_one,
                             [(x, blk["m"], blk["v0"], blk["kc"], zc, args.npass,
-                              args.v21) for x in X], chunksize=2))
+                              args.v21, args.foot) for x in X], chunksize=2))
             fails = [y[-1] for y in Y]
             f.write(json.dumps(dict(
                 cid=blk["cid"], bid=blk["bid"], kind=blk["kind"], walk=blk["walk"],
