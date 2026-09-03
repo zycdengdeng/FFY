@@ -61,7 +61,46 @@ MASS_FRAC_CAP = 0.06     # 腿总质量 / 机体质量 上限(6%,航空口径的
 # 足端等效半径按跗跖长缩放(蹼足)。v1 固定 8 mm,与 33–121 mm 的跗跖长不自洽,
 # 且在软介质上会让侵入深度超过球半径,使球-面罚接触模型失效(被误判成"腿塌了")。
 ZENER_SUPPORTED = True   # P7:关节 Zener 化已实现(见 exu_eval_v2)
-FOOT_RATIO = 0.20
+FOOT_RATIO = 0.20        # v2.2 及以前:r_foot = 0.20 × L1(足端与腿长绑定)
+
+# ---------------------------------------------------------------- 足端定尺(v2.3)
+# 问题:把 r_foot 绑在 L1 上,使"腿长"与"接地面积"成为同一个变量。
+# 于是四臂消融里,低 b 的臂(none:b=0,腿长不随质量涨)自动获得一只小脚,
+# 在软地面上侵入超限 → deep_sink → 模型失效。**这个劣势是绑定造成的,
+# 与被检验的异速律假设无关**,是消融的混杂因素。
+#
+# 解法:让 r_foot 由 (质量, 地面) 派生,四臂在同一工况下拿到完全一样的脚。
+# 定尺依据选"保持接触模型有效",而不是岩土承载力 —— 理由见下。
+#
+# 为什么不用承载力公式:deep_sink 是**模型有效性**失效,不是物理失效。
+# 而且我们这个尺度上承载力本身无法可靠取值:建筑规范的容许承载力
+# (IBC 1806 / CABO:砂 3000 psf ≈ 144 kPa)是给**米级**基础的;
+# Terzaghi 圆形基础 q_ult = 0.3·γ·B·N_γ 对 B = 30 mm 的无黏聚力砂只给约 3 kPa
+# —— 相差两个数量级。在没有小尺寸压入实测数据之前,任何 q_allow 取值都是编的。
+# 所以本实现只声明它做的事:**把脚做大到接触模型在设计载荷下仍然成立**。
+GCAP_REF = 10.0 * 9.81   # 足端定尺用的名义过载(m/s²);与验收 g_cap 解耦,定尺时用固定值
+FOOT_SF = 3.0            # 侵入裕度。**实测标定**,不是拍的:
+                         # 用 GCAP_REF 估的是设计载荷下的静态侵入,而随机探针里
+                         # 有大量峰值远超 10g 的坏设计,动态侵入约 3 倍于静态估计。
+                         # SF=1.5 时草地 12kg 给出 10.0mm(撞下限),比旧口径的
+                         # 23.7mm 还小,废题率反而升到 33–83%(见 P8 首轮);
+                         # SF=3.0 给 19.6mm,与旧口径同量级。
+FOOT_R_MIN = 0.012       # 最小足端半径(m):可制造 + 常识下限
+FOOT_R_MAX = 0.060       # 最大足端半径(m):绝对上限,**不与 L1 挂钩**,否则混杂会从这里回来
+
+
+def foot_radius(mode, l1, m, kc, nlegs=None):
+    """足端等效半径。
+    mode="leg"     : r = 0.20·L1        —— v2.2 及以前的口径,保留以复现旧结果
+    mode="bearing" : r 由 (m, kc) 派生  —— v2.3;四臂在同工况下完全一致
+    """
+    if mode != "bearing":
+        return FOOT_RATIO * l1
+    n = NLEGS if nlegs is None else nlegs
+    F = m * GCAP_REF / n                    # 设计载荷(单腿)
+    delta = F / float(kc)                   # 该载荷下的侵入深度
+    r = FOOT_SF * delta / 0.9               # 使 侵入 ≤ 0.9·r 成立,并留裕度
+    return float(np.clip(r, FOOT_R_MIN, FOOT_R_MAX))
 SEG_FRAC_GUESS = 0.02    # 第一遍的杆件质量猜测(占 m 的比例)
 
 
@@ -86,7 +125,8 @@ def size_x_v2(scen, x7, seg_mass=None):
     s["seg_mass"] = (list(seg_mass) if seg_mass is not None
                      else [SEG_FRAC_GUESS * scen["m"]] * 3)
     s["seg_len"] = [l1, r2 * l1, r3 * l1]
-    s["r_foot"] = FOOT_RATIO * l1
+    s["r_foot"] = foot_radius(scen.get("foot_mode", "leg"), l1,
+                              scen["m"], s["kc"])
     s["gap0"] = 0.3 * s["r_foot"]          # 初始离地间隙随足端一起缩放
     if len(xv) >= 9:                       # v2.1:姿态(度)是设计向量的第 8/9 维
         s["thetaA"] = np.radians(xv[7]); s["thetaK"] = np.radians(xv[8])
