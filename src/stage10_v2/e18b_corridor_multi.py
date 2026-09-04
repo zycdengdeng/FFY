@@ -195,6 +195,9 @@ def main():
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--out", default="outputs/v2_e18b")
     args = ap.parse_args()
+    global FOOT_MODE
+    FOOT_MODE = args.foot        # ← v2.3 修复:此前 --foot 从未生效,一直按 "leg" 跑
+    print(f"[e18b] 足端定尺 = {FOOT_MODE}", flush=True)
     os.makedirs(args.out, exist_ok=True)
 
     uls = np.linspace(-2.0, 2.0, args.nu)

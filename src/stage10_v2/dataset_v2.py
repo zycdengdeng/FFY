@@ -8,7 +8,7 @@
     log-log 线性的;线性归一化会把分辨率浪费在大质量端。
 
 条件向量 c(5 维): [log10(m), v0, log10(k_c), g_cap, s_max]
-设计向量 u(7 维): 无量纲,与 m 无关(物理设计由 bioprior.expand(u, m) 还原)
+设计向量 u(v2.0 为 7 维;v2.1 起 9 维,+触地姿态 θA/θK): 无量纲,与 m 无关(物理设计由 bioprior.expand(u, m) 还原)
 
 用法:
   python src/stage10_v2/dataset_v2.py --factory outputs/v2_data_bio/factory.jsonl \
