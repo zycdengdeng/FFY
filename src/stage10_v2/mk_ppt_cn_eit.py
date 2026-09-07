@@ -206,7 +206,7 @@ notes(sl, "占位——讲稿见文件末尾的 SCRIPT。")
 
 # ============ 14 一次落震（视频，按新口径重跑后才插入）============
 import os as _os
-_MP4 = f"{AN}/b_compare_hard_cn.mp4"; _PNG = f"{AN}/b_compare_hard_cn_last.png"
+_MP4 = f"{AN}/b_compare_hard_en.mp4"; _PNG = f"{AN}/b_compare_hard_en_last.png"  # 视频统一用英文版
 if _os.path.exists(_MP4) and _os.path.exists(_PNG):
     sl = page("这点差别，换算成一次落震是多少",
               "同一个 30 kg 机身、同一个触地速度、刚性地面、同一套关节。只有标度指数不同：0.366 对 0.263。")
