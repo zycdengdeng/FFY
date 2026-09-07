@@ -17,7 +17,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import physics_v2 as P
 from factory_v2 import zeta_of_kc
 
-A_BIO, B_BIO, B_EFF, M_ANCHOR = 0.6307, 0.365, 0.238, 5.0
+A_BIO, B_BIO, M_ANCHOR = 0.6307, 0.365, 5.0
+# 机器侧指数由 --b-machine 给；r12 实测：硬地 0.263、草地 0.343、湿沙 0.354
 GCAP, SMAX = 10 * 9.81, 0.024
 
 def L1_of(m_kg, b, anchor=M_ANCHOR):
@@ -48,10 +49,14 @@ def main():
     ap.add_argument("--r2", type=float, default=1.75); ap.add_argument("--r3", type=float, default=1.05)
     ap.add_argument("--tha", type=float, default=126.0); ap.add_argument("--thk", type=float, default=137.0)
     ap.add_argument("--slow", type=float, default=150.0, help="慢放倍数")
+    ap.add_argument("--b-machine", type=float, default=0.263,
+                    help="机器侧标度指数（硬地 0.263 / 草地 0.343 / 湿沙 0.354）")
+    ap.add_argument("--tag", default="hard", help="产出文件名后缀")
     ap.add_argument("--out", default="outputs/anim_b")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
 
+    B_EFF = a.b_machine
     Lb, Lp = L1_of(a.m, B_BIO), L1_of(a.m, B_EFF)
     print(f"[几何] m={a.m:g} kg   生物先验 b=0.365 → L1 {Lb:.1f} mm"
           f"   |   物理涌现 b=0.238 → L1 {Lp:.1f} mm   （差 {100*(Lb/Lp-1):+.0f}%）")
@@ -64,8 +69,8 @@ def main():
     assert kap is not None, "两条腿都搜不到可行解，请换工况"
     print(f"  κ踝={kap[0]:.2f} κ膝={kap[1]:.2f} κ髋={kap[2]:.2f} τ={kap[3]*1e3:.1f} ms")
 
-    CASES = [("bio",  f"生物先验  b = 0.365", Lb, "#2E7D5B"),
-             ("phys", f"物理涌现  b_eff = 0.238", Lp, "#1b6ca8")]
+    CASES = [("bio",  f"生物先验  b = {B_BIO:.3f}", Lb, "#2E7D5B"),
+             ("phys", f"机器选择  b = {B_EFF:.3f}", Lp, "#1b6ca8")]
     out, meta = {}, {}
     for k, lab, L1, col in CASES:
         x = [L1, a.r2, a.r3] + kap + [a.tha, a.thk]
@@ -80,11 +85,11 @@ def main():
         print(f"  {lab:<26} L1 {L1:6.1f} mm  峰值 {meta[k]['peak_g']:5.2f} g"
               f"  行程 {meta[k]['leg_stroke_mm']:5.1f} mm  腿重 {meta[k]['leg_mass_g']:5.0f} g"
               f"  {'✓ 可行' if ok else '✗ ' + ','.join(why)}")
-    npz = os.path.join(a.out, "hist_b.npz")
+    npz = os.path.join(a.out, f"hist_{a.tag}.npz")
     np.savez_compressed(npz, meta=json.dumps(meta),
         **{f"{k}__{n}": np.asarray(v) for k, h in out.items() for n, v in h.items()})
-    json.dump(dict(m_kg=a.m, v0=a.v0, kc=a.kc, kappa=kap, meta=meta),
-              open(os.path.join(a.out, "b_compare.json"), "w"), ensure_ascii=False, indent=1)
+    json.dump(dict(m_kg=a.m, v0=a.v0, kc=a.kc, kappa=kap, b_bio=B_BIO, b_machine=B_EFF, meta=meta),
+              open(os.path.join(a.out, f"b_compare_{a.tag}.json"), "w"), ensure_ascii=False, indent=1)
     print(f"[存] {npz}")
     render(npz, meta, a)
 
@@ -151,9 +156,9 @@ def render(npz, meta, a):
     fig.suptitle(f"同一套关节刚度，只变腿长标度律 —— {a.m:g} kg 落震（{a.slow:g}× 慢放）\n{sub}",
                  fontsize=15, fontweight="bold", y=.99)
     upd(len(TR)-1)
-    png = os.path.join(a.out, f"b_compare_{a.m:g}kg_末帧.png")
+    png = os.path.join(a.out, f"b_compare_{a.tag}_{a.m:g}kg_末帧.png")
     fig.savefig(png, dpi=140, bbox_inches="tight"); print(f"[存] {png}")
-    mp4 = os.path.join(a.out, f"b_compare_{a.m:g}kg.mp4")
+    mp4 = os.path.join(a.out, f"b_compare_{a.tag}_{a.m:g}kg.mp4")
     try:
         w = FFMpegWriter(fps=FPS, bitrate=5200)
         with w.saving(fig, mp4, dpi=110):

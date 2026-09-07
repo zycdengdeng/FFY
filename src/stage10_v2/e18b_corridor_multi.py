@@ -47,7 +47,10 @@ CONDS = {
     "concrete1.2": dict(kc=1.0e6, v0=1.2, label="硬地 k_c=1e6 · v0=1.2"),
     "turf1.2":     dict(kc=1.0e5, v0=1.2, label="草地 k_c=1e5 · v0=1.2"),
     "wetsand1.2":  dict(kc=5.0e4, v0=1.2, label="湿沙 k_c=5e4 · v0=1.2"),
-    "concrete2.0": dict(kc=1.0e6, v0=2.0, label="硬地 k_c=1e6 · v0=2.0"),
+    # 2026-09-07:硬地上限由 2.0 下调到 1.5 m/s。E20@r12 证实 (10 g, 24 mm, 2.0 m/s,
+    # 刚性地面) 四条互不相容(4,103 个候选零命中);能量下界给出理论边界 1.76 m/s,
+    # 取 1.5 留 15% 余量。软地面因地面自身下陷仍保留 2.0。见 factory_v2.v0_cap()。
+    "concrete1.5": dict(kc=1.0e6, v0=1.5, label="硬地 k_c=1e6 · v0=1.5"),
     "turf2.0":     dict(kc=1.0e5, v0=2.0, label="草地 k_c=1e5 · v0=2.0"),
     "wetsand2.0":  dict(kc=5.0e4, v0=2.0, label="湿沙 k_c=5e4 · v0=2.0"),
 }

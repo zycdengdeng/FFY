@@ -48,6 +48,30 @@ from bioprior import BioPrior, ARMS          # noqa: E402
 # 两端各留 ~15%(对数)余量,使 5 与 30 kg 都落在训练区内而不是边界外推。
 M_RANGE = (4.0, 36.0)
 V0_RANGE = (0.5, 2.0)          # m/s,均匀
+
+# —— 下沉速度的地面相关上限(2026-09-07 定)——————————————————————————
+# E20@r12 发现「硬地 + 2.0 m/s」全灭:4,103 个候选里单独过 10 g 的 1,042 个、
+# 单独过 24 mm 的 1,899 个、同时过的 0 个。这不是采样问题,是规格本身不相容:
+#   能量:  在 s 内把 v0 停住 → 平均减速度 ā = v0²/(2s) + g
+#   实测:  峰值/平均 比 κ 在硬地为 1.32(草地 1.38–1.47、湿沙 1.55–1.79)
+#   要求 κ·ā ≤ g_cap 且 s ≤ s_max,解出 v0 ≤ sqrt(2·s_max·g·(g_cap/g/κ − 1))
+#   代入 s_max=24 mm, g_cap=10 g, κ=1.32 → v0 ≤ 1.76 m/s(理论边界)
+# 取 1.5 m/s,留约 15% 余量;此时理论峰值约 7.6 g,不是压线通过。
+# 软地面地面自身下陷吃掉一部分行程(草地中位 9.1 mm、湿沙 15.8 mm),
+# 实测 2.0 m/s 仍可行(草地 85.5%、湿沙 96.1%),故不下调。
+KC_HARD    = 5.0e5             # N/m,以上按刚性地面处理
+V0_CAP_HARD = 1.5              # m/s,刚性地面上的下沉速度上限
+
+
+def v0_cap(kc):
+    """给定地面刚度下允许的最大下沉速度。"""
+    return V0_CAP_HARD if kc >= KC_HARD else V0_RANGE[1]
+
+
+def draw_v0(u, kc):
+    """在 [V0_RANGE[0], v0_cap(kc)] 上按 u∈[0,1] 取值。"""
+    hi = v0_cap(kc)
+    return float(V0_RANGE[0] + (hi - V0_RANGE[0]) * u)
 KC_RANGE = P.KC_RANGE          # N/m,对数均匀,[5e4, 2e6] 内模型全程有效
 
 # 存进 Y 的指标(顺序固定,后续一切下游都按此索引)
@@ -103,8 +127,8 @@ def make_global_blocks(n, nd, prior, rng):
     out = []
     for i in range(n):
         m = float(loguni(C[i, 0], M_RANGE))
-        v0 = float(V0_RANGE[0] + (V0_RANGE[1] - V0_RANGE[0]) * C[i, 1])
         kc = float(loguni(C[i, 2], KC_RANGE))
+        v0 = draw_v0(C[i, 1], kc)
         U = lhs(nd, prior.ndim, np.random.default_rng(20_000 + i))
         out.append(dict(kind="global", walk=None, step=0,
                         m=m, v0=v0, kc=kc, U=U))
@@ -124,15 +148,16 @@ def make_path_bundles(npath, nd, K, prior, rng, mix=WALK_MIX):
         arng = np.random.default_rng(50_000 + bi)
         U0 = lhs(nd, prior.ndim, arng)                       # 锚点设计(u 空间),整束共用
         m0 = float(loguni(arng.random(), M_RANGE))
-        v00 = float(V0_RANGE[0] + (V0_RANGE[1] - V0_RANGE[0]) * arng.random())
         kc0 = float(loguni(arng.random(), KC_RANGE))
+        v00 = draw_v0(arng.random(), kc0)
         for t in range(K):
             f = t / (K - 1)                          # 0 → 1 沿路径的位置
             m, v0, kc, U = m0, v00, kc0, U0
             if walk == "v0":
-                v0 = float(V0_RANGE[0] + (V0_RANGE[1] - V0_RANGE[0]) * f)
+                v0 = draw_v0(f, kc)
             elif walk == "kc":
                 kc = float(loguni(f, KC_RANGE))
+                v0 = min(v0, v0_cap(kc))      # 走到硬地时把 v0 压回上限
             elif walk in ("m_allo", "m_iso"):
                 m = float(loguni(f, M_RANGE))
             out.append(dict(kind="path", walk=walk, step=t, bundle=bi,
@@ -204,6 +229,7 @@ def main():
                    v21=bool(args.v21), u_dim=prior.ndim, foot_mode=args.foot,
                    c_phys_order=["m", "v0", "kc"],
                    m_range=M_RANGE, v0_range=V0_RANGE, kc_range=list(KC_RANGE),
+                   v0_cap_hard=V0_CAP_HARD, kc_hard=KC_HARD,
                    nglobal=args.nglobal, npath=args.npath, K=args.K, nd=args.nd,
                    npass=args.npass, seed=args.seed, walk_mix=WALK_MIX,
                    note="设计在 u 空间采样;bid 为切分单元(路径束整体进训练或测试)"),
