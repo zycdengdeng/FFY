@@ -266,6 +266,43 @@ def analyze(rows, args, out_dir):
         print("判定：中位 %.1f%% 落在 10–25%% 的灰区。" % med)
         print("      建议保持常数但在论文里报这个敏感度，并把它列为已知的建模简化。")
 
+    # ---- 逐档中位曲线：响应形状（是不是线性？平台在哪？）----
+    print("-" * 76)
+    print("   逐档中位（每个设计先对自己 50° 的值归一化）：")
+    allq = sorted({round(r["q1"], 4) for r in good})
+    gq = [q for q in allq if any(abs(q - g) < 1e-6 for g in args.grid)]
+    curve = []
+    for q in gq:
+        v = [dd[q]["peak_g"] / dd[round(50.0, 4)]["peak_g"]
+             for dd in by.values()
+             if q in dd and round(50.0, 4) in dd and dd[round(50.0, 4)]["peak_g"] > 0]
+        if v:
+            curve.append((q, float(np.median(v))))
+    for q, v in curve:
+        bar = "#" * max(1, int(round(v * 34)))
+        mark = "  ← 模型常数" if abs(q - 50) < 1e-6 else (
+               "  ← 真鸟均值附近" if abs(q - 43) < 1e-6 else "")
+        print("      %5.1f°  %5.2f×  %s%s" % (q, v, bar, mark))
+    if len(curve) >= 5:
+        qs_ = [q for q, _ in curve]; vals = [v for _, v in curve]
+        lo, hi = min(vals), max(vals)
+        rng = hi - lo
+        # 「达到总变化的 90%」所在的角度 = 敏感区的右端
+        q90 = next((q for q, v in curve if v >= lo + 0.9 * rng), qs_[-1])
+        # 末三档的相对起伏 —— 小于 3% 才叫平台
+        tail = vals[-3:]
+        flat = (max(tail) - min(tail)) / max(np.mean(tail), 1e-9) < 0.03
+        print("   → 全跨度 %.2f× → %.2f×（总变化 %.0f%%）；达到 90%% 变化量在 %.0f°。"
+              % (lo, hi, 100 * rng / max(lo, 1e-9), q90))
+        if flat and q90 <= 55:
+            print("     **强非线性**：敏感区在 %.0f–%.0f°，之上是平台。" % (qs_[0], q90))
+            print("     这解释了①的跨度变化大、而 50°→垂线档几乎不动：50° 已经在平台上。")
+        elif q90 <= 55:
+            print("     敏感区集中在 %.0f–%.0f°，其上仍在缓慢变化（末三档起伏 %.1f%%）。"
+                  % (qs_[0], q90, 100 * (max(tail) - min(tail)) / max(np.mean(tail), 1e-9)))
+        else:
+            print("     响应在整个扫描范围内持续变化，没有平台。")
+
     # ---- 方向性 ----
     print("=" * 76)
     print("② 方向：q1_0 变大（腿更竖直）到底是变好还是变坏")
@@ -319,7 +356,8 @@ def analyze(rows, args, out_dir):
                 q1_vert_median=float(np.median(qv)) if qv else None,
                 d_peak_at_vert_pct=float(np.median(dg)) if dg else None,
                 d_mass_at_vert_pct=float(np.median(dm)) if dm else None,
-                bio_span=[BIO_LO, BIO_HI], grid=list(args.grid))
+                bio_span=[BIO_LO, BIO_HI], grid=list(args.grid),
+                curve_median=[[q, v] for q, v in curve])
     fp = os.path.join(out_dir, "e26_q1_sweep.json")
     json.dump(blob, open(fp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("→ %s" % fp)

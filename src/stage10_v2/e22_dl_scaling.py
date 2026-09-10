@@ -213,6 +213,39 @@ def analyze(rows, args, out_dir):
         res[tag]["pooled"] = dict(alpha=a, intercept=b, r2=r2, ci95=ci, n=n)
         print("      %-12s α = %+.3f ± %.3f   R² = %.3f   n = %d" % ("合并三段", a, ci, r2, n))
 
+    # --- 跨质量口径：与生物图问的是同一个问题 ---
+    # 生物那张图是**跨物种**回归 d/L ~ L，物种之间 L 的差异来自体重差异。
+    # 我们的数据里 L 有两个来源：体重，以及 u_L 给的 ±2.5σ 设计自由度。
+    # 直接对 L 回归会把两者混在一起。这里按体重分箱取中位数再回归，
+    # 只保留**跨质量**那一份变化 —— 这才是能和生物图逐位比的数。
+    print("=" * 74)
+    print("②c 跨质量口径（分箱取中位后回归，与生物图同问）")
+    lm = np.log10(M)
+    edges = np.linspace(lm.min(), lm.max() + 1e-9, args.mbins + 1)
+    bidx = np.clip(np.digitize(lm, edges) - 1, 0, args.mbins - 1)
+    res["DL_vs_L_bymass"] = {}
+    res["L_vs_m"] = {}
+    for sname, sel in [(SEGS[s], s) for s in range(3)]:
+        k = ~clamp[:, sel]
+        xs, ys, ms = [], [], []
+        for b in range(args.mbins):
+            q = k & (bidx == b)
+            if q.sum() < 20:
+                continue
+            xs.append(np.median(np.log10(L[q, sel])))
+            ys.append(np.median(np.log10(D[q, sel] / L[q, sel])))
+            ms.append(np.median(lm[q]))
+        if len(xs) < 5:
+            print("   %-12s 有效质量箱不足" % sname); continue
+        a, b0, r2, ci, n = ols(np.array(xs), np.array(ys))
+        aL, _, r2L, ciL, _ = ols(np.array(ms), np.array(xs))
+        res["DL_vs_L_bymass"][sname] = dict(alpha=a, intercept=b0, r2=r2, ci95=ci, n=n)
+        res["L_vs_m"][sname] = dict(alpha=aL, r2=r2L, ci95=ciL)
+        print("   %-12s d/L ~ L^α  α = %+.3f ± %.3f (R² %.3f, %d 个质量箱)   "
+              "| L ~ m^%.3f" % (sname, a, ci, r2, n, aL))
+    print("   注意：上面②里对全部样本直接回归 L 的那组，混进了同质量下换腿长的设计自由度，")
+    print("        与生物图不是同一个问题；**比生物用这一组**。")
+
     # --- 与生物侧比 ---
     print("=" * 74)
     print("②b 理论锚点（同为 d/L ∝ L^α 口径）")
@@ -240,8 +273,10 @@ def analyze(rows, args, out_dir):
         print("        对应上面第三组 DL_vs_L。核帧时顺便确认一下横轴到底是 L 还是体重。")
     else:
         conv = bio.get("convention", "D_vs_L")
-        print("③ 与生物实测比较（口径 %s，来源：%s）" % (conv, bio.get("source", "未注明")))
-        R = res.get(conv, {})
+        key = "DL_vs_L_bymass" if (conv == "DL_vs_L" and res.get("DL_vs_L_bymass")) else conv
+        print("③ 与生物实测比较（口径 %s → 用%s，来源：%s）"
+              % (conv, "跨质量分箱" if key.endswith("bymass") else "全样本", bio.get("source", "未注明")))
+        R = res.get(key, {})
         for nm, bv in bio.get("values", {}).items():
             mv = R.get(nm)
             if mv is None:
@@ -339,6 +374,7 @@ def main():
     ap.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 4) - 1))
     ap.add_argument("--seed", type=int, default=22)
     ap.add_argument("--clamp-cap", type=float, default=0.20, help="夹逼比例上限")
+    ap.add_argument("--mbins", type=int, default=12, help="跨质量口径的分箱数")
     ap.add_argument("--bio", default=os.path.join(HERE, "e22_bio_ref.json"))
     ap.add_argument("--analyze-only", action="store_true")
     ap.add_argument("--fig", action="store_true")

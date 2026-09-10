@@ -139,22 +139,31 @@ el
   grep -hE "^===========|^\[累计" "$LOG"
 } > "$SUM"
 
-# ---------------------------------------------------------------- 打包带回
-PK="logs/ab_group_产物.tar.gz"
-tar czf "$PK" \
-  "$SUM" "$LOG" \
-  outputs/v23_data_bio/e2[234]_*.json outputs/v23_data_bio/e2[234]_*.png \
-  outputs/v23_e5_bio/e25_*.json outputs/v23_e5_bio/e25_*.png \
-  outputs/v23_e26/e2[67]_*.json outputs/v23_e26/e2[67]_*.png 2>/dev/null
+# ---------------------------------------------------------------- 带回本地
+# .gitignore 里同时忽略了 outputs/* 和 logs/，所以产物走 git 带不回来。
+# 这里把摘要和小文件复制进 reports/（未被忽略），A100 上 push 一次就能拉回本地。
+REP="reports/ab_group"
+mkdir -p "$REP"
+cp -f "$SUM" "$REP/" 2>/dev/null
+cp -f "$LOG" "$REP/run.log" 2>/dev/null
+for f in outputs/v23_data_bio/e2[234]_*.json outputs/v23_data_bio/e2[234]_*.png \
+         outputs/v23_e5_bio/e25_*.json outputs/v23_e5_bio/e25_*.png \
+         outputs/v23_e26/e2[67]_*.json outputs/v23_e26/e2[67]_*.png; do
+  [ -f "$f" ] && cp -f "$f" "$REP/"
+done
+echo; echo "=========== 产物已复制到 $REP ==========="
+ls -la "$REP" | tail -n +2
+du -sh "$REP"
 
 echo; echo "=========== 全部结束（$(( ($(date +%s)-t0)/60 )) 分钟）==========="
 echo
-echo "摘要   $SUM       ← 把这个文件的内容发回来就够了"
-echo "打包   $PK"
+echo "① 想直接看：  cat $ROOT/$SUM"
 echo
-echo "取回：scp wzh@<A100>:$ROOT/$PK ."
+echo "② 想带回本地（reports/ 不在 .gitignore 里，能进 git）："
+echo "     cd $ROOT && git add -A reports && git commit -m 'A/B 组结果' && git push"
+echo "   然后本地 git pull，东西在 FFY/reports/ab_group/"
 echo
-echo "重点看三个数："
+echo "重点看三个数（摘要文件开头就是）："
 echo "  · E22 ①夹逼诊断的「全部段合计」   —— 超 20% 这条结论作废"
 echo "  · E26 ①的「中位」                —— <10% 保持常数 / >25% 升为第 10 维"
 echo "  · E27 ②的「腿质量」              —— 减重 >15% 才算显式取舍，否则关掉"

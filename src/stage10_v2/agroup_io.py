@@ -99,23 +99,40 @@ def default_factory(root):
 
 
 def setup_font():
+    """中文字体 + **拉丁/数字回退**。
+
+    A100 上踩过的坑：cjkfont.setup() 挑中的可能是 Droid Sans Fallback 一类
+    「有汉字、没数字和括号」的字体，于是图上中文正常、数字全是豆腐块。
+    所以无论 cjkfont 成不成功，这里都强制把 DejaVu Sans 追加到回退链末尾，
+    并显式设定 font.family —— 少了 family 这一行，回退链根本不生效。
+    """
+    import matplotlib.pyplot as plt, matplotlib.font_manager as fm
     try:
         import cjkfont
-        cjkfont.setup(verbose=False); return
+        cjkfont.setup(verbose=False)
     except Exception:
         pass
-    import matplotlib.pyplot as plt, matplotlib.font_manager as fm
     have = {f.name for f in fm.fontManager.ttflist}
-    cjk = next((f for f in ("Noto Sans CJK SC", "Noto Sans CJK JP", "WenQuanYi Zen Hei",
-                            "Droid Sans Fallback") if f in have), None)
-    if cjk is None:
-        for p in ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",):
-            if os.path.exists(p):
-                fm.fontManager.addfont(p)
-                cjk = "Noto Sans CJK JP"; break
-    plt.rcParams["font.sans-serif"] = ([cjk] if cjk else []) + ["DejaVu Sans"]
-    plt.rcParams["font.family"] = "sans-serif"
+    for pth in ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.otf",
+                "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"):
+        if os.path.exists(pth):
+            try:
+                fm.fontManager.addfont(pth)
+            except Exception:
+                pass
+    have = {f.name for f in fm.fontManager.ttflist}
+    # 优先挑「汉字数字都全」的；Droid Sans Fallback 放最后（它缺拉丁与数字）
+    order = ("Noto Sans CJK SC", "Noto Sans CJK JP", "Noto Sans CJK TC",
+             "Source Han Sans SC", "WenQuanYi Zen Hei", "WenQuanYi Micro Hei",
+             "Microsoft YaHei", "SimHei", "Droid Sans Fallback")
+    cjk = [f for f in order if f in have]
+    plt.rcParams["font.sans-serif"] = cjk + ["DejaVu Sans"]   # DejaVu 兜底拉丁与数字
+    plt.rcParams["font.family"] = "sans-serif"                 # 少这行回退链不生效
     plt.rcParams["axes.unicode_minus"] = False
+    if not cjk:
+        print("[agroup_io] 没找到中文字体，图里的中文会是方块。"
+              "装一个：sudo apt-get install -y fonts-noto-cjk")
 
 
 CRIM, STEEL, GREEN, ORANGE = "#7F2D32", "#5c7f9e", "#2E7D5B", "#d98032"
