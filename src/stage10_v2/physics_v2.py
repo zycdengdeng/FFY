@@ -75,7 +75,8 @@ NLEGS = 2                # 双腿分担
 # ---- v2.5 新增判据的默认参数（见《实验计划 v2.5》E24 / E26） ----
 REB_CAP = 0.05           # 回弹软闸：回能比 = rebound / (v0^2/2g) 的上限
                          # 依据《回弹判据调研》v3；E24 实测按此打掉现有可行样本的 30.2%
-MU_SF = 1.0              # 足端打滑判据的安全系数：要求 mu_demand <= MU_SF * mu_ground
+MU_SF = 1.0              # 保留给 mu_demand 的诊断用，不再作为判据
+SLIP_FRAC = 0.5          # 打滑判据：竖直冲击窗口内足端走开 > 0.5·L1 判死
 MASS_FRAC_CAP = 0.06     # 腿总质量 / 机体质量 上限(6%,航空口径的结构质量预算)
 # 足端等效半径按跗跖长缩放(蹼足)。v1 固定 8 mm,与 33–121 mm 的跗跖长不自洽,
 # 且在软介质上会让侵入深度超过球半径,使球-面罚接触模型失效(被误判成"腿塌了")。
@@ -142,9 +143,17 @@ def size_x_v2(scen, x7, seg_mass=None):
     s["cc"] = (0.01 * s["kc"] if scen.get("legacy_cc") else
                2.0 * float(scen.get("zeta_c", 0.15)) * np.sqrt(s["kc"] * scen["m"]))
     s["v_x"] = float(scen.get("v_x", 0.0))       # 水平触地速度(m/s)，v2.5 新增
-    # mu 的取法：显式给了就用给的；否则 v2.5 由地面导出，legacy 路径保持 0.5
-    if "mu" not in scen or scen.get("mu") is None:
-        s["mu"] = mu_of_kc(s["kc"]) if scen.get("mu_from_ground") else MU_LEGACY
+    # mu 的取法。**这里踩过一次坑**：SCEN_BIRD_X 本来就带 mu=0.5，
+    # 所以早先写的 `if "mu" not in scen` 永远为假，mu_from_ground 一次都没生效过
+    # （P9a 首跑时三档姿态的 mu_ground 全是 0.500 就是这个原因）。
+    # 现在的规则：显式传 mu_explicit 就用它；否则 mu_from_ground 为真时按地面导出；
+    # 都没有才落到 legacy 的 0.5。
+    if scen.get("mu_explicit") is not None:
+        s["mu"] = float(scen["mu_explicit"])
+    elif scen.get("mu_from_ground"):
+        s["mu"] = mu_of_kc(s["kc"])
+    else:
+        s["mu"] = float(scen.get("mu", MU_LEGACY))
     # planar=True: 机体在 x-z 平面内自由平动，水平力必须由足端摩擦承担（v2.5 的要害改动）
     # planar=False: 保留 v2.3 的竖直滑轨约束，水平力由约束反力免费承担（回归测试用）
     s["planar"] = bool(scen.get("planar", False))
@@ -367,14 +376,22 @@ def _lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h):
     Fz = Fz + M_tot * g                            # 地面反力的竖直分量
 
     on = Fz > 0.2 * M_tot * g                      # 接触窗口
+    z = pos[:, 3]
+    fx = footxyz[:len(on), 0]
     if on.any():
         mu_dem = float(np.max(np.abs(Fx[on]) / np.maximum(Fz[on], 1e-9)))
-        fx = footxyz[:len(on)][on, 0]
-        slip = float(np.max(fx) - np.min(fx)) if len(fx) else 0.0
+        slip_tot = float(np.max(fx[on]) - np.min(fx[on]))
+        # **只统计竖直冲击窗口内的滑移**（触地 → 机体最低点）。
+        # 整段接触期的滑移没有判据意义：带水平速度落地本来就会滑出
+        # v_x²/(2μg) 那么远（2.6 m/s、μ=0.4 时就是 0.86 m），那是"滑行"不是"失效"。
+        # 真正决定腿好不好的是：**竖直冲量还在传递的时候，足端有没有从机体底下走开**。
+        i0 = int(np.argmax(on))
+        imin = i0 + int(np.argmin(z[i0:])) if i0 < len(z) - 1 else i0
+        slip_imp = float(abs(fx[imin] - fx[i0])) if imin < len(fx) else slip_tot
     else:
-        mu_dem, slip = float("nan"), 0.0
+        mu_dem, slip_tot, slip_imp = float("nan"), 0.0, 0.0
     out.update(mu_demand=mu_dem if s.get("planar") else float("nan"),
-               slip=slip, contact_frac=float(on.mean()))
+               slip=slip_imp, slip_total=slip_tot, contact_frac=float(on.mean()))
 
     x = pos[:, 1]
     out["x_drift"] = float(x[-1] - x[0])
@@ -430,7 +447,7 @@ def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
     if planar is not None:
         scen["planar"] = bool(planar)
     if mu is not None:
-        scen["mu"] = float(mu)
+        scen["mu_explicit"] = float(mu)
     # legacy_* 用于通道归因:单独把某一处退回 v1 的写法,看不变性回来多少
     if legacy_kc:
         scen["kc"] = 4000.0 * float(m) * scen["g"]
@@ -470,7 +487,8 @@ def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
     return out
 
 
-def feasible_v2(r, gcap, smax, reb_cap=REB_CAP, mu_sf=MU_SF, use_a_res=None):
+def feasible_v2(r, gcap, smax, reb_cap=REB_CAP, mu_sf=MU_SF, use_a_res=None,
+                slip_frac=SLIP_FRAC):
     """v2.5 可行性。返回 (是否可行, 违反的判据列表)。
 
     **返回全部违反项而不是第一个** —— 只报第一个会让统计带上检查顺序的伪影:
@@ -529,11 +547,15 @@ def feasible_v2(r, gcap, smax, reb_cap=REB_CAP, mu_sf=MU_SF, use_a_res=None):
         if h0 > 1e-12 and reb / h0 > reb_cap:
             bad.append("rebound")
 
-    # ③ 足端打滑
-    md = r.get("mu_demand", None)
-    mg = r.get("mu_ground", None)
-    if md is not None and np.isfinite(md) and mg:
-        if md > mu_sf * float(mg):
+    # ③ 足端打滑。**判据改过一次**：原来判 mu_demand > mu_ground，
+    # 但 P9a 首跑发现足端一旦滑动，滑动摩擦就饱和，mu_demand 恒等于 μ 本身
+    # （三档姿态实测 0.502/0.502/0.505），那条闸等价于"只要滑就死"，97% 判死。
+    # 现在改判**竖直冲击窗口内足端相对机体走开的距离**，用跗跖骨长归一化：
+    # 走开超过半个 L1，说明腿在冲量还没传完的时候就滑出机体底下了。
+    sl = r.get("slip", None)
+    sg = r.get("seg_len", None)
+    if sl is not None and np.isfinite(sl) and sg:
+        if float(sl) > slip_frac * float(sg[0]):
             bad.append("slip")
 
     return (not bad), (bad or ["ok"])

@@ -84,7 +84,7 @@ KEYS_V2 = ["peak_a", "stroke", "leg_stroke", "sink", "eta", "cfe", "peak_jerk",
 # 前六个是横向物理(见 physics_v2._lateral);后面四个是"本来就算了却没存"的欠账 ——
 # E22 要用 D 和段长做标度检验,v2.3 没存,只能对 3000 个设计重跑一遍 eval_v2 才拿到。
 # 存下来以后那条实验就真是零成本。v0/mu_ground 是回弹与打滑判据的分母,必须一起存。
-KEYS_V25 = ["a_res", "peak_ax", "mu_demand", "slip", "x_drift", "e_gain",
+KEYS_V25 = ["a_res", "peak_ax", "mu_demand", "slip", "slip_total", "x_drift", "e_gain",
             "contact_frac", "v0", "v_x", "mu_ground",
             "D1_mm", "D2_mm", "D3_mm", "L1_mm", "L2_mm", "L3_mm"]
 

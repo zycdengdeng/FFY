@@ -17,14 +17,29 @@
 #
 # 分六段，规矩照抄 v2.3：不用 set -e，前段挂了后段照跑；每段打「[累计 N 分钟]」。
 # 参考时长：v2.3 全跑 822 分钟（13.7 h），其中自提升闭环占 78%。v2.5 估 ≈18 h。
+#
+# ---- 两种构型，用 CONFIG 选 ----
+#   CONFIG=bird  仿鸟：两条腿姿态相同、沿 y 并排 → 水平力**同向叠加，不抵消**
+#                → 机体必须在 x-z 面内自由平动，姿态引起的水平力只能由足端摩擦承担。
+#                真鸟就是这一类（两腿同姿态、都前倾约 30°，靠脚趾抓地）。
+#   CONFIG=skid  对置：前后两对腿姿态镜像 → 水平力在机体内部抵消
+#                → 保留竖直约束（这时 v2.3 的滑轨不是作弊，是对称性的正确等效）。
+#                足端切向摩擦仍作用在腿上，只是机体不被推着走。
+#                ⚠ 已知理想化：机体水平速度在冲击中不衰减，切向载荷偏保守（偏大）。
 set -uo pipefail
 cd "$(dirname "$0")"
+CONFIG="${CONFIG:-bird}"
+case "$CONFIG" in
+  bird) PLANAR=1 ;;
+  skid) PLANAR=0 ;;
+  *) echo "CONFIG 只能是 bird 或 skid"; exit 2 ;;
+esac
 W="${WORKERS:-128}"; ROUNDS="${ROUNDS:-40}"; SEEDS="${SEEDS:-0 1}"
-OUT_F="${OUT_F:-outputs/v25_data_bio}"; OUT_E="${OUT_E:-outputs/v25_e5_bio}"
-ROOT_D="${ROOT_D:-outputs/v25_root}"; P9="${P9:-outputs/v25_p9}"
-REPORTS="reports/v25"
+OUT_F="${OUT_F:-outputs/v25_${CONFIG}_data}"; OUT_E="${OUT_E:-outputs/v25_${CONFIG}_e5}"
+ROOT_D="${ROOT_D:-outputs/v25_${CONFIG}_root}"; P9="${P9:-outputs/v25_${CONFIG}_p9}"
+REPORTS="reports/v25_${CONFIG}"
 mkdir -p logs "$ROOT_D/v2_e5_bio" "$P9" "$REPORTS"
-LOG="logs/v25_main_$(date +%Y%m%d_%H%M%S).log"
+LOG="logs/v25_${CONFIG}_$(date +%Y%m%d_%H%M%S).log"
 exec > >(tee -a "$LOG") 2>&1
 export OMP_NUM_THREADS=1
 t0=$(date +%s); el(){ echo "[累计 $(( ($(date +%s)-t0)/60 )) 分钟]"; }
@@ -33,7 +48,7 @@ t0=$(date +%s); el(){ echo "[累计 $(( ($(date +%s)-t0)/60 )) 分钟]"; }
 RC=0
 run(){ echo; echo "=========== $1 ==========="; shift; "$@"; RC=$?; echo "退出码 $RC"; el; }
 
-echo "workers=$W  rounds=$ROUNDS  seeds=$SEEDS"
+echo "构型 CONFIG=$CONFIG (planar=$PLANAR)  workers=$W  rounds=$ROUNDS  seeds=$SEEDS"
 echo "日志 $LOG"
 
 # ---- 0 · 回归测试：先证明重构没动物理，不过就别往下跑 ----
@@ -49,22 +64,33 @@ if [ "$RC" != "0" ]; then
 fi
 
 # ---- 1 · 准入体检：新物理数值上站不站得住 ----
-run "1/6 · P9a 准入体检（planar, Fr 0–2, q1_0 三档；五条判据）" \
-  python src/stage10_v2/p9_friction.py --mode a --nprobe 64 --workers "$W" --out "$P9"
+run "1/6 · P9a 准入体检（三条数值判据 + 用可行率给 Fr 上界定标）" \
+  python src/stage10_v2/p9_friction.py --mode a --nprobe 64 --workers "$W" \
+    --planar "$PLANAR" --out "$P9"
 if [ "$RC" != "0" ]; then
-  echo; echo "!!!! P9a 有判据不过。**停在这里**，先看 $P9/p9a_report.json。"
-  echo "     尤其第 5 条：mu_demand 实测与 E26 的 tan(前倾角) 估计对不上的话，"
-  echo "     q1_0 的盒子下界要按实测重定，不能直接用 27.6°。"
+  echo; echo "!!!! P9a 数值判据不过。**停在这里**，先看 $P9/p9a_report.json。"
   exit 1
 fi
 
+# Fr 上界由 P9a 量出来，不是拍的。仿鸟构型水平力不抵消，能扛多大的 Fr 要看实测。
+FRMAX=$(python -c "import json;print(max(0.5,json.load(open('$P9/p9a_report.json'))['fr_recommended']))" 2>/dev/null)
+FRMAX="${FRMAX:-2.0}"
+echo "[v25/$CONFIG] 主工厂的 Fr 上界取 $FRMAX（由 P9a 的可行率曲线定标）"
+
+# μ 扫描：回答 E26 那张 tan(前倾角) 表到底准不准。不挡工厂，但结论要写进论文。
+run "1b/6 · μ 扫描（求临界摩擦系数，Fr=0，硬地）" \
+  python src/stage10_v2/p9_friction.py --mode mu --nprobe 64 --workers "$W" \
+    --planar "$PLANAR" --out "$P9"
+
 # ---- 2 · 崩溃阶梯：只摸边界，不挡工厂，可以后台并行 ----
 run "2/6 · P9b 崩溃阶梯（Fr 2→15，只为定位现有接触模型在哪一档崩）" \
-  python src/stage10_v2/p9_friction.py --mode b --nprobe 64 --workers "$W" --out "$P9"
+  python src/stage10_v2/p9_friction.py --mode b --nprobe 64 --workers "$W" \
+    --planar "$PLANAR" --out "$P9"
 
 # ---- 3 · 数据工厂 ----
 run "3/6 · 数据工厂 v2.5（10 维设计 + 6 维条件 + 面内平动）" \
   python src/stage10_v2/factory_v2.py --v25 --foot bearing --m-range 4,36 --arm bio \
+    --planar "$PLANAR" --fr-max "$FRMAX" \
     --nglobal 375 --npath 25 --K 5 --nd 120 --npass 2 --workers "$W" --out "$OUT_F"
 
 run "4/6 · 训练集（条件 6 维，判据含回弹软闸与打滑闸）" \
@@ -86,16 +112,16 @@ run "5b/6 · 两种子比对（出汇报口径；训练类指标 ≥2 种子才�
 # ---- 6 · 下游：口径变了，必须全套重跑 ----
 run "6a/6 · E18b 四臂走廊" \
   python src/stage10_v2/e18b_corridor_multi.py --v21 --foot bearing \
-    --mlo 2 --mhi 40 --nu 9 --nm 16 --nprobe 48 --workers "$W" --out outputs/v25_e18b
+    --mlo 2 --mhi 40 --nu 9 --nm 16 --nprobe 48 --workers "$W" --out "outputs/v25_${CONFIG}_e18b"
 
 run "6b/6 · E20 生成走廊" \
   python src/stage10_v2/e20_gen_corridor.py --v21 --foot bearing --outroot "$ROOT_D" \
     --mgrid 2,40,16 --anchors "5:产品下端,12:样机档,30:产品上端" \
-    --nz 216 --workers "$W" --out outputs/v25_e20
+    --nz 216 --workers "$W" --out "outputs/v25_${CONFIG}_e20"
 
 run "6c/6 · E21 真鸟 vs 生成" \
   python src/stage10_v2/e21_bird_vs_gen.py --v21 --foot bearing \
-    --ckpt "$OUT_E/cvae_r$((ROUNDS-1)).pt" --workers "$W" --out outputs/v25_e21
+    --ckpt "$OUT_E/cvae_r$((ROUNDS-1)).pt" --workers "$W" --out "outputs/v25_${CONFIG}_e21"
 
 # ---- 附 · E22 现在是零成本了（D 已落盘） ----
 run "附 · E22 D/L 标度（v2.5 工厂已落盘 D_mm，不用再重评）" \
@@ -103,7 +129,7 @@ run "附 · E22 D/L 标度（v2.5 工厂已落盘 D_mm，不用再重评）" \
     --factory "$OUT_F/factory.jsonl" --out "$OUT_F"
 
 # ---- 产物收口：reports/ 不在 .gitignore 里，push 一次就能带回本地 ----
-for f in "$P9"/*.json outputs/v25_data_bio/e22_*.json outputs/v25_data_bio/e22_*.png \
+for f in "$P9"/*.json "$OUT_F"/e22_*.json "$OUT_F"/e22_*.png \
          "$OUT_E"/trajectory.json "${OUT_E}_s1"/trajectory.json; do
   [ -f "$f" ] && cp -f "$f" "$REPORTS/"
 done
@@ -111,7 +137,7 @@ cp -f "$LOG" "$REPORTS/run.log" 2>/dev/null
 
 echo; echo "=========== 全部结束（$(( ($(date +%s)-t0)/60 )) 分钟）==========="
 echo
-echo "产物：$OUT_F · $OUT_E(+_s1) · outputs/v25_e18b · v25_e20 · v25_e21 · $P9"
+echo "构型 $CONFIG 的产物：$OUT_F · $OUT_E(+_s1) · v25_${CONFIG}_e18b/e20/e21 · $P9"
 echo "小文件已收进 $REPORTS —— 带回本地："
 echo "  git add -A reports && git commit -m 'v2.5 结果' && git push"
 echo

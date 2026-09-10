@@ -42,9 +42,10 @@ iREB, iNB = KEYS_V2.index("rebound"), KEYS_V2.index("n_bounce")
 _i25 = {k: len(KEYS_V2) + KEYS_V25.index(k) for k in KEYS_V25}
 iARES, iMUD, iMUG, iV0 = (_i25["a_res"], _i25["mu_demand"],
                           _i25["mu_ground"], _i25["v0"])
+iSLIP, iLL1 = _i25["slip"], _i25["L1_mm"]
 
 # 与 physics_v2.feasible_v2 同口径,改一处两处都要改
-REB_CAP, MU_SF, G = 0.05, 1.0, 9.81
+REB_CAP, MU_SF, G, SLIP_FRAC = 0.05, 1.0, 9.81, 0.5
 
 # 上界 15→25 g:v1 的 [4,15] 是按 v1 那个唯一(且偏软)的等效地面标定的;
 # v2 的地形跨到 1e6 N/m,硬地上生物设计盒里没有任何设计能进 15 g。
@@ -83,13 +84,14 @@ def _col(Y, i):
     return Y[:, i] if Y.shape[1] > i else None
 
 
-def feasible_mask(Y, gcap, smax, reb_cap=REB_CAP, mu_sf=MU_SF):
+def feasible_mask(Y, gcap, smax, reb_cap=REB_CAP, mu_sf=MU_SF, slip_frac=SLIP_FRAC):
     """与 physics_v2.feasible_v2 同口径:s_max 作用在**腿行程**上。
 
     v2.5 三处改动,与 physics_v2.feasible_v2 一一对应:
       ① 过载改判合加速度 a_res(没有这一列就退回 peak_a);
       ② 回弹软闸 rebound/(v0²/2g) ≤ 5%;
-      ③ 足端打滑 mu_demand ≤ mu_ground。
+      ③ 足端打滑：竖直冲击窗口内足端走开 ≤ 0.5·L1
+         （不是 mu_demand ≤ mu_ground —— 滑动摩擦饱和后那个量恒等于 μ，判不出东西）。
     每一条都先看列在不在 —— **v2.3 的老工厂只有前 16 列,照样能重打分**。
     """
     ok = np.isfinite(Y[:, iP])
@@ -105,9 +107,9 @@ def feasible_mask(Y, gcap, smax, reb_cap=REB_CAP, mu_sf=MU_SF):
         rr = np.nan_to_num(reb, nan=0.0) / h0
         m &= np.where(np.isfinite(v0) & (v0 > 0), rr <= reb_cap, True)
 
-    mud, mug = _col(Y, iMUD), _col(Y, iMUG)
-    if mud is not None and mug is not None:
-        bad = np.isfinite(mud) & np.isfinite(mug) & (mud > mu_sf * mug)
+    sl, l1 = _col(Y, iSLIP), _col(Y, iLL1)
+    if sl is not None and l1 is not None:
+        bad = np.isfinite(sl) & np.isfinite(l1) & (l1 > 0) & (sl * 1e3 > slip_frac * l1)
         m &= ~bad
     return m
 
