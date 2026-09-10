@@ -149,12 +149,13 @@ def geom_report(designs):
 
 # ---------------------------------------------------------------- 单点评价
 def _eval_one(a):
-    import physics_v2 as P
-    x9, m, v0, kc, q1_deg = a
-    base = {**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": "bearing",
-            "q1_0": np.radians(float(q1_deg))}
-    zc = float(np.clip(10 ** (1.771 - 0.4875 * np.log10(kc)), 0.05, 0.35))
+    """连 import 一起包在 try 里：无人值守时不能让子进程的异常打断整个 map。"""
     try:
+        import physics_v2 as P
+        x9, m, v0, kc, q1_deg = a
+        base = {**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": "bearing",
+                "q1_0": np.radians(float(q1_deg))}
+        zc = float(np.clip(10 ** (1.771 - 0.4875 * np.log10(kc)), 0.05, 0.35))
         r = P.eval_v2(tuple(x9), m, v0, kc=kc, zeta_c=zc, npass=2, base=base)
     except Exception as e:
         return dict(fail=type(e).__name__)
@@ -196,7 +197,7 @@ def run(designs, grid, workers, cache_fp):
         print("[e26] 缓存已完整"); return
     print("[e26] 需要评价 %d 个点（%d 设计 × %d 档，多进程 %d）"
           % (len(jobs), len(designs), len(grid) + 1, workers))
-    t0 = time.time()
+    t0 = time.time(); nbad = 0
     with ProcessPoolExecutor(max_workers=workers) as ex, open(cache_fp, "a") as f:
         for i, (job, d, r) in enumerate(zip(jobs, tags, ex.map(_eval_one, jobs, chunksize=2)), 1):
             q = job[4]
@@ -205,10 +206,17 @@ def run(designs, grid, workers, cache_fp):
                        kc=d["kc"], q1=q, q1_vert=q1_vertical(d["x9"]),
                        lean=lean, hip_z_over_L1=hz, x9=d["x9"], **r)
             f.write(json.dumps(rec) + "\n")
+            nbad += ("fail" in r)
             if i % 100 == 0 or i == len(jobs):
                 el = time.time() - t0; f.flush()
-                print("      %d/%d  (%.0fs, ~%.2f s/点, 预计剩 %.0fs)"
-                      % (i, len(jobs), el, el / i, el / i * (len(jobs) - i)), flush=True)
+                print("      %d/%d  失败 %d  (%.0fs, ~%.2f s/点, 预计剩 %.0fs)"
+                      % (i, len(jobs), nbad, el, el / i, el / i * (len(jobs) - i)), flush=True)
+            if i == 100 and nbad == i:
+                print("\n[e26] 前 100 个点全部失败 —— 多半是 exudyn 没装好或 physics_v2 导不进来。")
+                print("      先单独试：python -c \"import sys;sys.path.insert(0,'src/stage10_v2');"
+                      "import physics_v2\"")
+                print("      提前收工，不浪费机时。\n")
+                return
 
 
 # ---------------------------------------------------------------- 分析
@@ -403,6 +411,11 @@ def main():
     if not os.path.exists(cache_fp):
         raise SystemExit("[e26] 没有缓存 %s —— 先不带 --analyze-only 跑一遍" % cache_fp)
     rows = [json.loads(ln) for ln in open(cache_fp, encoding="utf-8") if ln.strip()]
+    ngood = sum(1 for r in rows if "fail" not in r)
+    if ngood < 30:
+        print("[e26] 有效点只有 %d 个（<30），无法判定。" % ngood)
+        print("      多半是扫描那一步全挂了：exudyn 没装好，或 physics_v2 导不进来。")
+        return
     analyze(rows, args, args.out)
 
 

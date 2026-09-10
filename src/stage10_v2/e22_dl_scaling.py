@@ -79,11 +79,16 @@ def pick_designs(blocks, n, nreq, seed):
 
 # ---------------------------------------------------------------- 重评
 def _eval_one(a):
-    """在子进程里重跑一次 eval_v2，只为把 D_mm / seg_len 取回来。"""
-    import physics_v2 as P
-    x9, m, v0, kc, zc = a
-    base = {**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": "bearing"}
+    """在子进程里重跑一次 eval_v2，只为把 D_mm / seg_len 取回来。
+
+    连 import 一起包在 try 里：环境不对时要安静地返回 None，
+    让主进程统计失败数并早停，而不是抛一个 traceback 把整个 map 打断
+    —— 这个脚本是给无人值守的批处理用的。
+    """
     try:
+        import physics_v2 as P
+        x9, m, v0, kc, zc = a
+        base = {**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": "bearing"}
         r = P.eval_v2(tuple(x9), m, v0, kc=kc, zeta_c=zc, npass=2, base=base)
     except Exception:
         return None
@@ -121,16 +126,25 @@ def re_evaluate(blocks, picks, workers, cache_fp):
         print("[e22] 缓存已完整，跳过重评"); return
     print("[e22] 需要重评 %d 个设计（多进程 %d）" % (len(jobs), workers))
     t0 = time.time()
+    nbad = 0
     with ProcessPoolExecutor(max_workers=workers) as ex, open(cache_fp, "a") as f:
         for i, (k, r) in enumerate(zip(keys, ex.map(_eval_one, jobs, chunksize=4)), 1):
-            if r is not None:
+            if r is None:
+                nbad += 1
+            else:
                 r["key"] = k
                 f.write(json.dumps(r) + "\n")
             if i % 200 == 0 or i == len(jobs):
                 el = time.time() - t0
                 f.flush()
-                print("      %d/%d  (%.0fs, ~%.3f s/个, 预计剩 %.0fs)"
-                      % (i, len(jobs), el, el / i, el / i * (len(jobs) - i)), flush=True)
+                print("      %d/%d  失败 %d  (%.0fs, ~%.3f s/个, 预计剩 %.0fs)"
+                      % (i, len(jobs), nbad, el, el / i, el / i * (len(jobs) - i)), flush=True)
+            if i == 200 and nbad == i:
+                print("\n[e22] 前 200 个全部失败 —— 多半是 exudyn 没装好或 physics_v2 导不进来。")
+                print("      先单独试一次：python -c \"import sys;sys.path.insert(0,'src/stage10_v2');"
+                      "import physics_v2 as P;print(P.eval_v2.__name__)\"")
+                print("      提前收工，不浪费机时。\n")
+                return
 
 
 # ---------------------------------------------------------------- 分析
@@ -345,6 +359,12 @@ def main():
         raise SystemExit("[e22] 没有缓存 %s —— 先不带 --analyze-only 跑一遍" % cache_fp)
     rows = [json.loads(ln) for ln in open(cache_fp, encoding="utf-8") if ln.strip()]
     print("[e22] 分析 %d 条重评结果" % len(rows))
+    if len(rows) < 30:
+        print("[e22] 有效结果太少（<30），无法做标度回归。")
+        print("      多半是重评那一步全挂了：exudyn 没装好，或 physics_v2 导不进来。")
+        print("      先单独试：python -c \"import sys;sys.path.insert(0,'src/stage10_v2');"
+              "import physics_v2\"")
+        return
     analyze(rows, args, out_dir)
 
 
