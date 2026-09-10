@@ -20,7 +20,7 @@ D = np.load(os.path.join(D_, f"hist_{TAG}.npz"), allow_pickle=True)
 J = json.load(open(os.path.join(D_, f"b_compare_{TAG}.json")))
 M = J["meta"]; K = ["bio", "phys"]
 COL = {"bio": "#8E2A34", "phys": "#1b6ca8"}
-LAB = {"bio": ("waterbird allometry", J["b_bio"]), "phys": ("generator", J["b_machine"])}
+LAB = {"bio": ("waterbird law, extrapolated", J["b_bio"]), "phys": ("generator", J["b_machine"])}
 GROUND = {1.0e6: "rigid ground", 1.0e5: "turf", 5.0e4: "wet sand"}.get(J["kc"], f"k_c = {J['kc']:.0e}")
 FPS, PRE, POST = 30, 0.004, 0.076
 S = {}
@@ -37,19 +37,19 @@ G = {k: sm(k, "g") for k in K}; ST = {k: sm(k, "stroke") for k in K}
 JT = {k: np.stack([[np.interp(TR, S[k]["tr"], Q[:, j]) for j in (0, 2)] for Q in S[k]["Jt"]],
                   0).transpose(0, 2, 1) for k in K}
 fig = plt.figure(figsize=(13.4, 7.6))
-gs = fig.add_gridspec(2, 2, height_ratios=[1.6, 1], hspace=.38, wspace=.20,
-                      top=.885, bottom=.095, left=.065, right=.975)
+gs = fig.add_gridspec(2, 2, height_ratios=[1.6, 1], hspace=.42, wspace=.20,
+                      top=.83, bottom=.125, left=.065, right=.975)
 axL = [fig.add_subplot(gs[0, i]) for i in range(2)]
 axG = fig.add_subplot(gs[1, 0]); axS = fig.add_subplot(gs[1, 1])
 yhi = max(JT[k][:, :, 1].max() for k in K); lines = []
 for i, k in enumerate(K):
     A = axL[i]; m = M[k]; name, b = LAB[k]
-    xc = float(JT[k][:, :, 0].mean()); w = .62*yhi
+    xc = float(JT[k][:, :, 0].mean()); w = .42*yhi
     A.set_xlim(xc-w, xc+w); A.set_ylim(-.035, yhi*1.10)
     A.set_aspect("equal", adjustable="box"); A.axis("off")
     A.axhline(0, color="#8a7f6d", lw=3.5)
     A.set_title(f"$b$ = {b:.3f}   ({name})\n$L_1$ = {m['L1_mm']:.0f} mm    leg mass {m['leg_mass_g']:.0f} g",
-                fontsize=14.5, fontweight="bold", color=COL[k], pad=12)
+                fontsize=14, fontweight="bold", color=COL[k], pad=6)
     ln, = A.plot([], [], "-o", color=COL[k], lw=5, ms=9, mec="k", mew=.8)
     tx = A.text(.5, -.06, "", transform=A.transAxes, ha="center", fontsize=14,
                 fontweight="bold", color=COL[k])
@@ -76,13 +76,16 @@ def upd(i):
     return []
 b, p = M["bio"], M["phys"]
 fig.suptitle(f"{J['m_kg']:.0f} kg airframe  ·  {J['v0']} m/s  ·  {GROUND}  ·  identical joints  "
-             f"·  {SLOW:g}$\\times$ slow motion", fontsize=15, fontweight="bold", y=.965)
-fig.text(.5, .018,
+             f"·  {SLOW:g}$\\times$ slow motion", fontsize=15, fontweight="bold", y=.985)
+fig.text(.5, .030,
          f"peak  {b['peak_g']:.2f} / {p['peak_g']:.2f} g      "
          f"stroke  {b['leg_stroke_mm']:.1f} / {p['leg_stroke_mm']:.1f} mm      "
          f"leg mass  {b['leg_mass_g']:.0f} / {p['leg_mass_g']:.0f} g "
          f"({100*(p['leg_mass_g']/b['leg_mass_g']-1):+.0f}%)",
          ha="center", fontsize=13.5, fontweight="bold", color="#222")
+fig.text(.5, .004,
+         "waterbird data reach only 12 kg - the 30 kg leg is that law extrapolated, not a real bird",
+         ha="center", fontsize=11, color="#6b6b6b")
 upd(len(TR)-1)
 png = os.path.join(D_, f"b_compare_{TAG}_en_last.png")
 fig.savefig(png, dpi=150, bbox_inches="tight"); print("[png]", png)

@@ -116,6 +116,7 @@ EXTRA = [  # 管线图 / A0 图
   'family=plt.rcParams["font.sans-serif"][0]'),
  ("scaling  $b_{eff}=0.238$", "标度  $b_{eff}=0.238$"),
  ("columns we actually use", "真正用到的列"),
+
  ('bird families (≥15 species each), sorted', '个科（每科 ≥15 种），按差值排序'),
  ('leg-length residual:', '腿长残差之差：'),
  ('high-HWI half − low-HWI half  [SD]', '高飞行效率半 − 低飞行效率半  [标准差]'),
@@ -156,8 +157,7 @@ EXTRA = [  # 管线图 / A0 图
  ('peak deceleration    ', '峰值过载    '),
  ('        stroke   ', '        落震行程   '),
  ('slenderness  and  leg-mass budget   satisfied', '细长比与腿重预算  均满足'),
- ('evaluated by an Exudyn multibody drop simulation,', '由 Exudyn 多体落震仿真判定，'),
- ('2-pass, contact-resolved', '两遍求解、接触已解析'),
+ ('evaluated by an Exudyn multibody drop simulation', '由 Exudyn 多体落震仿真判定'),
 
  ("our merged table", "拼出来的总表"),
  ("name crosswalk\\nBirdLife <-> BirdTree\\n", "命名对照\\nBirdLife ↔ BirdTree\\n"),
@@ -201,8 +201,8 @@ EXTRA = [  # 管线图 / A0 图
  ("$L_1$  tarsometatarsus", "$L_1$  跗跖骨"),
  ("$L_2 = r_2 L_1$  tibiotarsus", "$L_2 = r_2 L_1$  胫跗骨"),
  ("$L_3 = r_3 L_1$  femur", "$L_3 = r_3 L_1$  股骨"),
- ("ankle shock\\n$\\\\kappa_{ankle}$, $\\\\tau$", "踝减震器\\nκ踝, τ"),
- ("hip shock\\n$\\\\kappa_{hip}$, $\\\\tau$", "髋减震器\\nκ髋, τ"),
+ ('"ankle shock"', '"踝减震器"'),
+ ('"hip shock"', '"髋减震器"'),
  ("knee: free hinge\\n(no spring, no damper)", "膝：自由铰\\n无弹簧、无阻尼"),
  ('"airframe  $m$"', '"机身  $m$"'),
  ("ground: Hertz–Kelvin contact,  $k_c$", "地面：Hertz–Kelvin 接触，$k_c$"),
@@ -238,14 +238,6 @@ EXTRA = [  # 管线图 / A0 图
   "那就由制造性来分：A0 白拿掉一套减震器，还拿到 36 mm\\n"
   "股骨力臂 → 可以直接买货架弹簧。"),
  ("Feasibility (what the generator must satisfy)", "可行性判据（生成器必须满足的）"),
- ("peak deceleration    $\\\\leq$ 10 g        stroke   $\\\\leq$ 24 mm\\n"
-  "slenderness  and  leg-mass budget   satisfied\\n"
-  "evaluated by an Exudyn multibody drop simulation,\\n"
-  "2-pass, contact-resolved",
-  "峰值过载 $\\\\leq$ 10 g        落震行程 $\\\\leq$ 24 mm\\n"
-  "细长比与腿重预算  均满足\\n"
-  "由 Exudyn 多体落震仿真判定，\\n"
-  "两遍求解、接触已解析"),
 ]
 
 def run(src_name, out_dir_new, prefix_new, extra=()):
@@ -275,5 +267,5 @@ def run(src_name, out_dir_new, prefix_new, extra=()):
 os.makedirs(f"{U}/outputs/ppt_cn", exist_ok=True)
 run("figs_en_ppt.py",    "ppt_cn", "cn_", EXTRA)   # EXTRA 里对不上的条目是 no-op,安全
 run("fig_pipeline_en.py","ppt_cn", "cn_", EXTRA)
-run("fig_a0_en.py",      "ppt_cn", "cn_", EXTRA)
+# fig_a0_en.py 已改成自带 --lang，不再走字符串替换
 print("→", f"{U}/outputs/ppt_cn")

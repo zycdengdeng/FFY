@@ -76,7 +76,9 @@ N = len(S); half = N // 2
 hi_, lo_ = S.iloc[:half], S.iloc[half:]
 r_all = float(np.corrcoef(S.mean_HWI, S.delta_u)[0, 1])
 
-fig, ax = plt.subplots(figsize=(14.6, 7.4))
+fig = plt.figure(figsize=(17.4, 7.4))
+_gs = fig.add_gridspec(1, 2, width_ratios=[.30, 1.0], wspace=.055)
+ix = fig.add_subplot(_gs[0, 0]); ax = fig.add_subplot(_gs[0, 1])
 x = np.arange(N); cols = [BLUE if v < 0 else RED for v in S.delta_u]
 ax.bar(x, S.delta_u, color=cols, width=.70, edgecolor="k", linewidth=.6, zorder=3)
 ax.axhline(0, color="#333", lw=1.6, zorder=4)
@@ -101,7 +103,7 @@ bx.spines["right"].set_color("#999")
 ax.text(.012, .055, T["hi"], transform=ax.transAxes, fontsize=13, color="#444", fontweight="bold")
 ax.text(.62, .055, T["lo"], transform=ax.transAxes, fontsize=13, color="#444", fontweight="bold")
 ax.text(.012, .86, T["up"], transform=ax.transAxes, fontsize=14, color=RED, fontweight="bold", va="top")
-ax.text(.012, .27, T["dn"], transform=ax.transAxes, fontsize=14, color=BLUE, fontweight="bold", va="top")
+ax.text(.012, .30, T["dn"], transform=ax.transAxes, fontsize=14, color=BLUE, fontweight="bold", va="top")
 ax.axvline(half - .5, color="#777", lw=1.6, ls="--", zorder=2)
 ax.text((half-1)/2, 3.75, T["boxhi"].format(k=half, a=hi_.mean_HWI.min(), b=hi_.mean_HWI.max(),
         s=int((hi_.delta_u < 0).sum())), ha="center", va="center", fontsize=12.5, color=BLUE,
@@ -109,7 +111,35 @@ ax.text((half-1)/2, 3.75, T["boxhi"].format(k=half, a=hi_.mean_HWI.min(), b=hi_.
 ax.text(half + (N-half-1)/2, 3.75, T["boxlo"].format(k=N-half, a=lo_.mean_HWI.min(), b=lo_.mean_HWI.max(),
         s=int((lo_.delta_u < 0).sum())), ha="center", va="center", fontsize=12.5, color=RED,
         fontweight="bold", bbox=dict(boxstyle="round,pad=.42", fc="#fdf2f0", ec=RED, alpha=.92))
-ax.text(.50, .012, T["foot"].format(n=N, r=r_all), transform=ax.transAxes, ha="center", va="bottom",
+# ---- 图解：什么叫「支系干上的一次跳变 Δu」----
+IN = {"cn": dict(t="怎么读这张图", a="祖先", b="这一支的干上\n发生一次改变",
+                 c="整支后代都继承", d="这一次改变的大小 = $\\Delta u$",
+                 e="每根柱子 = 一次这样的改变"),
+      "en": dict(t="How to read this", a="ancestor", b="one change\non this clade's stem",
+                 c="all descendants inherit it", d="size of that change = $\\Delta u$",
+                 e="each bar = one such change")}[LANG]
+ix.set_xlim(0, 10); ix.set_ylim(-3.4, 2.0); ix.axis("off")
+ix.add_patch(plt.Rectangle((0.05, -3.35), 9.9, 5.3, fc="#fbfbfc", ec="#c3c8ce", lw=1.4, zorder=0))
+ix.plot([0.7, 3.0], [0.75, 0.75], color="#7b8794", lw=2.4, zorder=2)      # 祖先水平线
+ix.plot([3.0, 3.0], [0.75, 1.35], color="#7b8794", lw=2.4, zorder=2)      # 另一支上行
+ix.plot([3.0, 4.6], [1.35, 1.35], color="#7b8794", lw=2.4, zorder=2)
+for yy in (1.15, 1.55):
+    ix.plot([4.6, 5.6], [1.35, yy], color="#7b8794", lw=2.0, zorder=2)
+ix.plot([3.0, 3.0], [0.75, -1.55], color=BLUE, lw=3.4, zorder=3)          # 目标支系的干:跳变
+ix.plot([3.0, 4.6], [-1.55, -1.55], color=BLUE, lw=3.4, zorder=3)
+for yy in (-1.05, -1.55, -2.05):
+    ix.plot([4.6, 6.2], [-1.55, yy], color=BLUE, lw=2.2, zorder=3)
+    ix.plot(6.2, yy, "o", color=BLUE, ms=5, zorder=4)
+ix.annotate("", xy=(2.72, -1.55), xytext=(2.72, 0.75),
+            arrowprops=dict(arrowstyle="<->", lw=2.0, color=RED), zorder=5)
+ix.text(2.45, -0.40, IN["d"], color=RED, fontsize=12.5, fontweight="bold",
+        ha="right", va="center", rotation=90)
+ix.text(0.60, 1.05, IN["a"], fontsize=11.5, color="#5b6672")
+ix.text(3.30, -0.10, IN["b"], fontsize=11.5, color=BLUE, fontweight="bold", va="center")
+ix.text(4.30, -2.45, IN["c"], fontsize=11.5, color=BLUE, va="center", ha="left")
+ix.text(0.40, -2.95, IN["e"], fontsize=12, color="#333", fontweight="bold")
+ix.set_title(IN["t"], fontsize=14, fontweight="bold", loc="left", pad=8, color="#333")
+ax.text(.012, .015, T["foot"].format(n=N, r=r_all), transform=ax.transAxes, ha="left", va="bottom",
         fontsize=11.5, color="#444", bbox=dict(boxstyle="round,pad=.5", fc="#f7f7f6", ec="#c9ccd1"))
 ax.set_title(T["title"], fontsize=17, fontweight="bold", pad=16)
 out = f"{OUT}/{LANG}_F_shifts.png"

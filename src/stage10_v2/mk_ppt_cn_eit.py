@@ -197,11 +197,11 @@ notes(sl, "三段的命名沿用鸟：跗跖骨、胫跗骨、股骨。两套减
           "这是「特殊订制」和「货架件」的区别。")
 
 # ============ 13 机器自己走出这条律（核心页）============
-sl = page("机器自己走出了这条律",
-          "生成器从没被告诉过「腿长要随体重按幂律走」——它对每个体重独立求解，结果自己走出了这条律。")
+sl = page("机器在哪些地方和鸟一致",
+          "先说清楚：腿长的幂律是我们写进参数化的，不是机器发现的。真正独立的证据在右半张图。")
 fig(sl, f"{F}/cn_F_agree.png", (0.40, 1.58, 12.53, 4.92))
-bottom(sl, "定律的形式一致（R² = 0.98–0.99）；在鸟真正着陆的软地面上，指数也几乎一样："
-           "机器 0.34–0.35 对鸟 0.366。只有到刚性地面才变平到 0.263。")
+bottom(sl, "分段比 r₂、r₃ 上机器和鸟差不到 1% 盒宽（3 工况 × 2 种子都复现）；"
+           "指数在软地面基本保住生物值、到刚性地面才降到 0.263，且从不贴走廊边界。")
 notes(sl, "占位——讲稿见文件末尾的 SCRIPT。")
 
 # ============ 14 一次落震（视频，按新口径重跑后才插入）============
@@ -220,13 +220,16 @@ if _os.path.exists(_MP4) and _os.path.exists(_PNG):
 else:
     print("⚠ 未找到按新口径重跑的落震视频，已跳过第 14 页")
 
-# ---- 在每页原有中文说明后面，追加同一份英文讲稿（改 speaker_script_en.py 即可）----
-from speaker_script_en import SCRIPT  # noqa: E402
+# ---- 备注 = 中文稿 + 分隔线 + 英文稿（改稿只改 speaker_script_cn/en.py）----
+from speaker_script_cn import SCRIPT_CN  # noqa: E402
+from speaker_script_en import SCRIPT     # noqa: E402
 _n = len(prs.slides._sldIdLst)
+assert len(SCRIPT_CN) == len(SCRIPT), "中英讲稿段数对不上"
 assert _n in (len(SCRIPT), len(SCRIPT)-1), f"讲稿 {len(SCRIPT)} 段,幻灯片 {_n} 页"
-for _sl, _txt in zip(prs.slides, SCRIPT[:_n]):
-    _tf = _sl.notes_slide.notes_text_frame
-    _tf.text = (_tf.text.strip() + "\n\n" + "—" * 34 + "\n【英文讲稿】\n\n" + _txt.strip())
+_RULE = "\n\n" + "—" * 34 + "\n"
+for _sl, _cn, _en in zip(prs.slides, SCRIPT_CN[:_n], SCRIPT[:_n]):
+    _sl.notes_slide.notes_text_frame.text = (
+        "【中文稿】\n\n" + _cn.strip() + _RULE + "【English script】\n\n" + _en.strip())
 
 try:                                   # 文件可能正被 PowerPoint 打开
     prs.save(OUT)

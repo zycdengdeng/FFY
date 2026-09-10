@@ -25,8 +25,25 @@ hi,lo=F[F.HWI>cut],F[F.HWI<=cut]
 d_half=float(np.median(hi.e)-np.median(lo.e))
 P=F[F.tip=="Falco_concolor"].iloc[0]; Q=F[F.tip=="Micrastur_plumbeus"].iloc[0]
 
-fig=plt.figure(figsize=(15.0,6.5))
-gs=fig.add_gridspec(1,2,width_ratios=[1.05,1],wspace=.16)
+# ---- 全库回归（现算，不写死）：只用体重 vs 体重+HWI ----
+_A=pd.read_csv(f"{U}/data/avonet_hwi.csv").dropna(subset=["Tarsus.Length","BodyMass.Value","Hand.wing.Index"])
+_A=_A[(_A["Tarsus.Length"]>0)&(_A["BodyMass.Value"]>0)]
+_y=np.log10(_A["Tarsus.Length"].values); _lm=np.log10(_A["BodyMass.Value"].values); _h=_A["Hand.wing.Index"].values
+def _ols(cols):
+    X=np.column_stack([np.ones(len(_y))]+cols); b,*_=np.linalg.lstsq(X,_y,rcond=None); r=_y-X@b
+    return b, 1-r@r/((_y-_y.mean())@(_y-_y.mean()))
+_b1,_r1=_ols([_lm]); _b2,_r2=_ols([_lm,_h]); _N=len(_y)
+_DROP=100*(1-10**(_b2[2]*27))
+EQ=("全库 %s 种：加入 HWI 一项，  log$_{10}$ $L_1$ = %.3f + %.3f · log$_{10}$ $m$ - %.5f · HWI"
+    "        R² %.3f → %.3f" % (format(_N,","), _b2[0], _b2[1], -_b2[2], _r1, _r2))
+NOTE=("普通最小二乘，未做亲缘校正（见下一页）；HWI 每差 27 个单位（麻雀类 17 → 水鸟类 44），"
+      "对应 $L_1$ 短 %.0f%%" % _DROP)
+
+fig=plt.figure(figsize=(15.0,7.2))
+gs=fig.add_gridspec(1,2,width_ratios=[1.05,1],wspace=.16,top=.805,bottom=.075,left=.045,right=.985)
+fig.text(.010,.985,EQ,fontsize=14,fontweight="bold",color=RED,va="top",ha="left",
+         bbox=dict(boxstyle="round,pad=.42",fc="#fbf3f4",ec=RED,lw=1.6))
+fig.text(.010,.895,NOTE,fontsize=10.5,color=GRY,va="top",ha="left")
 # ---------- 左：两只隼 ----------
 axL=fig.add_subplot(gs[0,0]); axL.set_xlim(0,1); axL.set_ylim(0,1); axL.axis("off")
 axL.set_title("同一个科里的两只隼",fontsize=17,fontweight="bold",loc="left",pad=12)
@@ -83,7 +100,5 @@ axR.text(.02,.03,f"按 HWI = {cut:.0f} 把科内切两半：\n"
          transform=axR.transAxes,fontsize=11.5,color="#333",linespacing=1.6,
          bbox=dict(boxstyle="round,pad=.4",fc="#f6f6f6",ec="#bbb"))
 for s_ in ("top","right"): axR.spines[s_].set_visible(False)
-fig.suptitle("为什么说「同科之内也成立」—— 隼科的一个具体例子",
-             fontsize=19,fontweight="bold",y=1.005)
 out=f"{OUT}/cn_F_falcon.png"; fig.savefig(out,dpi=165,bbox_inches="tight")
 print("→",out, f"| r={r_all:+.3f} Δ={d_half:+.2f} cut={cut:.1f} 烟隼 {P.L1:.1f}mm/{P.m_g:.0f}g 林隼 {Q.L1:.1f}mm/{Q.m_g:.0f}g")

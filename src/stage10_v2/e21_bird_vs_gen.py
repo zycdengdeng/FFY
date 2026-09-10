@@ -91,6 +91,7 @@ def main():
                     help="AVONET 水鸟表;缺省时按 _find_avonet() 自动定位")
     ap.add_argument("--ckpt", default="outputs/v2_e5_bio/cvae_r40.pt")
     ap.add_argument("--conds", default="concrete1.2,turf1.2,wetsand1.2")
+    ap.add_argument("--picks", default=None, help="逗号分隔的物种名;缺省用 PICK")
     ap.add_argument("--foot", default="leg", choices=["leg", "bearing"],
                     help='足端定尺:"leg"=0.20·L1;"bearing"=由 (m,k_c) 派生(v2.3)')
     ap.add_argument("--v21", action="store_true",
@@ -108,7 +109,8 @@ def main():
     print(f"[e21] AVONET 表: {csv}", flush=True)
     rows = [l.strip().split(",") for l in open(csv, encoding="utf-8")][1:]
     db = {r[0]: (r[1], float(r[2]), float(r[3])) for r in rows if len(r) >= 4}
-    birds = [(s, *db[s]) for s in PICK if s in db]
+    _pk = [x.strip() for x in a.picks.split(",")] if a.picks else PICK
+    birds = [(s, *db[s]) for s in _pk if s in db]
     assert birds, "AVONET 里找不到 PICK 中的物种,检查 --avonet 路径"
 
     model, meta = load_cvae(a.ckpt)

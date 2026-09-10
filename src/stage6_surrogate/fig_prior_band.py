@@ -31,14 +31,14 @@ FAM_NAME = {"cn": {"Anatidae": "雁鸭科", "Phalacrocoracidae": "鸬鹚科", "P
 T = {"cn": dict(title="水鸟腿长异速生长律：{n} 种水鸟实测与 ±2.5σ 带",
                 xl="体重 (kg)", yl="跗跖骨长 $L_1$ (mm)",
                 prior="水鸟拟合  b = {b:.3f}", band="±2.5σ 带  (σ = {s:.3f} dex)",
-                geo="几何相似 b = 1/3", ela="弹性相似 b = 1/4",
+                geo="几何相似  b = 0.333",
                 prod="产品区间 5–30 kg", extrap="12 kg 以上无水鸟数据，属外推",
                 eq="拟合结果：  log$_{10}$ $L_1$ = %.3f + %.3f · log$_{10}$ $m$"
                    "        （$L_1$ 单位 mm，$m$ 单位 g；σ = %.3f dex）"),
      "en": dict(title="Waterbird leg allometry: {n} species and the ±2.5σ band",
                 xl="body mass (kg)", yl="tarsometatarsus $L_1$ (mm)",
                 prior="waterbirds  b = {b:.3f}", band="±2.5σ band  (σ = {s:.3f} dex)",
-                geo="geometric similarity  b = 1/3", ela="elastic similarity  b = 1/4",
+                geo="geometric similarity  b = 0.333",
                 prod="product range 5-30 kg", extrap="no waterbird data above 12 kg - extrapolated",
                 eq="fit:  log$_{10}$ $L_1$ = %.3f + %.3f · log$_{10}$ $m$"
                    "        ($L_1$ in mm, $m$ in g;  σ = %.3f dex)")}[LANG]
@@ -64,7 +64,7 @@ for f_, c in FAM_COL.items():
     ax.scatter(10**x[m.values]/1e3, 10**y[m.values], s=17, c=c, alpha=.85, lw=0,
                label=f"{FAM_NAME[f_]} ({int(m.sum())})", zorder=3)
 xm = float(np.median(x))
-for bb, ls, lab in ((1/3, "--", T["geo"]), (1/4, ":", T["ela"])):
+for bb, ls, lab in ((1/3, "--", T["geo"]),):
     aa = np.median(y) - bb*xm
     ax.plot(10**xs/1e3, 10**(aa+bb*xs), ls=ls, color=GRY, lw=1.7, label=lab, zorder=4)
 ax.plot(10**xs/1e3, 10**(a_p+b_p*xs), color=CRIM, lw=3.4,

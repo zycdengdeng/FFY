@@ -223,11 +223,11 @@ notes(sl, "三段的命名沿用鸟：跗跖骨、胫跗骨、股骨。两套减
           "这是「特殊订制」和「货架件」的区别。")
 
 # ================= 13 机器自己走出这条律（核心页）=================
-sl = page("The Machine Re-derives the Law",
-          "The generator is never told that leg length should follow a power law of mass. It finds one anyway.")
+sl = page("Where the Machine Agrees With the Bird",
+          "First, plainly: the power law is in our parameterisation, not a discovery. The independent evidence is on the right.")
 fig(sl, f"{F}/en_F_agree.png", (0.40, 1.58, 12.53, 4.92))
-bottom(sl, "Same form of law (R² = 0.98–0.99), and on soft ground — the ground waterbirds land on — "
-           "almost the same exponent: 0.34–0.35 against the bird's 0.366.  On rigid ground it flattens to 0.263.")
+bottom(sl, "On the segment ratios the machine matches the bird to within 1% of the search box (3 terrains × 2 seeds).  "
+           "The exponent holds near the biological value on soft ground and drops to 0.263 on rigid ground — never touching the corridor wall.")
 notes(sl, "占位——讲稿见文件末尾的 SCRIPT。")
 
 # ================= 14 一次落震（视频，仅当已按新口径重跑时插入）=================
@@ -246,12 +246,16 @@ if _os.path.exists(_MP4) and _os.path.exists(_PNG):
 else:
     print("⚠ 未找到按新口径重跑的落震视频，已跳过第 14 页；跑完 anim 再重建即可")
 
-# 演讲稿见 speaker_script_en.py（中英两版共用，改那里即可）
-from speaker_script_en import SCRIPT  # noqa: E402
+# ---- 备注 = 中文稿 + 分隔线 + 英文稿（改稿只改 speaker_script_cn/en.py）----
+from speaker_script_cn import SCRIPT_CN  # noqa: E402
+from speaker_script_en import SCRIPT     # noqa: E402
 _n = len(prs.slides._sldIdLst)
+assert len(SCRIPT_CN) == len(SCRIPT), "中英讲稿段数对不上"
 assert _n in (len(SCRIPT), len(SCRIPT)-1), f"讲稿 {len(SCRIPT)} 段,幻灯片 {_n} 页"
-for _sl, _txt in zip(prs.slides, SCRIPT[:_n]):
-    _sl.notes_slide.notes_text_frame.text = _txt.strip()
+_RULE = "\n\n" + "—" * 34 + "\n"
+for _sl, _cn, _en in zip(prs.slides, SCRIPT_CN[:_n], SCRIPT[:_n]):
+    _sl.notes_slide.notes_text_frame.text = (
+        "【中文稿】\n\n" + _cn.strip() + _RULE + "【English script】\n\n" + _en.strip())
 
 try:                                   # 文件可能正被 PowerPoint 打开
     prs.save(OUT)

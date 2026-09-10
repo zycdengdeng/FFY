@@ -291,7 +291,7 @@ def F46():
     A.text(.015, .17, f"{ns}/{nt} = {100*ns/nt:.0f}% of families      "
                       f"(50% expected by chance;  z = {z:.1f})",
            transform=A.transAxes, fontsize=13, fontweight="bold", color=BLU, bbox=box)
-    A.text(.985, .93, f"stricter, within genus:  {gs}/{gt} = {100*gs/gt:.0f}%   (z = {gz:.1f})",
+    A.text(.975, .90, f"stricter, within genus:  {gs}/{gt} = {100*gs/gt:.0f}%   (z = {gz:.1f})",
            transform=A.transAxes, ha="right", va="top", fontsize=12, fontweight="bold", color=GRN,
            bbox=dict(boxstyle="round,pad=.35", fc="#eef7f2", ec=GRN, lw=1.3))
     A.set_ylim(W.delta.min()*1.32, W.delta.max()*1.35)

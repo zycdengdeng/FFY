@@ -1,0 +1,58 @@
+{
+  "_核实状态": "已核实。2026-09-10 逐行读取会议帧 frames/t_00-45-45.jpg（Shizhuo 分享的第 35 页）。",
+  "_图题": "Allometric scaling of long-bone proportions across vertebrates",
+  "_横轴原文": "Scaling exponent α  (d/L ∝ L^α)  —— 所以口径是 DL_vs_L，不是 D_vs_L",
+  "_骨骼对应": {
+    "tarso (L1)": "GROUND-foot · bird tarsometatarsus",
+    "tibio (L2)": "图上没有胫跗骨这一行 —— 我们的 L2 没有生物参照，不比",
+    "femur (L3)": "PERCH · bird femur"
+  },
+  "_我们该用哪一组": "AVONET 拟合用的是 waterbirds_all(n=214)，主体是鸭雁天鹅 → Heavy-bodied fliers；鹈鹕/鸬鹚/鹭属 Diving water-feeders。两组都列，先比 Heavy-bodied。",
+
+  "source": "Shizhuo Weng, 会议第 35 页 (2026-09-09, 45:45)；Heavy-bodied fliers (ducks/pheasants/cranes), n=63",
+  "convention": "DL_vs_L",
+  "values": {
+    "tarso (L1)": -0.38,
+    "femur (L3)": 0.12
+  },
+
+  "alternatives": [
+    {
+      "source": "同图 · Diving water-feeders (cormorants/herons/boobies), n=19",
+      "values": {"tarso (L1)": -0.57, "femur (L3)": -0.39}
+    },
+    {
+      "source": "同图 · Wading shorebirds (sandpipers/plovers), n=24",
+      "values": {"tarso (L1)": -0.12, "femur (L3)": 0.12}
+    },
+    {
+      "source": "同图 · Open-ocean soaring (gulls/albatross/auks), n=25",
+      "values": {"tarso (L1)": 0.02, "femur (L3)": 0.20}
+    },
+    {
+      "source": "同图 · Forest fliers (songbirds/pigeons/parrots), n=131",
+      "values": {"tarso (L1)": -0.24, "femur (L3)": 0.14}
+    },
+    {
+      "source": "同图 · Raptors (hawks/falcons/owls), n=40",
+      "values": {"tarso (L1)": -0.30, "femur (L3)": 0.22}
+    }
+  ],
+
+  "_跗跖骨全表_从图上逐行读出": {
+    "Open-ocean soaring (gulls/albatross/auks)": [0.02, 25],
+    "Wading shorebirds (sandpipers/plovers)": [-0.12, 24],
+    "Forest fliers (songbirds/pigeons/parrots)": [-0.24, 131],
+    "Raptors (hawks/falcons/owls)": [-0.30, 40],
+    "Heavy-bodied fliers (ducks/pheasants/cranes)": [-0.38, 63],
+    "Diving water-feeders (cormorants/herons/boobies)": [-0.57, 19]
+  },
+  "_股骨全表": {
+    "Raptors (hawks/falcons/owls)": [0.22, 46],
+    "Open-ocean soaring (gulls/albatross/auks)": [0.20, 25],
+    "Forest fliers (songbirds/pigeons/parrots)": [0.14, 131],
+    "Wading shorebirds (sandpipers/plovers)": [0.12, 24],
+    "Heavy-bodied fliers (ducks/pheasants/cranes)": [0.12, 63],
+    "Diving water-feeders (cormorants/herons/boobies)": [-0.39, 19]
+  }
+}
