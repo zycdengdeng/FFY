@@ -151,17 +151,24 @@ for f in outputs/v23_data_bio/e2[234]_*.json outputs/v23_data_bio/e2[234]_*.png 
          outputs/v23_e26/e2[67]_*.json outputs/v23_e26/e2[67]_*.png; do
   [ -f "$f" ] && cp -f "$f" "$REP/"
 done
+# 再打一个包放 logs/，不想走 git 的话直接下这一个文件
+PK="logs/ab_group_产物.tar.gz"
+tar czf "$PK" "$REP" 2>/dev/null
+
 echo; echo "=========== 产物已复制到 $REP ==========="
 ls -la "$REP" | tail -n +2
 du -sh "$REP"
+echo "打包：$PK  ($(du -h "$PK" 2>/dev/null | cut -f1))"
 
 echo; echo "=========== 全部结束（$(( ($(date +%s)-t0)/60 )) 分钟）==========="
 echo
 echo "① 想直接看：  cat $ROOT/$SUM"
 echo
-echo "② 想带回本地（reports/ 不在 .gitignore 里，能进 git）："
-echo "     cd $ROOT && git add -A reports && git commit -m 'A/B 组结果' && git push"
-echo "   然后本地 git pull，东西在 FFY/reports/ab_group/"
+echo "② 带回本地，两选一："
+echo "   a) 直接下载整个目录 $ROOT/$REP     （和你下 logs/ 一样）"
+echo "   b) 或者下这一个包 $ROOT/$PK"
+echo "   c) 或者走 git（reports/ 不在 .gitignore 里）："
+echo "        cd $ROOT && git add -A reports && git commit -m 'A/B 组结果' && git push"
 echo
 echo "重点看三个数（摘要文件开头就是）："
 echo "  · E22 ①夹逼诊断的「全部段合计」   —— 超 20% 这条结论作废"
