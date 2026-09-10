@@ -333,12 +333,15 @@ def _fig(L, D, clamp, res, bio, out_dir, tot):
                    color=COLS[s], lw=2.2)
     a.set_xscale("log"); a.set_yscale("log")
     a.set_xlabel("段长 L / mm"); a.set_ylabel("外径 D / mm")
-    a.set_title("(a) 纯力学反推出来的 D–L 标度\n被上下界夹住的样本 %.1f%%（灰点，不参与拟合）" % tot,
+    a.set_title("(a) 纯力学反推出来的 D–L 标度\n被上下界夹住 %.1f%%（灰点，不参与拟合）" % tot,
                 fontsize=11)
     a.legend(fontsize=8.5, frameon=False, loc="upper left"); a.grid(alpha=.2, which="both")
 
     b = ax[1]
-    R = res.get(bio.get("convention", "D_vs_L"), {})
+    conv = bio.get("convention", "D_vs_L")
+    # 与③同一口径：DL_vs_L 时用跨质量分箱那一组（全样本那组混了设计自由度，不可比）
+    key = "DL_vs_L_bymass" if (conv == "DL_vs_L" and res.get("DL_vs_L_bymass")) else conv
+    R = res.get(key, {})
     names = [n for n in SEGS if n in R] + (["pooled"] if "pooled" in R else [])
     y = np.arange(len(names))
     b.errorbar([R[n]["alpha"] for n in names], y,
@@ -353,12 +356,16 @@ def _fig(L, D, clamp, res, bio, out_dir, tot):
     if bio.get("convention", "D_vs_L") == "DL_vs_L":
         for a_, lab in ANCHORS:
             b.axvline(a_, color="#999", lw=1.0, ls=":" if a_ else "-")
-            b.text(a_, -0.72, lab.split()[0], rotation=90, fontsize=7.2,
-                   color="#777", ha="center", va="bottom")
+            b.text(a_, len(names) - 0.35, lab.split()[0], rotation=90, fontsize=7.4,
+                   color="#777", ha="center", va="top")
     b.axvline(0, color="k", lw=.8, ls=":")
     b.set_xlabel("标度指数 α"); b.grid(alpha=.22, axis="x")
-    b.set_title("(b) 模型 vs 生物\n%s" % ("（生物侧未提供）" if not bio.get("values") else
-                                      bio.get("source", "")), fontsize=11)
+    src = bio.get("source", "")
+    if len(src) > 46:
+        src = src[:44] + "…"
+    b.set_title("(b) 模型 vs 生物%s\n%s"
+                % ("（跨质量口径）" if key.endswith("bymass") else "",
+                   "（生物侧未提供）" if not bio.get("values") else src), fontsize=10.5)
     b.legend(fontsize=9, frameon=False)
     fig.tight_layout()
     fp = os.path.join(out_dir, "e22_dl_scaling.png")

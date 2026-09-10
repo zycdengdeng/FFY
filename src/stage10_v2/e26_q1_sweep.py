@@ -44,6 +44,7 @@ CONDS = [
     dict(tag="重·湿沙",  m=30.0, v0=2.0, kc=5.0e4),
 ]
 GCAP_G, SMAX = 10.0, 0.024
+MU_LO, MU_HI = 0.30, 0.40      # 打印尼龙-混凝土的手册区间（草地/湿沙无可引数据）
 BIO_LO, BIO_HI = 27.6, 54.8       # E28 实测跨度（11 次真实落水）
 BIO_MEAN = 42.6
 
@@ -326,6 +327,42 @@ def analyze(rows, args, out_dir):
     else:
         print("   → 没有一致方向，说明 q1_0 与设计强耦合。")
 
+    # ---- 足端摩擦够不够（零成本，但可能是整条实验最要紧的一段）----
+    print("=" * 76)
+    print("④ 这些姿态足端撑得住吗（估算，需 P9 验证）")
+    print("   把腿近似成沿「足-髋连线」受力的二力杆，则足端需要的摩擦系数 ≈ tan(前倾角)。")
+    print("   这只是量级估计 —— 关节有扭簧，足端力并不严格沿该连线。")
+    print("   **P9 要直接测水平/竖直地反力的峰值比，把这一栏换成实测。**")
+    print()
+    print("   %6s %8s %10s %13s   %s"
+          % ("q1_0", "前倾角", "μ_需要", "peak(相对50°)", "打印尼龙-混凝土 μ≈0.30–0.40"))
+    ref = None
+    for q, v in curve:
+        L = np.median([dd[q]["lean"] for dd in by.values() if q in dd])
+        t = np.tan(np.radians(L))
+        verdict = "安全" if t <= MU_LO else ("临界" if t <= MU_HI else "**滑**")
+        print("   %5.0f° %7.1f° %10.2f %12.2f×   %s" % (q, L, t, v, verdict))
+        if abs(q - 50) < 1e-6:
+            ref = t
+    gain = [(q, v, np.tan(np.radians(np.median([dd[q]["lean"] for dd in by.values() if q in dd]))))
+            for q, v in curve if v < 0.95]
+    if gain:
+        qb, vb, tb = min(gain, key=lambda r: r[1])       # 峰值最低的那一档
+        print()
+        if tb > MU_HI:
+            print("   **峰值过载的收益全部落在足端会打滑的区间里。**")
+        else:
+            print("   注意峰值收益与所需摩擦的对应关系：")
+        print("   最好的一档是 %.0f°（峰值 %.2f×），但它需要 μ ≥ %.2f，"
+              "而打印尼龙对混凝土只有 %.2f–%.2f。" % (qb, vb, tb, MU_LO, MU_HI))
+        if ref is not None:
+            print("   现在的常数 50° 需要 μ = %.2f —— **恰好在这套材料站得住的最倾斜姿态附近**。" % ref)
+        print()
+        print("   → 所以 q1_0 升为第 10 维**必须和足端摩擦一起做**（P9 / C1），")
+        print("     否则生成器会一路跑到下界，产出一批在真实地面上会打滑的设计。")
+        print("   → 真鸟能用 30° 前倾，是因为它们落在水面/软地、而且有脚趾可以抓，")
+        print("     不受 μ≈0.35 的约束。这条生物-工程对照值得写进论文。")
+
     # ---- 垂线那一点 ----
     print("=" * 76)
     print("③ 「髋在足正上方」那一档（每个设计闭式解出的 q1_0*）")
@@ -357,7 +394,10 @@ def analyze(rows, args, out_dir):
                 d_peak_at_vert_pct=float(np.median(dg)) if dg else None,
                 d_mass_at_vert_pct=float(np.median(dm)) if dm else None,
                 bio_span=[BIO_LO, BIO_HI], grid=list(args.grid),
-                curve_median=[[q, v] for q, v in curve])
+                curve_median=[[q, v] for q, v in curve],
+                mu_required={str(q): float(np.tan(np.radians(np.median(
+                    [dd[q]["lean"] for dd in by.values() if q in dd]))))
+                    for q, _ in curve})
     fp = os.path.join(out_dir, "e26_q1_sweep.json")
     json.dump(blob, open(fp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("→ %s" % fp)

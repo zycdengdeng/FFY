@@ -40,6 +40,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import physics_v2 as P                       # noqa: E402
+import froude as FR                          # noqa: E402
 from bioprior import BioPrior, ARMS          # noqa: E402
 
 # 工况范围
@@ -79,6 +80,14 @@ KEYS_V2 = ["peak_a", "stroke", "leg_stroke", "sink", "eta", "cfe", "peak_jerk",
            "E_abs", "F_peak", "rebound", "n_bounce", "t_settle",
            "leg_mass_kg", "mass_frac", "struct_over", "mass_over"]
 
+# ---- v2.5 新增落盘的量 ----
+# 前六个是横向物理(见 physics_v2._lateral);后面四个是"本来就算了却没存"的欠账 ——
+# E22 要用 D 和段长做标度检验,v2.3 没存,只能对 3000 个设计重跑一遍 eval_v2 才拿到。
+# 存下来以后那条实验就真是零成本。v0/mu_ground 是回弹与打滑判据的分母,必须一起存。
+KEYS_V25 = ["a_res", "peak_ax", "mu_demand", "slip", "x_drift", "e_gain",
+            "contact_frac", "v0", "v_x", "mu_ground",
+            "D1_mm", "D2_mm", "D3_mm", "L1_mm", "L2_mm", "L3_mm"]
+
 # 路径束的构成(《方案》§七):共 25 束时的配比
 WALK_MIX = [("v0", 10), ("m_allo", 6), ("m_iso", 4), ("kc", 5)]
 
@@ -106,14 +115,25 @@ def loguni(u, rg):
 
 
 def _eval_one(a):
-    x7, m, v0, kc, zc, npass, v21, foot = a
-    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": foot}
+    x7, m, v0, kc, zc, npass, v21, foot, v_x, planar = a
+    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": foot,
+             "mu_from_ground": bool(planar)}
             if v21 else None)
-    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base)
+    ALL = KEYS_V2 + KEYS_V25
+    try:
+        r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base,
+                      v_x=v_x, planar=planar)
+    except Exception as e:                       # 无人值守跑,子进程异常不许打断整批
+        return [None] * len(ALL) + [type(e).__name__]
     if r is None or r.get("fail"):
-        return [None] * len(KEYS_V2) + [(r or {}).get("fail", "none")]
+        return [None] * len(ALL) + [(r or {}).get("fail", "none")]
+    # 管径与段长:eval_v2 本来就返回,v2.3 只是没存(E22 的欠账)
+    D = list(r.get("D_mm", [np.nan] * 3)) + [np.nan] * 3
+    SL = list(r.get("seg_len", [np.nan] * 3)) + [np.nan] * 3
+    r = dict(r, D1_mm=D[0], D2_mm=D[1], D3_mm=D[2],
+             L1_mm=SL[0] * 1e3, L2_mm=SL[1] * 1e3, L3_mm=SL[2] * 1e3)
     out = []
-    for k in KEYS_V2:
+    for k in ALL:
         v = r.get(k, np.nan)
         v = float(v) if not isinstance(v, bool) else float(bool(v))
         out.append(v if np.isfinite(v) else None)
@@ -190,10 +210,22 @@ def main():
                     help='质量范围,如 "4,36"(默认)或 "1,12"(v2.1 老口径)')
     ap.add_argument("--foot", default="leg", choices=["leg", "bearing"],
                     help='足端定尺:"leg"=0.20·L1(v2.2 及以前);"bearing"=由 (m,k_c) 派生(v2.3)')
+    ap.add_argument("--v25", action="store_true",
+                    help="v2.5 物理:10 维设计(+q1_0)、机体面内自由平动、足端摩擦按地面取值、"
+                         "条件加 Froude 数。隐含 --v21。")
+    ap.add_argument("--planar", type=int, default=None,
+                    help="1=机体在 x-z 面内自由平动(v2.5 默认);0=保留竖直滑轨(回归测试)")
+    ap.add_argument("--fr-max", type=float, default=FR.FR_MAX_MAIN,
+                    help="主工厂的 Froude 数上界(默认 2.0,约合 2.6-5.5 m/s)")
     ap.add_argument("--v21", action="store_true",
                     help="v2.1 物理:9 维设计(含姿态)+ 髋阻尼统一式 + 放宽的 κ/τ 盒")
     ap.add_argument("--out", default="outputs/v2_data_bio")
     args = ap.parse_args()
+    if args.v25:
+        args.v21 = True
+    if args.planar is None:
+        args.planar = 1 if args.v25 else 0
+    args.planar = bool(args.planar)
     os.makedirs(args.out, exist_ok=True)
     fp = os.path.join(args.out, "factory.jsonl")
 
@@ -201,7 +233,9 @@ def main():
         global M_RANGE
         M_RANGE = tuple(float(v) for v in args.m_range.split(","))
     print(f"[factory-v2] 质量范围 {M_RANGE[0]:g}–{M_RANGE[1]:g} kg  ·  足端定尺 = {args.foot}")
-    prior = BioPrior(args.arm, v21=args.v21)
+    prior = BioPrior(args.arm, v21=args.v21, v25=args.v25)
+    print(f"[factory-v2] 设计维 {prior.ndim}  ·  面内平动 planar={args.planar}  ·  "
+          f"Fr ∈ [0, {args.fr_max}]（{100*FR.FR_ZERO_FRAC:.0f}% 精确取零）")
     rng = np.random.default_rng(args.seed)
     blocks = make_global_blocks(args.nglobal, args.nd, prior, rng)
     blocks += make_path_bundles(args.npath, args.nd, args.K, prior, rng)
@@ -225,9 +259,13 @@ def main():
                     pass
         print(f"[factory-v2] 续跑:已完成 {len(done)} 块")
 
-    json.dump(dict(arm=args.arm, prior=prior.describe(), keys=KEYS_V2,
-                   v21=bool(args.v21), u_dim=prior.ndim, foot_mode=args.foot,
-                   c_phys_order=["m", "v0", "kc"],
+    json.dump(dict(arm=args.arm, prior=prior.describe(), keys=KEYS_V2 + KEYS_V25,
+                   keys_v23=KEYS_V2, keys_v25=KEYS_V25,
+                   v21=bool(args.v21), v25=bool(args.v25), u_dim=prior.ndim,
+                   foot_mode=args.foot, planar=bool(args.planar),
+                   fr_max=args.fr_max, fr_zero_frac=FR.FR_ZERO_FRAC,
+                   c_phys_order=(["m", "v0", "kc", "Fr"] if args.v25
+                                 else ["m", "v0", "kc"]),
                    m_range=M_RANGE, v0_range=V0_RANGE, kc_range=list(KC_RANGE),
                    v0_cap_hard=V0_CAP_HARD, kc_hard=KC_HARD,
                    nglobal=args.nglobal, npath=args.npath, K=args.K, nd=args.nd,
@@ -243,13 +281,19 @@ def main():
                 continue
             U, X = block_designs(blk, prior)
             zc = zeta_of_kc(blk["kc"])
+            frs = FR.sample_fr(len(X), np.random.default_rng(7_000_000 + blk["cid"]),
+                               fr_max=args.fr_max) if args.planar else np.zeros(len(X))
+            vxs = FR.fr_to_vx(frs, blk["m"])
             Y = list(ex.map(_eval_one,
                             [(x, blk["m"], blk["v0"], blk["kc"], zc, args.npass,
-                              args.v21, args.foot) for x in X], chunksize=2))
+                              args.v21, args.foot, float(vx), bool(args.planar))
+                             for x, vx in zip(X, vxs)], chunksize=2))
             fails = [y[-1] for y in Y]
             f.write(json.dumps(dict(
                 cid=blk["cid"], bid=blk["bid"], kind=blk["kind"], walk=blk["walk"],
                 step=blk["step"], m=blk["m"], v0=blk["v0"], kc=blk["kc"], zeta_c=zc,
+                Fr=np.round(frs, 5).tolist(), v_x=np.round(vxs, 5).tolist(),
+                planar=bool(args.planar),
                 U=np.round(U, 5).tolist(), X=np.round(X, 4).tolist(),
                 Y=[y[:-1] for y in Y], fail=fails)) + "\n")
             f.flush()

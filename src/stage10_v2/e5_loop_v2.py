@@ -37,7 +37,8 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "stage7_generative"))
 import physics_v2 as P                                    # noqa: E402
 from bioprior import BioPrior                             # noqa: E402
-from factory_v2 import KEYS_V2, lhs, zeta_of_kc           # noqa: E402
+from factory_v2 import KEYS_V2, KEYS_V25, lhs, zeta_of_kc  # noqa: E402
+import froude as FR                                       # noqa: E402
 from dataset_v2 import (GCAP_RANGE, SMAX_RANGE, iP, iL,   # noqa: E402
                         iSO, iMO, feasible_mask, pareto2, split_by_bid)
 from train_cvae import CVAE, fit, norm                    # noqa: E402
@@ -56,34 +57,54 @@ class PoolV2:
     zc: float
     U: np.ndarray
     Y: np.ndarray
+    Fr: np.ndarray = None          # v2.5:每个设计各自的 Froude 数(v2.3 为全 0)
     seen: set = field(default_factory=set)
 
     def key(self, u):
         return tuple(np.round(u, 3))
 
-    def absorb(self, U_new, Y_new):
+    def absorb(self, U_new, Y_new, Fr_new=None):
         fresh = [i for i, u in enumerate(U_new) if self.key(u) not in self.seen]
         for i in fresh:
             self.seen.add(self.key(U_new[i]))
         if fresh:
             self.U = np.vstack([self.U, U_new[fresh]])
             self.Y = np.vstack([self.Y, Y_new[fresh]])
+            f = (np.zeros(len(U_new)) if Fr_new is None else np.asarray(Fr_new, float))
+            self.Fr = (f[fresh] if self.Fr is None
+                       else np.concatenate([self.Fr, f[fresh]]))
         return len(fresh)
+
+    def fr_of(self, j):
+        return 0.0 if self.Fr is None or j >= len(self.Fr) else float(self.Fr[j])
 
 
 V21 = False   # 运行时由 factory_meta 的 v21 覆盖;True 时髋阻尼用统一式 c=τ·k
 FOOT = "leg"  # 运行时由 factory_meta 的 foot_mode 覆盖;必须与工厂一致,否则训练集与评价不同物理
+V25 = False   # 运行时由 factory_meta 的 v25 覆盖;True 时条件 6 维、机体面内自由平动
+PLANAR = False
+FR_MAX = FR.FR_MAX_MAIN
+KEYS_ALL = KEYS_V2 + KEYS_V25
 
 
 def _eval_one(a):
-    x7, m, v0, kc, zc, npass = a
-    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": FOOT}
+    x7, m, v0, kc, zc, npass, v_x = a
+    base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": FOOT,
+             "mu_from_ground": PLANAR}
             if V21 else None)
-    r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base)
+    try:
+        r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base,
+                      v_x=v_x, planar=PLANAR)
+    except Exception:
+        return [None] * len(KEYS_ALL)
     if r is None or r.get("fail"):
-        return [None] * len(KEYS_V2)
+        return [None] * len(KEYS_ALL)
+    D = list(r.get("D_mm", [np.nan] * 3)) + [np.nan] * 3
+    SL = list(r.get("seg_len", [np.nan] * 3)) + [np.nan] * 3
+    r = dict(r, D1_mm=D[0], D2_mm=D[1], D3_mm=D[2],
+             L1_mm=SL[0] * 1e3, L2_mm=SL[1] * 1e3, L3_mm=SL[2] * 1e3)
     out = []
-    for k in KEYS_V2:
+    for k in KEYS_ALL:
         v = r.get(k, np.nan)
         v = float(bool(v)) if isinstance(v, bool) else float(v)
         out.append(v if np.isfinite(v) else None)
@@ -95,11 +116,21 @@ def simulate(ex, jobs):
     return np.array([[np.nan if v is None else v for v in r] for r in rows], float)
 
 
+def sample_vx(n, m, seed):
+    """给 n 个新设计各采一个 Froude 数并换成 m/s。v2.3 路径恒为 0。"""
+    if not V25:
+        return np.zeros(n)
+    fr = FR.sample_fr(n, np.random.default_rng(seed), fr_max=FR_MAX)
+    return FR.fr_to_vx(fr, m)
+
+
 def scatter(items):
-    """[(tag, X7, m, v0, kc, zc), ...] → (jobs, slices),跨工况打平吃满所有核。"""
+    """[(tag, X7, m, v0, kc, zc[, v_x]), ...] → (jobs, slices),跨工况打平吃满所有核。"""
     jobs, slices, ofs = [], {}, 0
-    for tag, X, m, v0, kc, zc in items:
-        jobs += [(x, m, v0, kc, zc, 2) for x in X]
+    for it in items:
+        tag, X, m, v0, kc, zc = it[:6]
+        vx = it[6] if len(it) > 6 else np.zeros(len(X))
+        jobs += [(x, m, v0, kc, zc, 2, float(v)) for x, v in zip(X, vx)]
         slices[tag] = slice(ofs, ofs + len(X)); ofs += len(X)
     return jobs, slices
 
@@ -111,13 +142,19 @@ def load_pools(fp):
         U = np.array(c["U"], float)
         Y = np.array([[np.nan if v is None else v for v in r] for r in c["Y"]], float)
         p = PoolV2(c["cid"], c["bid"], c["m"], c["v0"], c["kc"], c["zeta_c"], U, Y)
+        # v2.5 的工厂按设计存了 Fr;v2.3 的没有,补全 0（等价于纯垂直着陆）
+        p.Fr = np.asarray(c.get("Fr", [0.0] * len(U)), float)
         p.seen = {p.key(u) for u in U}
         pools[c["cid"]] = p
     return pools
 
 
-def cvec(p, gcap, smax):
-    return [np.log10(p.m), p.v0, np.log10(p.kc), gcap, smax]
+def cvec(p, gcap, smax, fr=0.0):
+    """条件向量。v2.5 加第 6 维 Froude 数(由 m 归一化的水平触地速度)。"""
+    c = [np.log10(p.m), p.v0, np.log10(p.kc), gcap, smax]
+    if V25:
+        c.append(float(fr))
+    return c
 
 
 # ---------------------------------------------------------------- 训练对
@@ -135,9 +172,9 @@ def build_pairs(pools, train_bids, kscen, ktop=8):
                 continue
             idx = np.where(fe)[0]
             front = idx[pareto2(p.Y[idx, iP], p.Y[idx, iL])][:ktop]
-            c = cvec(p, gcap, smax)
             for j in front:
-                C.append(c); U.append(p.U[j])
+                # v2.5:Fr 是逐设计的,条件向量要进循环里拼
+                C.append(cvec(p, gcap, smax, p.fr_of(int(j)))); U.append(p.U[j])
     return np.array(C, float).reshape(-1, 5), np.array(U, float).reshape(-1, DU)
 
 
@@ -163,7 +200,9 @@ def build_exam(ex, pools, test_bids, prior, nref, nexam, cache_fp, seed=5,
         smax = float(crng.uniform(*SMAX_RANGE))
         Uq = lhs(nref, DU, np.random.default_rng(600_000 + p.cid))
         Xq = prior.expand(Uq, p.m)
-        items.append((si, Xq, p.m, p.v0, p.kc, p.zc)); spec.append((p, gcap, smax))
+        # 考卷刻意固定 Fr = 0：题面必须跨轮次、跨种子完全一致，才谈得上比 gap。
+        items.append((si, Xq, p.m, p.v0, p.kc, p.zc, np.zeros(len(Xq))))
+        spec.append((p, gcap, smax))
     jobs, slices = scatter(items)
     Y = simulate(ex, jobs)
     exam, n_dead, n_thin = [], 0, 0
@@ -196,7 +235,8 @@ def eval_model(model, ex, exam, meta, prior, ngen):
             [np.log10(r["m"]), r["v0"], np.log10(r["kc"]), r["gcap"], r["smax"]]),
             c_lo, c_hi), dtype=torch.float32)
         Ug = model.sample(cn, ngen).numpy()
-        items.append((si, prior.expand(Ug, r["m"]), r["m"], r["v0"], r["kc"], r["zc"]))
+        items.append((si, prior.expand(Ug, r["m"]), r["m"], r["v0"], r["kc"], r["zc"],
+                      np.zeros(len(Ug))))
     jobs, slices = scatter(items)
     Y = simulate(ex, jobs)
     gaps, feas, cov = [], [], []
@@ -239,13 +279,18 @@ def main():
 
     fmeta = json.load(open(os.path.join(os.path.dirname(args.factory),
                                         "factory_meta.json")))
-    global DU, V21, FOOT
+    global DU, V21, FOOT, V25, PLANAR, FR_MAX
     DU = int(fmeta.get("u_dim", 7))
     V21 = bool(fmeta.get("v21", False))
+    V25 = bool(fmeta.get("v25", False))
+    PLANAR = bool(fmeta.get("planar", False))
+    FR_MAX = float(fmeta.get("fr_max", FR.FR_MAX_MAIN))
     FOOT = str(fmeta.get("foot_mode", "leg"))
-    print(f"[e5] 设计维 DU = {DU}  v21 = {V21}  足端定尺 = {FOOT}")
+    print(f"[e5] 设计维 DU = {DU}  v21 = {V21}  v25 = {V25}  足端定尺 = {FOOT}")
+    if V25:
+        print(f"[e5] 条件 6 维(含 Froude,上界 {FR_MAX})  ·  机体面内自由平动 planar={PLANAR}")
     prior = BioPrior(fmeta["arm"], sigma=fmeta["prior"]["sigma"],
-                     u_max=fmeta["prior"]["u_max"], v21=V21)
+                     u_max=fmeta["prior"]["u_max"], v21=V21, v25=V25)
     pools = load_pools(args.factory)
     tr_b, va_b, te_b = split_by_bid([p.bid for p in pools.values()],
                                     np.random.default_rng(3))
@@ -253,6 +298,8 @@ def main():
             np.log10(fmeta["kc_range"][0]), GCAP_RANGE[0] * 9.81, SMAX_RANGE[0]]
     c_hi = [np.log10(fmeta["m_range"][1]), fmeta["v0_range"][1],
             np.log10(fmeta["kc_range"][1]), GCAP_RANGE[1] * 9.81, SMAX_RANGE[1]]
+    if V25:
+        c_lo.append(0.0); c_hi.append(FR_MAX)
     gmeta = dict(c_order=["log10_m", "v0", "log10_kc", "gcap_ms2", "smax_m"],
                  c_lo=c_lo, c_hi=c_hi, arm=fmeta["arm"], prior=prior.describe(),
                  keys=KEYS_V2, u_dim=DU, split_by="bid",
@@ -273,7 +320,8 @@ def main():
             inc = json.loads(line)
             Yi = np.array([[np.nan if v is None else v for v in r]
                            for r in inc["Y"]], float)
-            n += pools[inc["cid"]].absorb(np.array(inc["U"], float), Yi)
+            n += pools[inc["cid"]].absorb(np.array(inc["U"], float), Yi,
+                                          inc.get("Fr"))
         print(f"[e5v2] 重放历史回灌 {n} 条")
 
     t0 = time.time()
@@ -308,7 +356,7 @@ def main():
 
             n_exp = int(round(args.kgen * args.eps))
             n_gen = max(2, args.kgen - n_exp)
-            items = []
+            items, newfr = [], {}
             for p in pools.values():
                 if p.bid not in tr_b:
                     continue
@@ -317,22 +365,32 @@ def main():
                 cand = [lhs(n_exp, DU, rng)]                       # 探索
                 for _ in range(2):                                 # 两个约束场景下开采
                     c = np.array(cvec(p, crng.uniform(*GCAP_RANGE) * 9.81,
-                                      crng.uniform(*SMAX_RANGE)))
+                                      crng.uniform(*SMAX_RANGE),
+                                      crng.uniform(0.0, FR_MAX) if V25 else 0.0))
                     cn = torch.tensor(norm(c, np.array(c_lo), np.array(c_hi)),
                                       dtype=torch.float32)
                     cand.append(model.sample(cn, n_gen // 2).numpy())
                 U_new = np.clip(np.vstack(cand), 0.0, 1.0)
-                items.append((p.cid, prior.expand(U_new, p.m), p.m, p.v0, p.kc, p.zc))
+                # v2.5:每个新设计各采一个 Fr —— 否则闭环只会在 Fr=0 上加密，
+                # 训练集的 Fr 分布会被工厂那一批锁死，越训越偏。
+                vx_new = sample_vx(len(U_new), p.m, 8_000_000 + rd * 10_000 + p.cid)
+                items.append((p.cid, prior.expand(U_new, p.m), p.m, p.v0, p.kc, p.zc,
+                              vx_new))
+                newfr[p.cid] = (FR.vx_to_fr(vx_new, p.m) if V25
+                                else np.zeros(len(U_new)))
             jobs, slices = scatter(items)
             Y = simulate(ex, jobs)
             added = 0
             with open(inc_fp, "a") as f:
-                for cid, X_new, m_, _, _, _ in items:
+                for it in items:
+                    cid, X_new, m_ = it[0], it[1], it[2]
                     Yn = Y[slices[cid]]
                     Un = prior.contract(X_new, m_)
-                    added += pools[cid].absorb(Un, Yn)
+                    frn = newfr.get(cid, np.zeros(len(Un)))
+                    added += pools[cid].absorb(Un, Yn, frn)
                     f.write(json.dumps(dict(
                         cid=cid, round=rd, U=np.round(Un, 5).tolist(),
+                        Fr=np.round(frn, 5).tolist(),
                         Y=[[None if not np.isfinite(v) else float(v) for v in r]
                            for r in Yn])) + "\n")
             print(f"[e5v2] r{rd}→r{rd+1}: 回灌 {added} 条(队列 {len(jobs)})"

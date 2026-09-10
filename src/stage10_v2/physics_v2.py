@@ -49,6 +49,21 @@ TERRAIN = {
 # 上界从 2e6 收到 1e6:足端不是刚体,弹性足垫与地面**串联**,
 # 有效接触刚度由较软者封顶;2e6 N/m 经一个 20mm 半径的足垫传递并不现实。
 KC_RANGE = (5.0e4, 1.0e6)
+
+# 足端摩擦系数随地面刚度变化。**这四个锚点是工程估计，不是实测**，
+# 和 κ、τ 一样属于"本工作设定"，写论文时必须标出来：
+#   混凝土 2e6 → 0.35（打印尼龙对混凝土的手册值 0.30–0.40）
+#   沥青   8e5 → 0.40
+#   草地   2e5 → 0.49（剪切主导，比硬地高）
+#   湿沙   5e4 → 0.60
+# 拟合式 mu = 2.916·k_c^(-0.1461)，夹到 [0.30, 0.65]。
+# v2.3 及以前统一用 0.5，且因为机体被竖直滑轨锁住，这个值几乎不起作用。
+MU_LEGACY = 0.5
+
+
+def mu_of_kc(kc):
+    """由地面刚度导出足端摩擦系数。见上面的出处说明 —— 是估计不是实测。"""
+    return float(np.clip(2.916 * float(kc) ** (-0.1461), 0.30, 0.65))
 ZETA_C_RANGE = (0.05, 0.35)
 
 # ---------------------------------------------------------------- 结构(绝对量)
@@ -57,6 +72,10 @@ SF = 2.0                 # 安全系数
 D_MAX_RATIO = 0.25       # 外径 / 段长 上限:超过即判不可行(杆件假设失效+干涉)
 D_MIN = 0.004            # 最小可制造外径 4mm(壁厚 0.4mm)
 NLEGS = 2                # 双腿分担
+# ---- v2.5 新增判据的默认参数（见《实验计划 v2.5》E24 / E26） ----
+REB_CAP = 0.05           # 回弹软闸：回能比 = rebound / (v0^2/2g) 的上限
+                         # 依据《回弹判据调研》v3；E24 实测按此打掉现有可行样本的 30.2%
+MU_SF = 1.0              # 足端打滑判据的安全系数：要求 mu_demand <= MU_SF * mu_ground
 MASS_FRAC_CAP = 0.06     # 腿总质量 / 机体质量 上限(6%,航空口径的结构质量预算)
 # 足端等效半径按跗跖长缩放(蹼足)。v1 固定 8 mm,与 33–121 mm 的跗跖长不自洽,
 # 且在软介质上会让侵入深度超过球半径,使球-面罚接触模型失效(被误判成"腿塌了")。
@@ -122,6 +141,13 @@ def size_x_v2(scen, x7, seg_mass=None):
     s["kc"] = float(scen["kc"])                                   # 绝对,不含 m
     s["cc"] = (0.01 * s["kc"] if scen.get("legacy_cc") else
                2.0 * float(scen.get("zeta_c", 0.15)) * np.sqrt(s["kc"] * scen["m"]))
+    s["v_x"] = float(scen.get("v_x", 0.0))       # 水平触地速度(m/s)，v2.5 新增
+    # mu 的取法：显式给了就用给的；否则 v2.5 由地面导出，legacy 路径保持 0.5
+    if "mu" not in scen or scen.get("mu") is None:
+        s["mu"] = mu_of_kc(s["kc"]) if scen.get("mu_from_ground") else MU_LEGACY
+    # planar=True: 机体在 x-z 平面内自由平动，水平力必须由足端摩擦承担（v2.5 的要害改动）
+    # planar=False: 保留 v2.3 的竖直滑轨约束，水平力由约束反力免费承担（回归测试用）
+    s["planar"] = bool(scen.get("planar", False))
     s["seg_mass"] = (list(seg_mass) if seg_mass is not None
                      else [SEG_FRAC_GUESS * scen["m"]] * 3)
     s["seg_len"] = [l1, r2 * l1, r3 * l1]
@@ -130,6 +156,10 @@ def size_x_v2(scen, x7, seg_mass=None):
     s["gap0"] = 0.3 * s["r_foot"]          # 初始离地间隙随足端一起缩放
     if len(xv) >= 9:                       # v2.1:姿态(度)是设计向量的第 8/9 维
         s["thetaA"] = np.radians(xv[7]); s["thetaK"] = np.radians(xv[8])
+    if len(xv) >= 10:                      # v2.5:跗跖骨倾角 q1_0(度)是第 10 维
+        # 原来它是 SCEN_BIRD_X 里的常数 50°。E26 实测它在生物学跨度内
+        # 让峰值过载变化 69.7%(中位) —— 一阶因素,不能冻结。
+        s["q1_0"] = np.radians(float(xv[9]))
     return s
 
 
@@ -138,6 +168,7 @@ def exu_eval_v2(x7, s):
     L1, r2, r3 = float(x7[0]), float(x7[1]), float(x7[2])
     l1 = L1 / 1000.0; l2 = r2 * l1; l3 = r3 * l1
     m, g, v0 = s["m"], s["g"], s["v0"]
+    vx = float(s.get("v_x", 0.0))
     m1, m2, m3 = s["seg_mass"]
     a1 = s["q1_0"]; a2 = a1 + (np.pi - s["thetaA"]); a3 = a2 - (np.pi - s["thetaK"])
     d = lambda a: np.array([np.cos(a), 0., np.sin(a)])
@@ -153,16 +184,24 @@ def exu_eval_v2(x7, s):
                                 sideLengths=[L, 0.02, 0.02])
         return mbs.CreateRigidBody(name=name, referencePosition=list(com),
                                    referenceRotationMatrix=rotY(ang),
-                                   initialVelocity=[0, 0, -v0],
+                                   initialVelocity=[vx, 0, -v0],
                                    inertia=inertia, gravity=[0, 0, -g])
     tarso = rod("tarso", Fp, A, a1, m1)
     tibio = rod("tibio", A, K, a2, m2)
     femur = rod("femur", K, H, a3, m3)
     body = mbs.CreateRigidBody(name="payload", referencePosition=list(H),
-                               initialVelocity=[0, 0, -v0],
+                               initialVelocity=[vx, 0, -v0],
                                inertia=InertiaSphere(mass=m, radius=0.12),
                                gravity=[0, 0, -g])
-    mbs.CreatePrismaticJoint(bodyNumbers=[ground, body], position=list(H), axis=[0, 0, 1])
+    if s["planar"]:
+        # 面内自由平动：放开 x 与 z，锁死 y 与全部转动。
+        # 这一放开是 v2.5 的要害 —— 只有机体能水平走，足端摩擦才真正约束姿态；
+        # v2.3 里水平力全被竖直滑轨的约束反力吃掉了，倾斜姿态是"免费"的。
+        mbs.CreateGenericJoint(bodyNumbers=[ground, body], position=list(H),
+                               constrainedAxes=[0, 1, 0, 1, 1, 1])
+    else:
+        mbs.CreatePrismaticJoint(bodyNumbers=[ground, body], position=list(H),
+                                 axis=[0, 0, 1])
     # P7:zener = dict(ratio=k2/k1, joints=("ankle","knee","hip")) → 该关节改为
     # 标准线性固体 k1 ∥ (k2 串 c):加一个 ODE1 内部状态 y(Maxwell 阻尼器转角),
     # ẏ = k2(θ−y)/c,力矩 = k1·θ + k2(θ−y)。无附加惯量,故不引入伪高频模态。
@@ -218,6 +257,11 @@ def exu_eval_v2(x7, s):
                                 dynamicFriction=s["mu"], frictionProportionalZone=1e-3)
     sAcc = mbs.AddSensor(SensorBody(bodyNumber=body, storeInternal=True,
                                     outputVariableType=exu.OutputVariableType.Acceleration))
+    # 三根杆的质心加速度：与机体一起做动量平衡，反推地面反力的水平/竖直分量。
+    # 不直接读接触对象的力 —— 那个接口在不同 exudyn 版本里名字不一样，动量平衡更稳。
+    sAccR = [mbs.AddSensor(SensorBody(bodyNumber=b, storeInternal=True,
+                                      outputVariableType=exu.OutputVariableType.Acceleration))
+             for b in (femur, tibio, tarso)]
     sPos = mbs.AddSensor(SensorBody(bodyNumber=body, storeInternal=True,
                                     outputVariableType=exu.OutputVariableType.Position))
     sRot = [mbs.AddSensor(SensorBody(bodyNumber=b, storeInternal=True,
@@ -277,6 +321,8 @@ def exu_eval_v2(x7, s):
     met.update(_metrics(t, z, az, m, g, v0))
     met.update(M_hip=Mj["hip"], M_knee=Mj["knee"], M_ankle=Mj["ankle"],
                seg_len=[l1, l2, l3], sink=sink, leg_stroke=leg_stroke)
+    met.update(_lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h))
+    met["mu_used"] = float(s["mu"])
     if s.get("keep_history"):
         # 留下整条时程供动画重播。默认关闭:一条时程约 40 万个数,批量跑时不要开。
         def _M(jn, kk_, cc_):
@@ -293,6 +339,53 @@ def exu_eval_v2(x7, s):
             M_ankle=_M("ankle", s["k_ankle"], s["c_ankle"]),
             seg_len=[l1, l2, l3], r_foot=s["r_foot"], m=m, g=g, v0=v0)
     return met
+
+
+def _lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h):
+    """v2.5 新增的横向量。全部由已有传感器算出，不额外增加求解成本。
+
+    地面反力用**整机动量平衡**反推，而不是去读接触对象的力：
+        F_x = Σ mᵢ·a_x,ᵢ                 （x 方向没有其它外力：重力竖直，
+                                          planar 约束只锁 y 与转动，不出 x 反力）
+        F_z = Σ mᵢ·a_z,ᵢ + M_total·g
+    planar=False 时竖直滑轨会出 x 反力，这时 F_x 不是地面给的，`mu_demand` 无意义，
+    所以只在 planar=True 时报它。
+    """
+    ax, az = acc[:, 1], acc[:, 3]
+    a_res = float(np.max(np.hypot(ax, az)))
+    out = dict(a_res=a_res, peak_ax=float(np.max(np.abs(ax))))
+
+    mr = list(s["seg_mass"])                       # 单腿三段
+    M_tot = float(m) + float(np.sum(mr))
+    Fx = float(m) * ax
+    Fz = float(m) * az
+    for j, sj in enumerate(sAccR):
+        a = mbs.GetSensorStoredData(sj)
+        n = min(len(a), len(ax))
+        Fx[:n] += mr[j] * a[:n, 1]
+        Fz[:n] += mr[j] * a[:n, 3]
+    Fz = Fz + M_tot * g                            # 地面反力的竖直分量
+
+    on = Fz > 0.2 * M_tot * g                      # 接触窗口
+    if on.any():
+        mu_dem = float(np.max(np.abs(Fx[on]) / np.maximum(Fz[on], 1e-9)))
+        fx = footxyz[:len(on)][on, 0]
+        slip = float(np.max(fx) - np.min(fx)) if len(fx) else 0.0
+    else:
+        mu_dem, slip = float("nan"), 0.0
+    out.update(mu_demand=mu_dem if s.get("planar") else float("nan"),
+               slip=slip, contact_frac=float(on.mean()))
+
+    x = pos[:, 1]
+    out["x_drift"] = float(x[-1] - x[0])
+
+    # 数值健康体检：末态总能不应高于初态（接触与摩擦只该耗散）
+    vz = np.gradient(pos[:, 3], h); vx_ = np.gradient(x, h)
+    e0 = 0.5 * m * (vx_[0] ** 2 + vz[0] ** 2) + m * g * pos[0, 3]
+    e1 = 0.5 * m * (vx_[-1] ** 2 + vz[-1] ** 2) + m * g * pos[-1, 3]
+    ke0 = max(0.5 * m * (vx_[0] ** 2 + vz[0] ** 2), 1e-9)
+    out["e_gain"] = float((e1 - e0) / ke0)
+    return out
 
 
 def size_structure(met, mat=MAT_DEFAULT, sf=SF, nlegs=NLEGS):
@@ -321,7 +414,7 @@ def size_structure(met, mat=MAT_DEFAULT, sf=SF, nlegs=NLEGS):
 
 def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
             legacy_kc=False, legacy_segmass=False, legacy_cc=False,
-            keep_history=False):
+            keep_history=False, v_x=None, planar=None, mu=None):
     """完整 v2 评价:落震 → 结构定尺 → 质量回代重算 → 可行性所需的全部量。
 
     两遍定点:第一遍用 2%·m 的杆件质量猜测跑出力矩,定尺得到真实杆件质量,
@@ -331,6 +424,13 @@ def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
     base = dict(SCEN_BIRD_X if base is None else base)
     scen = {**base, "m": float(m), "v0": float(v0),
             "kc": float(kc), "zeta_c": float(zeta_c)}
+    # v2.5：水平触地速度、面内自由平动、足端摩擦。三个都不给就完全退回 v2.3 行为。
+    if v_x is not None:
+        scen["v_x"] = float(v_x)
+    if planar is not None:
+        scen["planar"] = bool(planar)
+    if mu is not None:
+        scen["mu"] = float(mu)
     # legacy_* 用于通道归因:单独把某一处退回 v1 的写法,看不变性回来多少
     if legacy_kc:
         scen["kc"] = 4000.0 * float(m) * scen["g"]
@@ -355,7 +455,10 @@ def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
     met, rows, leg_mass, over = res
     frac = leg_mass / float(m)
     out = dict(met)
-    out.update(leg_mass_kg=leg_mass, mass_frac=frac,
+    out.update(m=float(m), v0=float(v0), kc=float(kc),      # 回弹判据要用 v0，必须落到输出里
+               v_x=scen.get("v_x", 0.0), planar=bool(scen.get("planar", False)),
+               mu_ground=float(met.get("mu_used", scen.get("mu", MU_LEGACY))),
+               leg_mass_kg=leg_mass, mass_frac=frac,
                sink_mm=1e3 * met.get("sink", 0.0),
                leg_stroke_mm=1e3 * met.get("leg_stroke", met["stroke"]),
                struct_over=bool(over), mass_over=bool(frac > MASS_FRAC_CAP),
@@ -367,13 +470,32 @@ def eval_v2(x7, m, v0, kc, zeta_c=0.15, mat=MAT_DEFAULT, npass=2, base=None,
     return out
 
 
-def feasible_v2(r, gcap, smax):
-    """v2 可行性。返回 (是否可行, 违反的判据列表)。
+def feasible_v2(r, gcap, smax, reb_cap=REB_CAP, mu_sf=MU_SF, use_a_res=None):
+    """v2.5 可行性。返回 (是否可行, 违反的判据列表)。
 
     **返回全部违反项而不是第一个** —— 只报第一个会让统计带上检查顺序的伪影:
     低质量端因为 g_cap 先失效,把它们的结构状态整个遮住,看上去像
     "高质量端才出现结构失效",其实只是高质量端峰值低、才轮得到结构判据被检查。
     实测教训,见《方案》实施记录 ④。
+
+    v2.5 相对 v2.3 的三处改动（依据见《实验计划 v2.5》）：
+
+    ① **过载判据改判合加速度 a_res = max‖(a_x, a_z)‖**，而不是只判竖直分量。
+       有水平速度以后竖直分量不再代表全部惯性载荷。
+       没有 `a_res`（老结果重打分）时自动退回 `peak_a`，所以旧数据照样能过。
+
+    ② **回弹软闸**（E24）：回能比 = rebound / (v0²/2g) ≤ reb_cap，默认 5%。
+       《回弹判据调研》v3 定的判据，一直算了但从来没挂上。
+       E24 实测：现有"可行"样本里 30.2% 会弹，进训练集的前沿点里 23.7% 会弹
+       —— 也就是说 v2.3 的训练目标里混了近四分之一会弹起来的设计。
+       足端离地 `n_bounce` 只记录不判死，同样依据 v3。
+
+    ③ **足端打滑硬闸**（E26）：mu_demand ≤ mu_sf · mu_ground。
+       E26 发现峰值过载的收益几乎全部落在需要 μ ≥ 0.47 的倾斜姿态上，
+       而打印尼龙对混凝土只有 0.30–0.40。没有这条闸，q1_0 一旦升为设计变量，
+       生成器会一路跑到 28°，产出一批在真实地面上会打滑的设计。
+       只有 planar=True 的结果才有 mu_demand（竖直滑轨下水平力由约束反力承担，
+       那个数没有物理意义），所以 NaN 时这条闸自动跳过。
     """
     if r is None:
         return False, ["none"]
@@ -382,12 +504,45 @@ def feasible_v2(r, gcap, smax):
     if not np.isfinite(r.get("peak_a", np.nan)):
         return False, ["nonfinite"]
     bad = []
-    if r["peak_a"] > gcap:
+
+    # ① 过载：有 a_res 就用 a_res，没有就退回 peak_a
+    a_use = r.get("a_res")
+    if use_a_res is False or a_use is None or not np.isfinite(a_use):
+        a_use = r["peak_a"]
+    if a_use > gcap:
         bad.append("gcap")
+
     if r.get("leg_stroke", r["stroke"]) > smax:
         bad.append("smax")
     if r["struct_over"]:
         bad.append("slenderness")     # 应力/屈曲要求的管径超过几何上限
     if r["mass_over"]:
         bad.append("massbudget")
+
+    # ② 回弹软闸
+    v0 = r.get("v0", None)
+    if v0 is None:
+        v0 = r.get("hist", {}).get("v0") if isinstance(r.get("hist"), dict) else None
+    reb = r.get("rebound", None)
+    if reb is not None and np.isfinite(reb) and v0:
+        h0 = float(v0) ** 2 / (2.0 * 9.81)
+        if h0 > 1e-12 and reb / h0 > reb_cap:
+            bad.append("rebound")
+
+    # ③ 足端打滑
+    md = r.get("mu_demand", None)
+    mg = r.get("mu_ground", None)
+    if md is not None and np.isfinite(md) and mg:
+        if md > mu_sf * float(mg):
+            bad.append("slip")
+
     return (not bad), (bad or ["ok"])
+
+
+def reb_ratio(r):
+    """回能比。单独拎出来，方便重打分脚本和判据共用同一套定义。"""
+    v0 = r.get("v0")
+    reb = r.get("rebound")
+    if not v0 or reb is None or not np.isfinite(reb):
+        return float("nan")
+    return float(reb) / max(float(v0) ** 2 / (2.0 * 9.81), 1e-12)

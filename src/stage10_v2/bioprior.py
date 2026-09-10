@@ -54,6 +54,20 @@ THK_RANGE = (118.0, 157.0)     # 膝角 thetaK(中位 133°)
 #    E20 实测 τ 与 κ踝 也贴旧下界跑(盒内 2–11% / 6–28%)。
 KAP_RANGE_V21 = [(0.75, 8.0), (1.5, 8.0), (3.0, 32.0)]
 ZETA_RANGE_V21 = (0.005, 0.10)
+
+# ---- v2.5(2026-09-10):跗跖骨倾角 q1_0 升为第 10 维设计变量 ----
+# 原来它是 SCEN_BIRD_X 里写死的场景常数 np.radians(50.0)。
+# E26 实测:在生物学跨度内只动 q1_0,峰值过载中位变化 **69.7%**(P90 85%,最大 212%),
+# 六个工况没有一个低于 60% —— 它是一阶因素,冻结在任何常数都不对。
+# 盒取 E28 的实测全距:Duong 12 段着水视频里 11 次有效落水的跗跖骨倾角 27.6–54.8°
+# (均值 42.6°±9.6°)。模型原来的 50° 落在这个区间的上部。
+#
+# ⚠ 这一维**必须配合足端打滑判据一起用**(physics_v2.feasible_v2 的 "slip" 闸)。
+# E26 同时发现:峰值过载的收益几乎全部落在需要 μ ≥ 0.47 的倾斜姿态上,
+# 而打印尼龙对混凝土只有 0.30–0.40。没有那条闸,最优会一路压到 28°,
+# 产出一批在真实地面上会打滑的设计。
+Q1_RANGE_V25 = (27.6, 54.8)     # 度;E28 实测全距
+Q1_LEGACY_DEG = 50.0            # v2.4 及以前的常数
 # 3) 髋阻尼统一式 c=τ·k 不在此处——由场景旗标 hip_damp_unified 控制(见 physics_v2)
 
 ARMS = {"bio": None, "geo": 1.0 / 3.0, "elastic": 0.25, "none": 0.0}
@@ -86,11 +100,13 @@ class BioPrior:
     """质量条件设计先验。expand: [0,1]^7 × m → 物理设计;contract 为其逆。"""
 
     def __init__(self, arm="bio", fit=None, sigma=None, u_max=U_MAX,
-                 m_ref_kg=M_REF_KG, clip=False, v21=False):
+                 m_ref_kg=M_REF_KG, clip=False, v21=False, v25=False):
         self.arm = arm
         self.clip = bool(clip)
-        self.v21 = bool(v21)
-        self.ndim = 9 if v21 else 7
+        self.v25 = bool(v25)
+        self.v21 = bool(v21 or v25)          # v25 是 v21 的超集,多第 10 维 q1_0
+        v21 = self.v21
+        self.ndim = (10 if self.v25 else 9) if v21 else 7
         self.kap_range = KAP_RANGE_V21 if v21 else KAP_RANGE
         self.zeta_range = ZETA_RANGE_V21 if v21 else ZETA_RANGE
         self.fit = fit or load_fit()
@@ -127,6 +143,8 @@ class BioPrior:
         if self.v21:                                   # 第 8/9 维:触地姿态(度)
             cols.append(self._lin(u[:, 7:8], THA_RANGE))
             cols.append(self._lin(u[:, 8:9], THK_RANGE))
+        if self.v25:                                   # 第 10 维:跗跖骨倾角 q1_0(度)
+            cols.append(self._lin(u[:, 9:10], Q1_RANGE_V25))
         x = np.concatenate(cols, 1)
         return x[0] if np.ndim(u01) == 1 else x
 
@@ -143,6 +161,8 @@ class BioPrior:
         if self.v21:
             cols.append(self._inv(x[:, 7:8], THA_RANGE))
             cols.append(self._inv(x[:, 8:9], THK_RANGE))
+        if self.v25:
+            cols.append(self._inv(x[:, 9:10], Q1_RANGE_V25))
         u = np.concatenate(cols, 1)
         return u[0] if np.ndim(x7) == 1 else u
 
@@ -160,18 +180,19 @@ class BioPrior:
         这个数要在论文里报出来,而不是靠裁剪把它藏起来。"""
         rng = np.random.default_rng(seed)
         m = 10 ** rng.uniform(np.log10(m_lo), np.log10(m_hi), n)
-        u = rng.random((n, 7))
+        u = rng.random((n, self.ndim))
         L1 = self.expand(u, m)[:, 0]
         return float(np.mean((L1 < L1_OBSERVED[0]) | (L1 > L1_OBSERVED[1])))
 
     def describe(self):
         return dict(arm=self.arm, a=self.a, b=self.b, sigma=self.sigma,
                     u_max=self.u_max, L1_ref_mm=self.L1_ref_mm, clip=self.clip,
-                    v21=self.v21, ndim=self.ndim,
+                    v21=self.v21, v25=self.v25, ndim=self.ndim,
                     kap_range=[list(r) for r in self.kap_range],
                     zeta_range=list(self.zeta_range),
                     tha_range=(list(THA_RANGE) if self.v21 else None),
                     thk_range=(list(THK_RANGE) if self.v21 else None),
+                    q1_range=(list(Q1_RANGE_V25) if self.v25 else None),
                     outside_observed=self.outside_observed(),
                     fit_n=self.fit["n"], fit_r2=self.fit.get("r2"))
 

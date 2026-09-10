@@ -24,15 +24,27 @@ import sys
 
 import numpy as np
 
-ND_U = 7   # 运行时由 factory_meta.json 的 u_dim 覆盖(v2.1 为 9)
+ND_U = 7    # 运行时由 factory_meta.json 的 u_dim 覆盖(v2.1 为 9,v2.5 为 10)
+FR6 = False # 运行时覆盖:v2.5 的条件向量第 6 维是 Froude 数
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from factory_v2 import KEYS_V2                    # noqa: E402
+from factory_v2 import KEYS_V2, KEYS_V25          # noqa: E402
 
+KEYS_ALL = KEYS_V2 + KEYS_V25
 iP, iS, iL = (KEYS_V2.index("peak_a"), KEYS_V2.index("stroke"),
               KEYS_V2.index("leg_stroke"))
 iSO, iMO = KEYS_V2.index("struct_over"), KEYS_V2.index("mass_over")
+iREB, iNB = KEYS_V2.index("rebound"), KEYS_V2.index("n_bounce")
+
+# v2.5 新增列的下标。**旧的 v2.3 工厂只有前 16 列**,所以这些下标可能越界 ——
+# feasible_mask 里逐个判 Y.shape[1],越界就当这条判据不存在,旧数据照样能重打分。
+_i25 = {k: len(KEYS_V2) + KEYS_V25.index(k) for k in KEYS_V25}
+iARES, iMUD, iMUG, iV0 = (_i25["a_res"], _i25["mu_demand"],
+                          _i25["mu_ground"], _i25["v0"])
+
+# 与 physics_v2.feasible_v2 同口径,改一处两处都要改
+REB_CAP, MU_SF, G = 0.05, 1.0, 9.81
 
 # 上界 15→25 g:v1 的 [4,15] 是按 v1 那个唯一(且偏软)的等效地面标定的;
 # v2 的地形跨到 1e6 N/m,硬地上生物设计盒里没有任何设计能进 15 g。
@@ -66,12 +78,38 @@ def to_Y(blk):
     return np.array([[np.nan if v is None else v for v in y] for y in blk["Y"]], float)
 
 
-def feasible_mask(Y, gcap, smax):
-    """与 physics_v2.feasible_v2 同口径:s_max 作用在**腿行程**上。"""
+def _col(Y, i):
+    """取第 i 列;越界(旧工厂没这一列)返回 None。"""
+    return Y[:, i] if Y.shape[1] > i else None
+
+
+def feasible_mask(Y, gcap, smax, reb_cap=REB_CAP, mu_sf=MU_SF):
+    """与 physics_v2.feasible_v2 同口径:s_max 作用在**腿行程**上。
+
+    v2.5 三处改动,与 physics_v2.feasible_v2 一一对应:
+      ① 过载改判合加速度 a_res(没有这一列就退回 peak_a);
+      ② 回弹软闸 rebound/(v0²/2g) ≤ 5%;
+      ③ 足端打滑 mu_demand ≤ mu_ground。
+    每一条都先看列在不在 —— **v2.3 的老工厂只有前 16 列,照样能重打分**。
+    """
     ok = np.isfinite(Y[:, iP])
-    return (ok & (Y[:, iP] <= gcap) & (Y[:, iL] <= smax)
-            & (np.nan_to_num(Y[:, iSO], nan=1.0) < 0.5)
-            & (np.nan_to_num(Y[:, iMO], nan=1.0) < 0.5))
+    a = _col(Y, iARES)
+    a = Y[:, iP] if a is None else np.where(np.isfinite(a), a, Y[:, iP])
+    m = (ok & (a <= gcap) & (Y[:, iL] <= smax)
+         & (np.nan_to_num(Y[:, iSO], nan=1.0) < 0.5)
+         & (np.nan_to_num(Y[:, iMO], nan=1.0) < 0.5))
+
+    reb, v0 = _col(Y, iREB), _col(Y, iV0)
+    if reb is not None and v0 is not None:
+        h0 = np.maximum(v0 ** 2 / (2.0 * G), 1e-12)
+        rr = np.nan_to_num(reb, nan=0.0) / h0
+        m &= np.where(np.isfinite(v0) & (v0 > 0), rr <= reb_cap, True)
+
+    mud, mug = _col(Y, iMUD), _col(Y, iMUG)
+    if mud is not None and mug is not None:
+        bad = np.isfinite(mud) & np.isfinite(mug) & (mud > mu_sf * mug)
+        m &= ~bad
+    return m
 
 
 def split_by_bid(bids, rng, frac=(0.70, 0.15, 0.15)):
@@ -97,9 +135,11 @@ def main():
         raise SystemExit(f"[dataset] 空工厂:{args.factory}")
     meta_f = json.load(open(os.path.join(os.path.dirname(args.factory),
                                          "factory_meta.json")))
-    global ND_U
+    global ND_U, FR6
     ND_U = int(meta_f.get("u_dim", 7))
-    print(f"[dataset] 设计维 u_dim = {ND_U}")
+    FR6 = bool(meta_f.get("v25")) and "Fr" in (blocks[0] if blocks else {})
+    print(f"[dataset] 设计维 u_dim = {ND_U}   条件维 = {6 if FR6 else 5}"
+          f"{'(含 Froude)' if FR6 else ''}")
     rng = np.random.default_rng(args.seed)
     tr_b, va_b, te_b = split_by_bid([b["bid"] for b in blocks], rng)
     print(f"[dataset] 块 {len(blocks)}  束 {len(tr_b)+len(va_b)+len(te_b)} "
@@ -122,14 +162,20 @@ def main():
             idx = np.where(fe)[0]
             front = pareto2(Y[idx, iP], Y[idx, iL])          # 峰值 vs 腿行程
             pick = idx[front][:args.ktop]
-            c = [np.log10(blk["m"]), blk["v0"], np.log10(blk["kc"]), gcap, smax]
             for j in pick:
+                # v2.5:条件第 6 维是 Froude 数,**逐个设计不同**(工厂按设计采的 Fr),
+                # 所以条件向量要进循环里拼,不能在循环外算一次。
+                c = [np.log10(blk["m"]), blk["v0"], np.log10(blk["kc"]), gcap, smax]
+                if FR6:
+                    c.append(float(blk["Fr"][j]))
                 buckets[tag][0].append(c); buckets[tag][1].append(U[j])
 
     c_lo = [np.log10(meta_f["m_range"][0]), meta_f["v0_range"][0],
             np.log10(meta_f["kc_range"][0]), GCAP_RANGE[0] * 9.81, SMAX_RANGE[0]]
     c_hi = [np.log10(meta_f["m_range"][1]), meta_f["v0_range"][1],
             np.log10(meta_f["kc_range"][1]), GCAP_RANGE[1] * 9.81, SMAX_RANGE[1]]
+    if FR6:
+        c_lo.append(0.0); c_hi.append(float(meta_f.get("fr_max", 2.0)))
 
     arrs = {}
     for k in ("tr", "va", "te"):
