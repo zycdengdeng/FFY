@@ -157,6 +157,14 @@ def size_x_v2(scen, x7, seg_mass=None):
     # planar=True: 机体在 x-z 平面内自由平动，水平力必须由足端摩擦承担（v2.5 的要害改动）
     # planar=False: 保留 v2.3 的竖直滑轨约束，水平力由约束反力免费承担（回归测试用）
     s["planar"] = bool(scen.get("planar", False))
+    if not s["planar"] and s["v_x"] != 0.0:
+        # **硬拦一道。** 竖直滑轨约束和水平初速在物理上是矛盾的：
+        # t=0 的初始条件直接违反约束，求解器会用一个冲量把水平速度抹掉，
+        # 结果是 a_res 上万 g 的纯数值垃圾（P9a 首跑 skid 那一路实测 22816 g）。
+        # 对置构型要带水平速度，正确做法是建两条镜像腿、机体照样自由平动，
+        # 不是把机体锁死再硬塞初速。在那之前，这里直接把 v_x 归零。
+        s["v_x"] = 0.0
+        s["v_x_dropped"] = True
     s["seg_mass"] = (list(seg_mass) if seg_mass is not None
                      else [SEG_FRAC_GUESS * scen["m"]] * 3)
     s["seg_len"] = [l1, r2 * l1, r3 * l1]
@@ -330,8 +338,10 @@ def exu_eval_v2(x7, s):
     met.update(_metrics(t, z, az, m, g, v0))
     met.update(M_hip=Mj["hip"], M_knee=Mj["knee"], M_ankle=Mj["ankle"],
                seg_len=[l1, l2, l3], sink=sink, leg_stroke=leg_stroke)
-    met.update(_lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h))
+    met.update(_lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h,
+                        rot_tarso=rot[2]))
     met["mu_used"] = float(s["mu"])
+    met["v_x_dropped"] = float(bool(s.get("v_x_dropped")))
     if s.get("keep_history"):
         # 留下整条时程供动画重播。默认关闭:一条时程约 40 万个数,批量跑时不要开。
         def _M(jn, kk_, cc_):
@@ -350,7 +360,7 @@ def exu_eval_v2(x7, s):
     return met
 
 
-def _lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h):
+def _lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h, rot_tarso=None):
     """v2.5 新增的横向量。全部由已有传感器算出，不额外增加求解成本。
 
     地面反力用**整机动量平衡**反推，而不是去读接触对象的力：
@@ -380,16 +390,28 @@ def _lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h):
     fx = footxyz[:len(on), 0]
     if on.any():
         mu_dem = float(np.max(np.abs(Fx[on]) / np.maximum(Fz[on], 1e-9)))
-        slip_tot = float(np.max(fx[on]) - np.min(fx[on]))
+        # **必须扣掉滚动**。足端是个球，跖骨杆一转，球心就水平移动 r·Δφ；
+        # bearing 模式下 r 最大到 60 mm，杆转 15° 就是 15 mm ——
+        # 和整个压缩行程同量级。不扣的话测到的是腿的运动学，不是滑移：
+        # P9 首跑时 μ 从 0.30 加到 2.50（8 倍）站住率纹丝不动，就是这个原因。
+        #   纯滚动：Δx_center = −r·Δφ_y   ⇒   滑移 = Δx_center + r·Δφ_y
+        rf = float(s["r_foot"])
+        phi = np.asarray(rot_tarso, float) if rot_tarso is not None else np.zeros(len(fx))
+        roll = rf * phi[:len(fx)]
+        i0 = int(np.argmax(on))
+        imin = i0 + int(np.argmin(z[i0:])) if i0 < len(z) - 1 else i0
+        slip_sig = (fx - fx[i0]) + (roll - roll[i0])          # 扣掉滚动后的净滑移
+        slip_tot = float(np.max(np.abs(slip_sig[on])))
         # **只统计竖直冲击窗口内的滑移**（触地 → 机体最低点）。
         # 整段接触期的滑移没有判据意义：带水平速度落地本来就会滑出
         # v_x²/(2μg) 那么远（2.6 m/s、μ=0.4 时就是 0.86 m），那是"滑行"不是"失效"。
         # 真正决定腿好不好的是：**竖直冲量还在传递的时候，足端有没有从机体底下走开**。
-        i0 = int(np.argmax(on))
-        imin = i0 + int(np.argmin(z[i0:])) if i0 < len(z) - 1 else i0
-        slip_imp = float(abs(fx[imin] - fx[i0])) if imin < len(fx) else slip_tot
+        slip_imp = float(abs(slip_sig[imin])) if imin < len(fx) else slip_tot
+        out["roll_mm"] = float(1e3 * abs(roll[imin] - roll[i0])) if imin < len(fx) else 0.0
+        out["foot_dx_mm"] = float(1e3 * abs(fx[imin] - fx[i0])) if imin < len(fx) else 0.0
     else:
         mu_dem, slip_tot, slip_imp = float("nan"), 0.0, 0.0
+        out["roll_mm"] = out["foot_dx_mm"] = 0.0
     out.update(mu_demand=mu_dem if s.get("planar") else float("nan"),
                slip=slip_imp, slip_total=slip_tot, contact_frac=float(on.mean()))
 

@@ -24,12 +24,16 @@ GCAP, SMAX = 10 * 9.81, 0.024
 def probe(ckpt):
     import torch
     model, meta = load_cvae(ckpt); pr = meta["prior"]
-    prior = BioPrior("bio", sigma=pr["sigma"], u_max=pr["u_max"], v21=True)
+    xd = model.dec[-2].out_features
+    cd_n = model.dec[0].in_features - model.zdim
+    prior = BioPrior("bio", sigma=pr["sigma"], u_max=pr["u_max"], v21=True,
+                     v25=(xd == 10))      # 10 维模型必须配 10 维先验，理由见 e21
     lo, hi = np.array(meta["c_lo"]), np.array(meta["c_hi"])
     mlo, mhi = 10 ** lo[0], 10 ** hi[0]
 
     def gen(m, v0, kc):
-        c = np.array([np.log10(m), v0, np.log10(kc), GCAP, SMAX]); torch.manual_seed(7)
+        c = np.array(([np.log10(m), v0, np.log10(kc), GCAP, SMAX] + [0.0])[:cd_n])
+        torch.manual_seed(7)
         with torch.no_grad():
             u = model.sample(torch.tensor(norm(c, lo, hi), dtype=torch.float32), 64).numpy()
         return prior.expand(np.clip(u, 0, 1), m).mean(0)

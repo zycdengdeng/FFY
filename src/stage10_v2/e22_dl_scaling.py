@@ -34,7 +34,7 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 from agroup_io import (load_blocks, to_Y, feasible_mask, selfcheck,      # noqa: E402
                        iter_requirements, default_factory, setup_font,
-                       CRIM, STEEL, GREEN, ORANGE)
+                       meta_of, CRIM, STEEL, GREEN, ORANGE)
 
 SEGS = ["tarso (L1)", "tibio (L2)", "femur (L3)"]
 
@@ -145,6 +145,37 @@ def re_evaluate(blocks, picks, workers, cache_fp):
                       "import physics_v2 as P;print(P.eval_v2.__name__)\"")
                 print("      提前收工，不浪费机时。\n")
                 return
+
+
+def rows_from_factory(fp, nreq):
+    """v2.5 的工厂把 D1_mm..L3_mm 直接落盘了，这里读出来拼成 analyze 要的格式。
+
+    这就是当初在 KEYS_V25 里加那六列的目的：E22 从"要对 3000 个设计重评"
+    变成"读盘即得"，而且样本量从抽样的 3000 变成全部可行设计。
+    """
+    meta = meta_of(fp)
+    keys = meta.get("keys") or []
+    need = ["D1_mm", "D2_mm", "D3_mm", "L1_mm", "L2_mm", "L3_mm"]
+    if not all(k in keys for k in need):
+        return []
+    ix = {k: keys.index(k) for k in need}
+    out = []
+    for blk in load_blocks(fp):
+        Y = to_Y(blk)
+        seen = np.zeros(len(Y), bool)
+        for gcap, smax in iter_requirements(blk, nreq):
+            seen |= feasible_mask(Y, gcap, smax)
+        for j in np.where(seen)[0]:
+            y = Y[j]
+            D = [y[ix["D1_mm"]], y[ix["D2_mm"]], y[ix["D3_mm"]]]
+            L = [y[ix["L1_mm"]], y[ix["L2_mm"]], y[ix["L3_mm"]]]
+            if not (np.all(np.isfinite(D)) and np.all(np.isfinite(L)) and min(L) > 0):
+                continue
+            out.append(dict(m=blk["m"], v0=blk["v0"], kc=blk["kc"],
+                            L_mm=[float(v) for v in L], D_mm=[float(v) for v in D],
+                            D_max_mm=[0.25 * float(v) for v in L],
+                            governs=["from-factory"] * 3))
+    return out
 
 
 # ---------------------------------------------------------------- 分析
@@ -384,10 +415,21 @@ def main():
     ap.add_argument("--mbins", type=int, default=12, help="跨质量口径的分箱数")
     ap.add_argument("--bio", default=os.path.join(HERE, "e22_bio_ref.json"))
     ap.add_argument("--analyze-only", action="store_true")
+    ap.add_argument("--from-factory", action="store_true",
+                    help="直接从 v2.5 工厂的 D_mm/L_mm 列读，不重评（零成本）")
     ap.add_argument("--fig", action="store_true")
     args = ap.parse_args()
     out_dir = args.out or os.path.dirname(args.factory)
     cache_fp = os.path.join(out_dir, "e22_resize_cache.jsonl")
+
+    # v2.5 的工厂已经把 D1_mm..L3_mm 落盘了，直接读，不用重评。
+    if args.from_factory:
+        rows = rows_from_factory(args.factory, args.nreq)
+        print("[e22] 从 v2.5 工厂直接读到 %d 条（零重评）" % len(rows))
+        if len(rows) < 30:
+            raise SystemExit("[e22] 这个工厂里没有 D_mm 列 —— 是 v2.3 的老工厂？去掉 --from-factory")
+        analyze(rows, args, out_dir)
+        return
 
     if not args.analyze_only:
         selfcheck()

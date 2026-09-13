@@ -90,7 +90,7 @@ KEYS_ALL = KEYS_V2 + KEYS_V25
 def _eval_one(a):
     x7, m, v0, kc, zc, npass, v_x = a
     base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": FOOT,
-             "mu_from_ground": PLANAR}
+             "mu_from_ground": V25}
             if V21 else None)
     try:
         r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base,
@@ -175,7 +175,9 @@ def build_pairs(pools, train_bids, kscen, ktop=8):
             for j in front:
                 # v2.5:Fr 是逐设计的,条件向量要进循环里拼
                 C.append(cvec(p, gcap, smax, p.fr_of(int(j)))); U.append(p.U[j])
-    return np.array(C, float).reshape(-1, 5), np.array(U, float).reshape(-1, DU)
+    # 条件维随版本变（v2.5 = 6，含 Froude）。写死 5 会炸在这里。
+    CD = 6 if V25 else 5
+    return np.array(C, float).reshape(-1, CD), np.array(U, float).reshape(-1, DU)
 
 
 # ---------------------------------------------------------------- 冻结考卷
@@ -231,9 +233,10 @@ def eval_model(model, ex, exam, meta, prior, ngen):
     c_lo, c_hi = np.array(meta["c_lo"]), np.array(meta["c_hi"])
     items = []
     for si, r in enumerate(exam):
-        cn = torch.tensor(norm(np.array(
-            [np.log10(r["m"]), r["v0"], np.log10(r["kc"]), r["gcap"], r["smax"]]),
-            c_lo, c_hi), dtype=torch.float32)
+        c = [np.log10(r["m"]), r["v0"], np.log10(r["kc"]), r["gcap"], r["smax"]]
+        if V25:
+            c.append(0.0)          # 考卷冻结在 Fr=0，题面跨轮次一致才谈得上比 gap
+        cn = torch.tensor(norm(np.array(c), c_lo, c_hi), dtype=torch.float32)
         Ug = model.sample(cn, ngen).numpy()
         items.append((si, prior.expand(Ug, r["m"]), r["m"], r["v0"], r["kc"], r["zc"],
                       np.zeros(len(Ug))))
@@ -299,7 +302,10 @@ def main():
     c_hi = [np.log10(fmeta["m_range"][1]), fmeta["v0_range"][1],
             np.log10(fmeta["kc_range"][1]), GCAP_RANGE[1] * 9.81, SMAX_RANGE[1]]
     if V25:
-        c_lo.append(0.0); c_hi.append(FR_MAX)
+        # Fr 上界至少取 1.0：skid 构型 fr_max=0（纯垂直），照抄会让
+        # (c_hi-c_lo)=0，norm 除零 → 整个数据集变 NaN。取 1.0 后该列恒为 0，
+        # 是个无害的常数输入，且与 bird 的归一化口径兼容。
+        c_lo.append(0.0); c_hi.append(max(FR_MAX, 1.0))
     gmeta = dict(c_order=["log10_m", "v0", "log10_kc", "gcap_ms2", "smax_m"],
                  c_lo=c_lo, c_hi=c_hi, arm=fmeta["arm"], prior=prior.describe(),
                  keys=KEYS_V2, u_dim=DU, split_by="bid",

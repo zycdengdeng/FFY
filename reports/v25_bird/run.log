@@ -1,0 +1,5915 @@
+构型 CONFIG=bird (planar=1)  workers=128  rounds=40  seeds=0 1
+日志 logs/v25_bird_20260910_232239.log
+
+=========== 0/6 · 回归测试（对 v2.3 存档逐条比 peak_a，要求最大偏差 < 0.5%） ===========
+[p9/reg] 297 个点，多进程 128
+      200/297 失败 0 (17s, 预计剩 8s)
+      297/297 失败 0 (18s, 预计剩 0s)
+==========================================================================
+回归测试：planar=False, v_x=0，与 v2.3 工厂存档逐条比 peak_a
+   n = 297（失败 0）
+   相对偏差：中位 +0.0003%   P95 0.1129%   最大 0.3704%
+   → 通过（最大偏差 < 0.5%），重构没动物理。
+==========================================================================
+退出码 0
+[累计 0 分钟]
+
+=========== 1/6 · P9a 准入体检（三条数值判据 + 用可行率给 Fr 上界定标） ===========
+[p9/a] 9600 个点，多进程 128
+      200/9600 失败 17 (22s, 预计剩 1015s)
+      400/9600 失败 31 (25s, 预计剩 578s)
+      600/9600 失败 48 (34s, 预计剩 516s)
+      800/9600 失败 56 (41s, 预计剩 455s)
+      1000/9600 失败 68 (48s, 预计剩 409s)
+      1200/9600 失败 89 (57s, 预计剩 396s)
+      1400/9600 失败 103 (67s, 预计剩 390s)
+      1600/9600 失败 121 (74s, 预计剩 369s)
+      1800/9600 失败 128 (82s, 预计剩 354s)
+      2000/9600 失败 141 (89s, 预计剩 337s)
+      2200/9600 失败 159 (97s, 预计剩 328s)
+      2400/9600 失败 172 (106s, 预计剩 318s)
+      2600/9600 失败 184 (112s, 预计剩 301s)
+      2800/9600 失败 191 (124s, 预计剩 300s)
+      3000/9600 失败 205 (130s, 预计剩 287s)
+      3200/9600 失败 223 (139s, 预计剩 277s)
+      3400/9600 失败 236 (147s, 预计剩 268s)
+      3600/9600 失败 248 (153s, 预计剩 255s)
+      3800/9600 失败 258 (161s, 预计剩 246s)
+      4000/9600 失败 274 (171s, 预计剩 239s)
+      4200/9600 失败 290 (177s, 预计剩 228s)
+      4400/9600 失败 304 (187s, 预计剩 221s)
+      4600/9600 失败 312 (195s, 预计剩 212s)
+      4800/9600 失败 322 (202s, 预计剩 202s)
+      5000/9600 失败 339 (212s, 预计剩 195s)
+      5200/9600 失败 353 (219s, 预计剩 186s)
+      5400/9600 失败 368 (229s, 预计剩 178s)
+      5600/9600 失败 375 (237s, 预计剩 169s)
+      5800/9600 失败 387 (245s, 预计剩 160s)
+      6000/9600 失败 404 (254s, 预计剩 152s)
+      6200/9600 失败 417 (264s, 预计剩 145s)
+      6400/9600 失败 432 (269s, 预计剩 135s)
+      6600/9600 失败 437 (277s, 预计剩 126s)
+      6800/9600 失败 445 (287s, 预计剩 118s)
+      7000/9600 失败 463 (294s, 预计剩 109s)
+      7200/9600 失败 476 (303s, 预计剩 101s)
+      7400/9600 失败 488 (310s, 预计剩 92s)
+      7600/9600 失败 495 (321s, 预计剩 84s)
+      7800/9600 失败 507 (330s, 预计剩 76s)
+      8000/9600 失败 522 (337s, 预计剩 67s)
+      8200/9600 失败 533 (347s, 预计剩 59s)
+      8400/9600 失败 541 (355s, 预计剩 51s)
+      8600/9600 失败 547 (361s, 预计剩 42s)
+      8800/9600 失败 560 (372s, 预计剩 34s)
+      9000/9600 失败 576 (380s, 预计剩 25s)
+      9200/9600 失败 590 (388s, 预计剩 17s)
+      9400/9600 失败 598 (398s, 预计剩 8s)
+      9600/9600 失败 607 (401s, 预计剩 0s)
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+→ outputs/v25_bird_p9/p9_a.jsonl
+==========================================================================
+准入体检（planar=True, Fr ∈ [0,2]）
+   总点数 9600，solver 失败 607（6.3%）
+   失败原因：[('collapse', 606), ('solver', 1)]
+   1 失败率 ≤ 10%              : 过 (6.3%)
+   2 max(e_gain) < 0.02（不造能）: 过 (最大 -0.9838，中位 -1.11)
+   3 slip 随 Fr 单调             : 过
+--------------------------------------------------------------------------
+   4 ★ 可行率随 Fr 怎么掉（据此定主工厂的 Fr 上界）
+          Fr       可行率%       滑移中位mm        滑移/L1     a_res中位g
+         0.0        4.7         13.7         0.11         6.70
+         0.5        0.6         51.5         0.41         4.81
+         1.0        0.0        144.8         1.17         2.44
+         1.5        0.0        287.5         2.35         2.33
+         2.0        0.0        441.7         3.60         2.33
+      → 可行率 ≥ 20% 的最大 Fr = **0.0**
+        比原定的 2.0 低。主工厂的 --fr-max 应改成这个数，
+        否则一大半样本落在物理上站不住的区间里，训练目标会被污染。
+--------------------------------------------------------------------------
+→ 三条数值判据全过。Fr 上界按上面第 4 条取。
+==========================================================================
+退出码 0
+[累计 7 分钟]
+[v25/bird] 主工厂的 Fr 上界取 0.5（由 P9a 的可行率曲线定标）
+
+=========== 1b/6 · μ 扫描（求临界摩擦系数，Fr=0，硬地） ===========
+[p9/mu] 13440 个点，多进程 128
+      200/13440 失败 13 (15s, 预计剩 1000s)
+      400/13440 失败 25 (25s, 预计剩 821s)
+      600/13440 失败 37 (36s, 预计剩 764s)
+      800/13440 失败 48 (41s, 预计剩 651s)
+      1000/13440 失败 57 (46s, 预计剩 571s)
+      1200/13440 失败 66 (56s, 预计剩 570s)
+      1400/13440 失败 76 (68s, 预计剩 587s)
+      1600/13440 失败 84 (71s, 预计剩 523s)
+      1800/13440 失败 91 (78s, 预计剩 505s)
+      2000/13440 失败 97 (86s, 预计剩 493s)
+      2200/13440 失败 103 (94s, 预计剩 482s)
+      2400/13440 失败 107 (102s, 预计剩 469s)
+      2600/13440 失败 109 (110s, 预计剩 459s)
+      2800/13440 失败 110 (119s, 预计剩 452s)
+      3000/13440 失败 110 (127s, 预计剩 443s)
+      3200/13440 失败 110 (133s, 预计剩 426s)
+      3400/13440 失败 110 (141s, 预计剩 415s)
+      3600/13440 失败 110 (150s, 预计剩 410s)
+      3800/13440 失败 110 (155s, 预计剩 393s)
+      4000/13440 失败 110 (162s, 预计剩 383s)
+      4200/13440 失败 110 (169s, 预计剩 371s)
+      4400/13440 失败 110 (178s, 预计剩 365s)
+      4600/13440 失败 118 (185s, 预计剩 355s)
+      4800/13440 失败 127 (194s, 预计剩 348s)
+      5000/13440 失败 137 (200s, 预计剩 337s)
+      5200/13440 失败 146 (210s, 预计剩 332s)
+      5400/13440 失败 155 (217s, 预计剩 323s)
+      5600/13440 失败 164 (227s, 预计剩 318s)
+      5800/13440 失败 171 (235s, 预计剩 309s)
+      6000/13440 失败 177 (242s, 预计剩 300s)
+      6200/13440 失败 184 (251s, 预计剩 293s)
+      6400/13440 失败 190 (258s, 预计剩 283s)
+      6600/13440 失败 197 (266s, 预计剩 276s)
+      6800/13440 失败 201 (273s, 预计剩 267s)
+      7000/13440 失败 203 (281s, 预计剩 259s)
+      7200/13440 失败 206 (289s, 预计剩 250s)
+      7400/13440 失败 206 (298s, 预计剩 243s)
+      7600/13440 失败 206 (306s, 预计剩 235s)
+      7800/13440 失败 206 (314s, 预计剩 227s)
+      8000/13440 失败 206 (322s, 预计剩 219s)
+      8200/13440 失败 206 (330s, 预计剩 211s)
+      8400/13440 失败 206 (337s, 预计剩 202s)
+      8600/13440 失败 206 (344s, 预计剩 194s)
+      8800/13440 失败 206 (352s, 预计剩 185s)
+      9000/13440 失败 208 (360s, 预计剩 178s)
+      9200/13440 失败 217 (369s, 预计剩 170s)
+      9400/13440 失败 227 (378s, 预计剩 162s)
+      9600/13440 失败 236 (385s, 预计剩 154s)
+      9800/13440 失败 245 (394s, 预计剩 146s)
+      10000/13440 失败 252 (400s, 预计剩 138s)
+      10200/13440 失败 258 (410s, 预计剩 130s)
+      10400/13440 失败 264 (418s, 预计剩 122s)
+      10600/13440 失败 270 (426s, 预计剩 114s)
+      10800/13440 失败 276 (434s, 预计剩 106s)
+      11000/13440 失败 283 (444s, 预计剩 98s)
+      11200/13440 失败 289 (452s, 预计剩 90s)
+      11400/13440 失败 292 (460s, 预计剩 82s)
+      11600/13440 失败 295 (467s, 预计剩 74s)
+      11800/13440 失败 296 (476s, 预计剩 66s)
+      12000/13440 失败 296 (485s, 预计剩 58s)
+      12200/13440 失败 296 (493s, 预计剩 50s)
+      12400/13440 失败 296 (501s, 预计剩 42s)
+      12600/13440 失败 296 (509s, 预计剩 34s)
+      12800/13440 失败 296 (517s, 预计剩 26s)
+      13000/13440 失败 296 (525s, 预计剩 18s)
+      13200/13440 失败 296 (532s, 预计剩 10s)
+      13400/13440 失败 296 (536s, 预计剩 2s)
+      13440/13440 失败 296 (536s, 预计剩 0s)
+==========================================================================
+μ 扫描：多大的摩擦系数才能让足端站住（Fr=0，硬地 k_c=1e6，滑移<2mm 算站住）
+     q1_0     μ_crit    tan(前倾)   各 μ 下的站住率
+      28°       >2.5       1.00   3% 8% 10% 8% 10% 2% 2%
+      31°       >2.5       0.90   5% 8% 8% 11% 7% 5% 5%
+      34°       >2.5       0.81   7% 10% 8% 12% 6% 5% 6%
+      37°       >2.5       0.73   7% 10% 10% 20% 8% 8% 8%
+      40°       >2.5       0.65   10% 11% 13% 14% 9% 9% 9%
+      43°       >2.5       0.58   14% 16% 17% 13% 13% 13% 14%
+      46°       >2.5       0.51   22% 22% 26% 19% 19% 20% 20%
+      49°       >2.5       0.44   27% 27% 27% 24% 25% 26% 26%
+      52°       >2.5       0.38   35% 39% 33% 33% 33% 33% 33%
+      55°       >2.5       0.32   39% 41% 38% 38% 38% 38% 38%
+   （最后一列依次对应 μ = 0.30, 0.40, 0.50, 0.70, 1.00, 1.50, 2.50）
+--------------------------------------------------------------------------
+   **所有姿态在 μ ≤ 2.5 下都站不住** —— 这不是摩擦不够，是模型里有别的问题，先查。
+==========================================================================
+退出码 0
+[累计 15 分钟]
+
+=========== 2/6 · P9b 崩溃阶梯（Fr 2→15，只为定位现有接触模型在哪一档崩） ===========
+[p9/b] 11520 个点，多进程 128
+      200/11520 失败 142 (14s, 预计剩 804s)
+      400/11520 失败 328 (17s, 预计剩 484s)
+      600/11520 失败 484 (21s, 预计剩 384s)
+      800/11520 失败 654 (28s, 预计剩 380s)
+      1000/11520 失败 824 (29s, 预计剩 302s)
+      1200/11520 失败 982 (37s, 预计剩 318s)
+      1400/11520 失败 1167 (37s, 预计剩 268s)
+      1600/11520 失败 1309 (45s, 预计剩 281s)
+      1800/11520 失败 1509 (45s, 预计剩 245s)
+      2000/11520 失败 1649 (53s, 预计剩 253s)
+      2200/11520 失败 1849 (53s, 预计剩 225s)
+      2400/11520 失败 1991 (60s, 预计剩 228s)
+      2600/11520 失败 2191 (60s, 预计剩 206s)
+      2800/11520 失败 2332 (69s, 预计剩 214s)
+      3000/11520 失败 2532 (69s, 预计剩 195s)
+      3200/11520 失败 2671 (77s, 预计剩 199s)
+      3400/11520 失败 2871 (77s, 预计剩 183s)
+      3600/11520 失败 3013 (85s, 预计剩 186s)
+      3800/11520 失败 3213 (85s, 预计剩 172s)
+      4000/11520 失败 3355 (93s, 预计剩 174s)
+      4200/11520 失败 3555 (93s, 预计剩 161s)
+      4400/11520 失败 3695 (101s, 预计剩 163s)
+      4600/11520 失败 3895 (101s, 预计剩 151s)
+      4800/11520 失败 4037 (107s, 预计剩 150s)
+      5000/11520 失败 4230 (112s, 预计剩 146s)
+      5200/11520 失败 4378 (115s, 预计剩 140s)
+      5400/11520 失败 4555 (121s, 预计剩 138s)
+      5600/11520 失败 4717 (123s, 预计剩 130s)
+      5800/11520 失败 4880 (131s, 预计剩 129s)
+      6000/11520 失败 5059 (131s, 预计剩 121s)
+      6200/11520 失败 5208 (139s, 预计剩 119s)
+      6400/11520 失败 5400 (139s, 预计剩 111s)
+      6600/11520 失败 5540 (147s, 预计剩 109s)
+      6800/11520 失败 5740 (147s, 预计剩 102s)
+      7000/11520 失败 5882 (154s, 预计剩 99s)
+      7200/11520 失败 6082 (154s, 预计剩 92s)
+      7400/11520 失败 6223 (162s, 预计剩 90s)
+      7600/11520 失败 6423 (162s, 预计剩 84s)
+      7800/11520 失败 6561 (169s, 预计剩 81s)
+      8000/11520 失败 6761 (169s, 预计剩 74s)
+      8200/11520 失败 6903 (178s, 预计剩 72s)
+      8400/11520 失败 7103 (178s, 预计剩 66s)
+      8600/11520 失败 7244 (185s, 预计剩 63s)
+      8800/11520 失败 7444 (185s, 预计剩 57s)
+      9000/11520 失败 7583 (194s, 预计剩 54s)
+      9200/11520 失败 7783 (194s, 预计剩 49s)
+      9400/11520 失败 7924 (201s, 预计剩 45s)
+      9600/11520 失败 8124 (201s, 预计剩 40s)
+      9800/11520 失败 8264 (209s, 预计剩 37s)
+      10000/11520 失败 8449 (215s, 预计剩 33s)
+      10200/11520 失败 8602 (217s, 预计剩 28s)
+      10400/11520 失败 8773 (224s, 预计剩 24s)
+      10600/11520 失败 8944 (225s, 预计剩 20s)
+      10800/11520 失败 9100 (232s, 预计剩 15s)
+      11000/11520 失败 9285 (233s, 预计剩 11s)
+      11200/11520 失败 9424 (238s, 预计剩 7s)
+      11400/11520 失败 9624 (238s, 预计剩 3s)
+      11520/11520 失败 9744 (238s, 预计剩 0s)
+→ outputs/v25_bird_p9/p9_b.jsonl
+==========================================================================
+崩溃阶梯（planar=True，Fr 2→15）—— 不设通过与否，产出就是「在哪一档崩」
+       Fr       失败率%    下陷P95mm  |e_gain|P95       滑移中位mm  mu_demand中位
+      2.0        7.5       3.30       1.1226        441.7        0.654
+      4.0      100.0        nan          nan          nan          nan
+      6.0      100.0        nan          nan          nan          nan
+      9.0      100.0        nan          nan          nan          nan
+     12.0      100.0        nan          nan          nan          nan
+     15.0      100.0        nan          nan          nan          nan
+--------------------------------------------------------------------------
+   → 现有接触模型在 **Fr ≈ 2** 开始失效（≈ 4–5 m/s，看质量）。
+     这就是论文里那句方法边界：本文的点接触 + 库仑摩擦模型只在 Fr < 2 有效，
+     滑跑着陆需要另一套接触模型和轮系拓扑 —— 单独立项，不在 v2.5 范围内。
+==========================================================================
+退出码 0
+[累计 19 分钟]
+
+=========== 3/6 · 数据工厂 v2.5（10 维设计 + 6 维条件 + 面内平动） ===========
+[factory-v2] 质量范围 4–36 kg  ·  足端定尺 = bearing
+[factory-v2] 设计维 10  ·  面内平动 planar=True  ·  Fr ∈ [0, 0.5]（40% 精确取零）
+[factory-v2] 臂=bio  独立块 375 + 路径 25束×5步 = 500 块 × 120 设计 × 2 遍 = 120000 次仿真
+[factory-v2] 路径占比 25%  先验: {"arm": "bio", "a": 0.4789938330118746, "b": 0.39112926377807683, "sigma": 0.07835045439266342, "u_max": 2.5, "L1_ref_mm": 73.01823105157997, "clip": false, "v21": true, "v25": true, "ndim": 10, "kap_range": [[0.75, 8.0], [1.5, 8.0], [3.0, 32.0]], "zeta_range": [0.005, 0.1], "tha_range": [113.0, 160.0], "thk_range": [118.0, 157.0], "q1_range": [27.6, 54.8], "outside_observed": 0.11675, "fit_n": 214, "fit_r2": 0.754128606756704}
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+[factory-v2] 10/500  本块失败 1/120  (105s, ~10.5s/块, 预计剩 86 分钟)
+[factory-v2] 20/500  本块失败 3/120  (202s, ~10.1s/块, 预计剩 81 分钟)
+[factory-v2] 30/500  本块失败 3/120  (297s, ~9.9s/块, 预计剩 78 分钟)
+[factory-v2] 40/500  本块失败 1/120  (394s, ~9.8s/块, 预计剩 75 分钟)
+[factory-v2] 50/500  本块失败 1/120  (484s, ~9.7s/块, 预计剩 73 分钟)
+[factory-v2] 60/500  本块失败 3/120  (586s, ~9.8s/块, 预计剩 72 分钟)
+[factory-v2] 70/500  本块失败 0/120  (676s, ~9.7s/块, 预计剩 69 分钟)
+[factory-v2] 80/500  本块失败 2/120  (764s, ~9.5s/块, 预计剩 67 分钟)
+[factory-v2] 90/500  本块失败 2/120  (854s, ~9.5s/块, 预计剩 65 分钟)
+[factory-v2] 100/500  本块失败 1/120  (954s, ~9.5s/块, 预计剩 64 分钟)
+[factory-v2] 110/500  本块失败 2/120  (1065s, ~9.7s/块, 预计剩 63 分钟)
+[factory-v2] 120/500  本块失败 5/120  (1167s, ~9.7s/块, 预计剩 62 分钟)
+[factory-v2] 130/500  本块失败 4/120  (1258s, ~9.7s/块, 预计剩 60 分钟)
+[factory-v2] 140/500  本块失败 2/120  (1339s, ~9.6s/块, 预计剩 57 分钟)
+[factory-v2] 150/500  本块失败 2/120  (1442s, ~9.6s/块, 预计剩 56 分钟)
+[factory-v2] 160/500  本块失败 3/120  (1528s, ~9.5s/块, 预计剩 54 分钟)
+[factory-v2] 170/500  本块失败 1/120  (1628s, ~9.6s/块, 预计剩 53 分钟)
+[factory-v2] 180/500  本块失败 2/120  (1727s, ~9.6s/块, 预计剩 51 分钟)
+[factory-v2] 190/500  本块失败 0/120  (1820s, ~9.6s/块, 预计剩 50 分钟)
+[factory-v2] 200/500  本块失败 1/120  (1922s, ~9.6s/块, 预计剩 48 分钟)
+[factory-v2] 210/500  本块失败 6/120  (2003s, ~9.5s/块, 预计剩 46 分钟)
+[factory-v2] 220/500  本块失败 1/120  (2104s, ~9.6s/块, 预计剩 45 分钟)
+[factory-v2] 230/500  本块失败 0/120  (2210s, ~9.6s/块, 预计剩 43 分钟)
+[factory-v2] 240/500  本块失败 2/120  (2292s, ~9.6s/块, 预计剩 41 分钟)
+[factory-v2] 250/500  本块失败 2/120  (2387s, ~9.5s/块, 预计剩 40 分钟)
+[factory-v2] 260/500  本块失败 0/120  (2486s, ~9.6s/块, 预计剩 38 分钟)
+[factory-v2] 270/500  本块失败 4/120  (2578s, ~9.5s/块, 预计剩 37 分钟)
+[factory-v2] 280/500  本块失败 1/120  (2673s, ~9.5s/块, 预计剩 35 分钟)
+[factory-v2] 290/500  本块失败 4/120  (2773s, ~9.6s/块, 预计剩 33 分钟)
+[factory-v2] 300/500  本块失败 2/120  (2866s, ~9.6s/块, 预计剩 32 分钟)
+[factory-v2] 310/500  本块失败 3/120  (2960s, ~9.5s/块, 预计剩 30 分钟)
+[factory-v2] 320/500  本块失败 1/120  (3062s, ~9.6s/块, 预计剩 29 分钟)
+[factory-v2] 330/500  本块失败 3/120  (3168s, ~9.6s/块, 预计剩 27 分钟)
+[factory-v2] 340/500  本块失败 5/120  (3258s, ~9.6s/块, 预计剩 26 分钟)
+[factory-v2] 350/500  本块失败 1/120  (3350s, ~9.6s/块, 预计剩 24 分钟)
+[factory-v2] 360/500  本块失败 1/120  (3442s, ~9.6s/块, 预计剩 22 分钟)
+[factory-v2] 370/500  本块失败 0/120  (3530s, ~9.5s/块, 预计剩 21 分钟)
+[factory-v2] 380/500  本块失败 5/120  (3620s, ~9.5s/块, 预计剩 19 分钟)
+[factory-v2] 390/500  本块失败 1/120  (3728s, ~9.6s/块, 预计剩 18 分钟)
+[factory-v2] 400/500  本块失败 2/120  (3823s, ~9.6s/块, 预计剩 16 分钟)
+[factory-v2] 410/500  本块失败 4/120  (3913s, ~9.5s/块, 预计剩 14 分钟)
+[factory-v2] 420/500  本块失败 4/120  (4013s, ~9.6s/块, 预计剩 13 分钟)
+[factory-v2] 430/500  本块失败 1/120  (4104s, ~9.5s/块, 预计剩 11 分钟)
+[factory-v2] 440/500  本块失败 1/120  (4187s, ~9.5s/块, 预计剩 10 分钟)
+[factory-v2] 450/500  本块失败 1/120  (4293s, ~9.5s/块, 预计剩 8 分钟)
+[factory-v2] 460/500  本块失败 0/120  (4398s, ~9.6s/块, 预计剩 6 分钟)
+[factory-v2] 470/500  本块失败 1/120  (4501s, ~9.6s/块, 预计剩 5 分钟)
+[factory-v2] 480/500  本块失败 3/120  (4585s, ~9.6s/块, 预计剩 3 分钟)
+[factory-v2] 490/500  本块失败 3/120  (4689s, ~9.6s/块, 预计剩 2 分钟)
+[factory-v2] 500/500  本块失败 0/120  (4774s, ~9.5s/块, 预计剩 0 分钟)
+[factory-v2] done → outputs/v25_bird_data/factory.jsonl  (4774s)
+退出码 0
+[累计 99 分钟]
+
+=========== 4/6 · 训练集（条件 6 维，判据含回弹软闸与打滑闸） ===========
+[dataset] 设计维 u_dim = 10   条件维 = 6(含 Froude)
+[dataset] 块 500  束 400 → 训练 280 / 验证 60 / 测试 60 (按 bid 切)
+Traceback (most recent call last):
+  File "/mnt/zihanw/FFY/src/stage10_v2/dataset_v2.py", line 223, in <module>
+    main()
+  File "/mnt/zihanw/FFY/src/stage10_v2/dataset_v2.py", line 184, in main
+    C = np.array(buckets[k][0], float).reshape(-1, 5)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: cannot reshape array of size 31692 into shape (5)
+退出码 1
+[累计 99 分钟]
+
+=========== 5/6 · 自提升闭环 ×40 (seed 0 → outputs/v25_bird_e5) ===========
+[e5] 设计维 DU = 10  v21 = True  v25 = True  足端定尺 = bearing
+[e5] 条件 6 维(含 Froude,上界 0.5)  ·  机体面内自由平动 planar=True
+[e5v2] 臂=bio  块 500  束 训练280/验证60/测试60  从第 0 轮续跑
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+[e5v2] 考卷:测试块 72 个,抽 72 题 → 无解剔除 5,参考过薄(<5)剔除 5 → **62 题**
+[e5v2] 提示:测试块只有 72 个,不足 --nexam 76。要更多题就加大 --nglobal 或提高测试束比例,不是这里的 bug
+[e5v2] 冻结考卷就绪  (912s)
+Traceback (most recent call last):
+  File "/mnt/zihanw/FFY/src/stage10_v2/e5_loop_v2.py", line 407, in <module>
+    main()
+  File "/mnt/zihanw/FFY/src/stage10_v2/e5_loop_v2.py", line 337, in main
+    C_tr, U_tr = build_pairs(pools, tr_b, args.kscen)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/zihanw/FFY/src/stage10_v2/e5_loop_v2.py", line 178, in build_pairs
+    return np.array(C, float).reshape(-1, 5), np.array(U, float).reshape(-1, DU)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: cannot reshape array of size 45336 into shape (5)
+退出码 1
+[累计 114 分钟]
+
+=========== 5/6 · 自提升闭环 ×40 (seed 1 → outputs/v25_bird_e5_s1) ===========
+[e5] 设计维 DU = 10  v21 = True  v25 = True  足端定尺 = bearing
+[e5] 条件 6 维(含 Froude,上界 0.5)  ·  机体面内自由平动 planar=True
+[e5v2] 臂=bio  块 500  束 训练280/验证60/测试60  从第 0 轮续跑
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+[e5v2] 考卷:测试块 72 个,抽 72 题 → 无解剔除 5,参考过薄(<5)剔除 5 → **62 题**
+[e5v2] 提示:测试块只有 72 个,不足 --nexam 76。要更多题就加大 --nglobal 或提高测试束比例,不是这里的 bug
+[e5v2] 冻结考卷就绪  (958s)
+Traceback (most recent call last):
+  File "/mnt/zihanw/FFY/src/stage10_v2/e5_loop_v2.py", line 407, in <module>
+    main()
+  File "/mnt/zihanw/FFY/src/stage10_v2/e5_loop_v2.py", line 337, in main
+    C_tr, U_tr = build_pairs(pools, tr_b, args.kscen)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/zihanw/FFY/src/stage10_v2/e5_loop_v2.py", line 178, in build_pairs
+    return np.array(C, float).reshape(-1, 5), np.array(U, float).reshape(-1, DU)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: cannot reshape array of size 45336 into shape (5)
+退出码 1
+[累计 130 分钟]
+
+=========== 5b/6 · 两种子比对（出汇报口径；训练类指标 ≥2 种子才报） ===========
+Traceback (most recent call last):
+  File "/mnt/zihanw/FFY/src/stage10_v2/seed_compare.py", line 110, in <module>
+    main()
+  File "/mnt/zihanw/FFY/src/stage10_v2/seed_compare.py", line 67, in main
+    S = [(d, traj(d), probe(os.path.join(d, a.ckpt))) for d in a.dirs]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/zihanw/FFY/src/stage10_v2/seed_compare.py", line 67, in <listcomp>
+    S = [(d, traj(d), probe(os.path.join(d, a.ckpt))) for d in a.dirs]
+             ^^^^^^^
+  File "/mnt/zihanw/FFY/src/stage10_v2/seed_compare.py", line 49, in traj
+    T = json.load(open(os.path.join(d, "trajectory.json")))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'outputs/v25_bird_e5/trajectory.json'
+退出码 1
+[累计 130 分钟]
+
+=========== 6a/6 · E18b 四臂走廊 ===========
+[e18b] 足端定尺 = bearing
+[e18b] 6 工况 × 27648 = 165888 次评价(每次 2 遍仿真)
+
+[concrete1.2] 4臂 × 9u × 16级 × 48探针 = 27648 次评价
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+[concrete1.2] 完成 (937s)
+[concrete1.2] → outputs/v25_bird_e18b/e18b_concrete1.2.json
+  臂           2.0   2.4   3.0   3.6   4.4   5.4   6.6   8.1   9.9  12.1  14.7  18.0  22.0  26.8  32.8  40.0
+  bio           5     4     5     8     6     8     9     9     9    12    11     8    10     9     9    11
+  geo           4     7     6     9     6     9     9     8     9    10    10     9     9    11     9     8
+  elastic       5     6     5     7     6     7     5     8     7     7     8     7     6     4     3     5
+  none          8     6     7     6     5     6     5     3     3     2     1     0     0     0     0     0
+
+[turf1.2] 4臂 × 9u × 16级 × 48探针 = 27648 次评价
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+[turf1.2] 完成 (1047s)
+[turf1.2] → outputs/v25_bird_e18b/e18b_turf1.2.json
+  臂           2.0   2.4   3.0   3.6   4.4   5.4   6.6   8.1   9.9  12.1  14.7  18.0  22.0  26.8  32.8  40.0
+  bio          11    12    18    24    33    45    56    58    60    57    60    56    57    54    47    40
+  geo          12    14    21    25    34    39    49    53    53    50    54    51    48    46    46    41
+  elastic      17    16    19    23    27    37    48    45    44    44    41    41    38    37    31    29
+  none         18    17    23    23    27    31    31    25    19    15    10     7     2     2     2     0
+
+[wetsand1.2] 4臂 × 9u × 16级 × 48探针 = 27648 次评价
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+[wetsand1.2] 完成 (1005s)
+[wetsand1.2] → outputs/v25_bird_e18b/e18b_wetsand1.2.json
+  臂           2.0   2.4   3.0   3.6   4.4   5.4   6.6   8.1   9.9  12.1  14.7  18.0  22.0  26.8  32.8  40.0
+  bio          22    31    47    61    65    73    74    72    74    74    72    73    68    60    50    37
+  geo          23    35    49    62    67    70    67    69    69    72    71    67    63    55    47    33
+  elastic      25    34    45    66    63    66    65    62    60    61    58    55    51    42    35    25
+  none         35    41    52    61    57    54    45    39    34    28    20    11     3     0     0     0
+
+[concrete1.5] 4臂 × 9u × 16级 × 48探针 = 27648 次评价
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+[concrete1.5] 完成 (941s)
+[concrete1.5] → outputs/v25_bird_e18b/e18b_concrete1.5.json
+  臂           2.0   2.4   3.0   3.6   4.4   5.4   6.6   8.1   9.9  12.1  14.7  18.0  22.0  26.8  32.8  40.0
+  bio           1     1     1     2     3     3     2     2     1     1     1     1     0     0     0     0
+  geo           1     1     2     3     2     1     3     1     2     0     1     0     1     0     1     0
+  elastic       2     1     1     0     2     2     1     2     1     1     1     0     0     0     1     0
+  none          1     2     2     2     2     1     1     1     0     0     0     0     0     0     0     0
+
+[turf2.0] 4臂 × 9u × 16级 × 48探针 = 27648 次评价
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+[turf2.0] 完成 (936s)
+[turf2.0] → outputs/v25_bird_e18b/e18b_turf2.0.json
+  臂           2.0   2.4   3.0   3.6   4.4   5.4   6.6   8.1   9.9  12.1  14.7  18.0  22.0  26.8  32.8  40.0
+  bio           0     0     0     0     0     0     1     2     4     4    10    15    16     9     5     2
+  geo           0     0     0     0     0     0     0     1     2     4     8    15    10    10     5     3
+  elastic       0     0     0     0     0     0     0     0     1     4     8    10     6     4     4     2
+  none          0     0     0     0     0     0     1     0     0     1     1     0     0     0     0     0
+
+[wetsand2.0] 4臂 × 9u × 16级 × 48探针 = 27648 次评价
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+
+******************************
+DYNAMIC SOLVER FAILED:
+  use showHints=True to show helpful information
+******************************
+
+[wetsand2.0] 完成 (798s)
+[wetsand2.0] → outputs/v25_bird_e18b/e18b_wetsand2.0.json
+  臂           2.0   2.4   3.0   3.6   4.4   5.4   6.6   8.1   9.9  12.1  14.7  18.0  22.0  26.8  32.8  40.0
+  bio           0     0     1     1     4     8    12    23    33    32    27    22    14     9     5     0
+  geo           0     0     1     2     3     6    12    20    28    26    20    17    11     7     2     1
+  elastic       0     0     0     1     3     8    11    16    22    20    14    10     5     0     0     0
+  none          0     0     0     1     3     3     6     6     5     1     0     0     0     0     0     0
+
+[e18b] 全部完成 → outputs/v25_bird_e18b
+退出码 0
+[累计 225 分钟]
+
+=========== 6b/6 · E20 生成走廊 ===========
+[e20_gen_corridor.py] v21 物理 = True  足端 = bearing
+[e20] 1 臂 × 6 工况 × 16+3 级 × 216 = 24624 次评价/臂
+
+Traceback (most recent call last):
+  File "/mnt/zihanw/FFY/src/stage10_v2/e20_gen_corridor.py", line 218, in <module>
+    main()
+  File "/mnt/zihanw/FFY/src/stage10_v2/e20_gen_corridor.py", line 212, in main
+    run_arm(arm, latest_ckpt(a.outroot, arm), conds, M_GRID,
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/zihanw/FFY/src/stage10_v2/e20_gen_corridor.py", line 102, in latest_ckpt
+    assert fs, f"找不到 {root}/v2_e5_{arm}/cvae_r*.pt"
+           ^^
+AssertionError: 找不到 outputs/v25_bird_root/v2_e5_bio/cvae_r*.pt
+退出码 1
+[累计 225 分钟]
+
+=========== 6c/6 · E21 真鸟 vs 生成 ===========
+[e21_bird_vs_gen.py] v21 物理 = True  足端 = bearing
+[e21] AVONET 表: data/avonet_waterbirds.csv
+Traceback (most recent call last):
+  File "/mnt/zihanw/FFY/src/stage10_v2/e21_bird_vs_gen.py", line 169, in <module>
+    main()
+  File "/mnt/zihanw/FFY/src/stage10_v2/e21_bird_vs_gen.py", line 116, in main
+    model, meta = load_cvae(a.ckpt)
+                  ^^^^^^^^^^^^^^^^^
+  File "/mnt/zihanw/FFY/src/stage10_v2/e17_emergent_b.py", line 33, in load
+    ck = torch.load(fp, map_location="cpu", weights_only=False)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wzh/miniconda3/envs/ffy/lib/python3.11/site-packages/torch/serialization.py", line 1319, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wzh/miniconda3/envs/ffy/lib/python3.11/site-packages/torch/serialization.py", line 659, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/wzh/miniconda3/envs/ffy/lib/python3.11/site-packages/torch/serialization.py", line 640, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'outputs/v25_bird_e5/cvae_r39.pt'
+退出码 1
+[累计 225 分钟]
+
+=========== 附 · E22 D/L 标度（v2.5 工厂已落盘 D_mm，不用再重评） ===========
+[e22] 没有缓存 outputs/v25_bird_data/e22_resize_cache.jsonl —— 先不带 --analyze-only 跑一遍
+退出码 1
+[累计 225 分钟]

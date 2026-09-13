@@ -149,6 +149,7 @@ def main():
 
     buckets = {"tr": ([], []), "va": ([], []), "te": ([], [])}
     nfeas_tot = ntot = 0
+    kill = dict(gcap=0, smax=0, so=0, mo=0, rebound=0, slip=0)   # 逐闸击杀数（可叠加）
     for blk in blocks:
         Y = to_Y(blk)
         U = np.array(blk["U"], float)
@@ -159,6 +160,18 @@ def main():
             smax = float(crng.uniform(*SMAX_RANGE))
             fe = feasible_mask(Y, gcap, smax)
             ntot += len(fe); nfeas_tot += int(fe.sum())
+            a_ = _col(Y, iARES); a_ = Y[:, iP] if a_ is None else np.where(np.isfinite(a_), a_, Y[:, iP])
+            kill["gcap"] += int((a_ > gcap).sum()); kill["smax"] += int((Y[:, iL] > smax).sum())
+            kill["so"] += int((np.nan_to_num(Y[:, iSO], nan=1.) > .5).sum())
+            kill["mo"] += int((np.nan_to_num(Y[:, iMO], nan=1.) > .5).sum())
+            reb_, v0_ = _col(Y, iREB), _col(Y, iV0)
+            if reb_ is not None and v0_ is not None:
+                h0_ = np.maximum(v0_ ** 2 / (2 * G), 1e-12)
+                kill["rebound"] += int((np.nan_to_num(reb_, nan=0.) / h0_ > REB_CAP).sum())
+            sl_, l1_ = _col(Y, iSLIP), _col(Y, iLL1)
+            if sl_ is not None and l1_ is not None:
+                kill["slip"] += int((np.isfinite(sl_) & np.isfinite(l1_) & (l1_ > 0)
+                                     & (sl_ * 1e3 > SLIP_FRAC * l1_)).sum())
             if not fe.any():
                 continue
             idx = np.where(fe)[0]
@@ -177,14 +190,24 @@ def main():
     c_hi = [np.log10(meta_f["m_range"][1]), meta_f["v0_range"][1],
             np.log10(meta_f["kc_range"][1]), GCAP_RANGE[1] * 9.81, SMAX_RANGE[1]]
     if FR6:
-        c_lo.append(0.0); c_hi.append(float(meta_f.get("fr_max", 2.0)))
+        # 上界至少 1.0，理由同 e5_loop：skid 的 fr_max=0 会让 norm 除零
+        c_lo.append(0.0); c_hi.append(max(float(meta_f.get("fr_max", 2.0)), 1.0))
 
     arrs = {}
     for k in ("tr", "va", "te"):
-        C = np.array(buckets[k][0], float).reshape(-1, 5)
+        # 条件维不是常数：v2.5 加了 Froude 是 6 维。写死 5 会在这里炸
+        # （ValueError: cannot reshape array of size 31692 into shape (5)）。
+        C = np.array(buckets[k][0], float).reshape(-1, len(c_lo))
         U = np.array(buckets[k][1], float).reshape(-1, ND_U)
         arrs[f"C_{k}"], arrs[f"U_{k}"] = C, U
         print(f"  {k}: {len(C):6d} 对")
+    print("[dataset] 可行 %d / %d (%.1f%%)   逐闸击杀(可叠加): "
+          "gcap %.0f%%  smax %.0f%%  细长比 %.0f%%  质量 %.0f%%  回弹 %.0f%%  打滑 %.0f%%"
+          % (nfeas_tot, ntot, 100 * nfeas_tot / max(ntot, 1),
+             *[100 * kill[k] / max(ntot, 1) for k in ("gcap", "smax", "so", "mo",
+                                                       "rebound", "slip")]))
+    if nfeas_tot < 0.02 * ntot:
+        print("[dataset] ⚠ 可行率低于 2%——先看上面哪条闸在杀人，别急着训练。")
     np.savez(os.path.join(args.out, "dataset.npz"), **arrs)
 
     # 路径结构单独存,供后续 path 监督实验(F/C 头)使用;此版 cVAE 暂不用

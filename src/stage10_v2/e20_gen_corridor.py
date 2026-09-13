@@ -105,7 +105,10 @@ def latest_ckpt(root, arm):
 
 def gen_designs(model, meta, prior, m, v0, kc, nz, seed):
     """给定条件采 nz 个隐变量 → 解码 → 展开成物理设计 x7。不裁剪条件,外推照跑。"""
-    c = np.array([np.log10(m), v0, np.log10(kc), GCAP_G * 9.81, SMAX])
+    c = [np.log10(m), v0, np.log10(kc), GCAP_G * 9.81, SMAX]
+    if len(meta["c_lo"]) == 6:
+        c.append(0.0)              # v2.5 模型的第 6 维是 Froude 数；走廊统一在 Fr=0 评
+    c = np.array(c[:len(meta["c_lo"])])
     cn = norm(c, np.array(meta["c_lo"]), np.array(meta["c_hi"]))
     torch.manual_seed(seed)
     with torch.no_grad():

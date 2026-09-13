@@ -30,10 +30,17 @@ set -uo pipefail
 cd "$(dirname "$0")"
 CONFIG="${CONFIG:-bird}"
 case "$CONFIG" in
-  bird) PLANAR=1 ;;
-  skid) PLANAR=0 ;;
+  bird) PLANAR=1; FRCAP=2.0 ;;
+  # 对置构型只能跑纯垂直：机体被竖直滑轨锁着，给它水平初速 t=0 就违反约束，
+  # 求解器用一个冲量抹掉，a_res 变成上万 g 的数值垃圾（首跑实测 22816 g）。
+  # 要让对置构型带水平速度，得建两条镜像腿、机体照样自由平动 —— 那是另一次改动。
+  skid) PLANAR=0; FRCAP=0.0 ;;
   *) echo "CONFIG 只能是 bird 或 skid"; exit 2 ;;
 esac
+# 物理代码的版本戳。工厂/闭环都有续跑缓存，但缓存只在**同一版物理**下才合法：
+# 首跑的 v25 产物是用错的 μ（mu_from_ground 未生效）和错的 slip（没扣足球滚动）算的，
+# 直接续跑会把污染数据捡回来。目录里 .codever 不等于这个值就整体挪到 *_stale_<时间>。
+CODEVER="v25.2-sliproll-mufix"
 W="${WORKERS:-128}"; ROUNDS="${ROUNDS:-40}"; SEEDS="${SEEDS:-0 1}"
 OUT_F="${OUT_F:-outputs/v25_${CONFIG}_data}"; OUT_E="${OUT_E:-outputs/v25_${CONFIG}_e5}"
 ROOT_D="${ROOT_D:-outputs/v25_${CONFIG}_root}"; P9="${P9:-outputs/v25_${CONFIG}_p9}"
@@ -43,12 +50,25 @@ LOG="logs/v25_${CONFIG}_$(date +%Y%m%d_%H%M%S).log"
 exec > >(tee -a "$LOG") 2>&1
 export OMP_NUM_THREADS=1
 t0=$(date +%s); el(){ echo "[累计 $(( ($(date +%s)-t0)/60 )) 分钟]"; }
+fresh(){  # fresh DIR：版本不符就归档；随后建目录并盖章（同版本内的续跑不受影响）
+  local d="$1"
+  if [ -d "$d" ] && [ "$(cat "$d/.codever" 2>/dev/null)" != "$CODEVER" ]; then
+    local t="${d}_stale_$(date +%m%d_%H%M)"
+    echo "[fresh] $d 是旧版物理的产物（或无版本戳），挪到 $t"
+    mv "$d" "$t"
+  fi
+  mkdir -p "$d"; echo "$CODEVER" > "$d/.codever"
+}
 # 注意 RC：run 里最后两条是 echo 和 el，所以调用点直接读 $? 拿到的是 echo 的 0。
 # 把真实退出码存进 RC，卡关的两处判 RC。
 RC=0
 run(){ echo; echo "=========== $1 ==========="; shift; "$@"; RC=$?; echo "退出码 $RC"; el; }
 
-echo "构型 CONFIG=$CONFIG (planar=$PLANAR)  workers=$W  rounds=$ROUNDS  seeds=$SEEDS"
+echo "构型 CONFIG=$CONFIG (planar=$PLANAR)  workers=$W  rounds=$ROUNDS  seeds=$SEEDS  codever=$CODEVER"
+for d in "$P9" "$OUT_F" "$OUT_E" "${OUT_E}_s1" "$ROOT_D" \
+         "outputs/v25_${CONFIG}_e18b" "outputs/v25_${CONFIG}_e20" "outputs/v25_${CONFIG}_e21"; do
+  fresh "$d"
+done
 echo "日志 $LOG"
 
 # ---- 0 · 回归测试：先证明重构没动物理，不过就别往下跑 ----
@@ -72,10 +92,22 @@ if [ "$RC" != "0" ]; then
   exit 1
 fi
 
-# Fr 上界由 P9a 量出来，不是拍的。仿鸟构型水平力不抵消，能扛多大的 Fr 要看实测。
-FRMAX=$(python -c "import json;print(max(0.5,json.load(open('$P9/p9a_report.json'))['fr_recommended']))" 2>/dev/null)
-FRMAX="${FRMAX:-2.0}"
-echo "[v25/$CONFIG] 主工厂的 Fr 上界取 $FRMAX（由 P9a 的可行率曲线定标）"
+# Fr 上界由 P9a 量出来，不是拍的；再夹到该构型的物理上限 FRCAP。
+if [ "$FRCAP" != "0.0" ]; then
+  FRMAX=$(python - <<PY 2>/dev/null
+import json
+r = json.load(open("$P9/p9a_report.json"))["fr_recommended"]
+print(min($FRCAP, max(0.0, r)))
+PY
+)
+  FRMAX="${FRMAX:-0.0}"
+else
+  FRMAX=0.0
+fi
+echo "[v25/$CONFIG] 主工厂的 Fr 上界取 $FRMAX（P9a 实测定标，上限 $FRCAP）"
+if [ "$FRMAX" = "0.0" ] || [ "$FRMAX" = "0" ]; then
+  echo "[v25/$CONFIG] Fr 恒为 0 → 条件仍是 6 维但第 6 维退化，等价于纯垂直着陆。"
+fi
 
 # μ 扫描：回答 E26 那张 tan(前倾角) 表到底准不准。不挡工厂，但结论要写进论文。
 run "1b/6 · μ 扫描（求临界摩擦系数，Fr=0，硬地）" \
@@ -83,9 +115,14 @@ run "1b/6 · μ 扫描（求临界摩擦系数，Fr=0，硬地）" \
     --planar "$PLANAR" --out "$P9"
 
 # ---- 2 · 崩溃阶梯：只摸边界，不挡工厂，可以后台并行 ----
-run "2/6 · P9b 崩溃阶梯（Fr 2→15，只为定位现有接触模型在哪一档崩）" \
-  python src/stage10_v2/p9_friction.py --mode b --nprobe 64 --workers "$W" \
-    --planar "$PLANAR" --out "$P9"
+# P9b 只对能带水平速度的构型有意义
+if [ "$PLANAR" = "1" ]; then
+  run "2/6 · P9b 崩溃阶梯（Fr 2→15，只为定位现有接触模型在哪一档崩）" \
+    python src/stage10_v2/p9_friction.py --mode b --nprobe 64 --workers "$W" \
+      --planar "$PLANAR" --out "$P9"
+else
+  echo; echo "=========== 2/6 · P9b 跳过（对置构型不能带水平速度，见上面的说明）==========="; el
+fi
 
 # ---- 3 · 数据工厂 ----
 run "3/6 · 数据工厂 v2.5（10 维设计 + 6 维条件 + 面内平动）" \
@@ -125,14 +162,16 @@ run "6c/6 · E21 真鸟 vs 生成" \
 
 # ---- 附 · E22 现在是零成本了（D 已落盘） ----
 run "附 · E22 D/L 标度（v2.5 工厂已落盘 D_mm，不用再重评）" \
-  python src/stage10_v2/e22_dl_scaling.py --analyze-only --fig \
+  python src/stage10_v2/e22_dl_scaling.py --from-factory --fig \
     --factory "$OUT_F/factory.jsonl" --out "$OUT_F"
 
 # ---- 产物收口：reports/ 不在 .gitignore 里，push 一次就能带回本地 ----
 for f in "$P9"/*.json "$OUT_F"/e22_*.json "$OUT_F"/e22_*.png \
-         "$OUT_E"/trajectory.json "${OUT_E}_s1"/trajectory.json; do
+         "$OUT_F"/dataset_meta.json "$OUT_F"/factory_meta.json \
+         "$OUT_E"/trajectory.json "$OUT_E"/model_meta.json; do
   [ -f "$f" ] && cp -f "$f" "$REPORTS/"
 done
+[ -f "${OUT_E}_s1/trajectory.json" ] && cp -f "${OUT_E}_s1/trajectory.json" "$REPORTS/trajectory_s1.json"
 cp -f "$LOG" "$REPORTS/run.log" 2>/dev/null
 
 echo; echo "=========== 全部结束（$(( ($(date +%s)-t0)/60 )) 分钟）==========="

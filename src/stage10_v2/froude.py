@@ -73,6 +73,8 @@ def sample_fr(n, rng=None, fr_max=FR_MAX_MAIN, zero_frac=FR_ZERO_FRAC):
     逐条对比；否则加了一维之后哪儿变了都说不清。其余在 (0, fr_max] 均匀。
     """
     rng = rng or np.random.default_rng()
+    if fr_max <= 0:                 # 纯垂直着陆：对置构型只能这么跑，见 physics_v2 的硬拦
+        return np.zeros(int(n))
     fr = rng.uniform(0.0, fr_max, size=int(n))
     fr[rng.random(int(n)) < zero_frac] = 0.0
     return fr

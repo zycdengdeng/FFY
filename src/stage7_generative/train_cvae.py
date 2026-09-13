@@ -37,7 +37,17 @@ class CVAE(nn.Module):
 
     @torch.no_grad()
     def sample(self, c, n):
-        """c:(cd,) 归一化;返回 (n, xd) 归一化设计。"""
+        """c:(cd,) 归一化;返回 (n, xd) 归一化设计。
+
+        兜底：v2.5 的模型条件是 6 维（第 6 维 Froude 数），而一些老的下游脚本
+        还在造 5 维条件。差的维度用 0 垫上 —— 归一化空间里 0 恰好等于原始 Fr=0
+        （因为 Fr 的下界就是 0），语义正确：按纯垂直着陆评。垫的时候吼一声，
+        提醒把那个脚本改掉，别永远靠兜底活着。"""
+        need = self.dec[0].in_features - self.zdim
+        if c.shape[-1] < need:
+            print(f"[CVAE.sample] 条件只有 {int(c.shape[-1])} 维，模型要 {need} 维；"
+                  f"缺的维度按 0（=Fr 0，纯垂直）垫上。调用方应尽快改成 6 维。")
+            c = torch.cat([c, torch.zeros(need - c.shape[-1], dtype=c.dtype)], -1)
         cc = c.unsqueeze(0).expand(n, -1)
         z = torch.randn(n, self.zdim)
         return self.dec(torch.cat([z, cc], -1))

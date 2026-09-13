@@ -115,16 +115,25 @@ def main():
 
     model, meta = load_cvae(a.ckpt)
     pr = meta["prior"]
-    prior = BioPrior("bio", sigma=pr["sigma"], u_max=pr["u_max"], v21=(BASE_V21 is not None))
+    # 设计维和条件维都从模型本身读出来，不再假设 9/5：
+    # v2.5 的模型是 10 维设计（第 10 维 q1_0）× 6 维条件（第 6 维 Froude）。
+    # 用 9 维先验去解 10 维输出不会报错 —— expand 会**默默丢掉 q1_0 那一列**，
+    # 全按场景常数 50° 评，错得无声无息。所以必须按 xd 选 v25。
+    xd = model.dec[-2].out_features
+    cd_n = model.dec[0].in_features - model.zdim
+    prior = BioPrior("bio", sigma=pr["sigma"], u_max=pr["u_max"],
+                     v21=(BASE_V21 is not None), v25=(xd == 10))
+    assert prior.ndim == xd, f"先验 {prior.ndim} 维 ≠ 模型输出 {xd} 维"
     c_lo, c_hi = np.array(meta["c_lo"]), np.array(meta["c_hi"])
+    assert len(c_lo) == cd_n, f"meta c_lo {len(c_lo)} 维 ≠ 模型条件 {cd_n} 维"
 
     jobs, tags = [], []
     for cname in a.conds.split(","):
         cd = CONDS[cname]
         for sp, fam, tarsus, mass_g in birds:
             m = mass_g / 1000.0
-            c = np.array([np.log10(m), cd["v0"], np.log10(cd["kc"]),
-                          GCAP_G * 9.81, SMAX])
+            c = [np.log10(m), cd["v0"], np.log10(cd["kc"]), GCAP_G * 9.81, SMAX]
+            c = np.array((c + [0.0])[:cd_n])       # 第 6 维 Froude：真鸟对比在 Fr=0
             torch.manual_seed(11)
             with torch.no_grad():
                 u = model.sample(torch.tensor(norm(c, c_lo, c_hi),

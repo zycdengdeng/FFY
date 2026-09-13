@@ -51,9 +51,9 @@ def _eval(a):
     """子进程：连 import 一起包在 try 里，无人值守时不许打断整批。"""
     try:
         import physics_v2 as P
-        x, m, v0, kc, q1, v_x, planar, mu = a
+        x, m, v0, kc, q1, v_x, planar, mu, mfg = a
         base = {**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": "bearing",
-                "mu_from_ground": bool(planar)}
+                "mu_from_ground": bool(mfg)}   # μ 跟模式走：回归=旧 0.5，其余=地面导出
         xx = list(x)
         if q1 is not None:
             xx = (xx + [0.0] * 10)[:10]
@@ -73,6 +73,9 @@ def _eval(a):
                 mu_demand=float(r.get("mu_demand", np.nan)),
                 mu_ground=float(r.get("mu_ground", np.nan)),
                 slip_mm=float(r.get("slip", 0.0)) * 1e3,
+                slip_total_mm=float(r.get("slip_total", 0.0)) * 1e3,
+                roll_mm=float(r.get("roll_mm", np.nan)),
+                foot_dx_mm=float(r.get("foot_dx_mm", np.nan)),
                 x_drift_mm=float(r.get("x_drift", 0.0)) * 1e3,
                 e_gain=float(r.get("e_gain", np.nan)),
                 leg_mass_g=float(r["leg_mass_kg"]) * 1e3,
@@ -112,7 +115,7 @@ def mode_reg(args):
         y = to_Y(b)[j]
         if not np.isfinite(y[iP]):
             continue
-        jobs.append(((b["X"][j], b["m"], b["v0"], b["kc"], None, 0.0, False, None),
+        jobs.append(((b["X"][j], b["m"], b["v0"], b["kc"], None, 0.0, False, None, False),
                      dict(ref_peak_g=float(y[iP]) / 9.81, cid=b["cid"], j=j)))
     rows = run(jobs, args.workers, "reg")
     good = [r for r in rows if "fail" not in r]
@@ -155,7 +158,7 @@ def mode_ab(args, frs, tag):
                 for fr in frs:
                     vx = float(FR.fr_to_vx(fr, m))
                     for x in X:
-                        jobs.append(((x, m, 1.2, kc, q1, vx, args.planar, None),
+                        jobs.append(((x, m, 1.2, kc, q1, vx, args.planar, None, True),
                                      dict(m=m, kc=kc, q1=q1, Fr=float(fr), v_x=vx)))
     rows = run(jobs, args.workers, tag)
     fp = os.path.join(args.out, "p9_%s.jsonl" % tag)
@@ -189,7 +192,7 @@ def mode_mu(args):
         for q1 in q1s:
             for mu in MU_GRID:
                 for x in X:
-                    jobs.append(((x, m, 1.2, 1.0e6, q1, 0.0, True, float(mu)),
+                    jobs.append(((x, m, 1.2, 1.0e6, q1, 0.0, args.planar, float(mu), False),
                                  dict(m=m, q1=float(q1), mu=float(mu))))
     rows = run(jobs, args.workers, "mu")
     fp = os.path.join(args.out, "p9_mu.jsonl")

@@ -115,10 +115,10 @@ def loguni(u, rg):
 
 
 def _eval_one(a):
-    x7, m, v0, kc, zc, npass, v21, foot, v_x, planar = a
+    x7, m, v0, kc, zc, npass, v21, foot, v_x, planar, v25 = a
     base = ({**P.SCEN_BIRD_X, "hip_damp_unified": True, "foot_mode": foot,
-             "mu_from_ground": bool(planar)}
-            if v21 else None)
+             "mu_from_ground": bool(v25)}      # μ 跟 v2.5 走，不跟 planar 走：
+            if v21 else None)                  # skid 也该用地面 μ，否则两构型没法比
     ALL = KEYS_V2 + KEYS_V25
     try:
         r = P.eval_v2(tuple(x7), m, v0, kc=kc, zeta_c=zc, npass=npass, base=base,
@@ -286,7 +286,8 @@ def main():
             vxs = FR.fr_to_vx(frs, blk["m"])
             Y = list(ex.map(_eval_one,
                             [(x, blk["m"], blk["v0"], blk["kc"], zc, args.npass,
-                              args.v21, args.foot, float(vx), bool(args.planar))
+                              args.v21, args.foot, float(vx), bool(args.planar),
+                              bool(args.v25))
                              for x, vx in zip(X, vxs)], chunksize=2))
             fails = [y[-1] for y in Y]
             f.write(json.dumps(dict(
