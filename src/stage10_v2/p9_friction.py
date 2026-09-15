@@ -74,6 +74,7 @@ def _eval(a):
                 mu_ground=float(r.get("mu_ground", np.nan)),
                 slip_mm=float(r.get("slip", 0.0)) * 1e3,
                 slip_total_mm=float(r.get("slip_total", 0.0)) * 1e3,
+                slip_alt_mm=float(r.get("slip_alt", 0.0)) * 1e3,
                 roll_mm=float(r.get("roll_mm", np.nan)),
                 foot_dx_mm=float(r.get("foot_dx_mm", np.nan)),
                 x_drift_mm=float(r.get("x_drift", 0.0)) * 1e3,
@@ -225,6 +226,21 @@ def mode_mu(args):
                  " ".join("%.0f%%" % (100 * stick[mu]) for mu in MU_GRID)))
     print("   （最后一列依次对应 μ = %s）" % ", ".join("%.2f" % mu for mu in MU_GRID))
     print("-" * 74)
+    # 引擎级符号标定：最大摩擦档 = 粘住档。粘住时真滑移 ≈ 0，
+    # 所以当前符号(slip)与反号(slip_alt)哪个中位数小，哪个就是对的约定。
+    top = max(MU_GRID)
+    st = [r for r in good if abs(r["mu"] - top) < 1e-9]
+    if st:
+        a = float(np.nanmedian([r["slip_mm"] for r in st]))
+        b = float(np.nanmedian([r["slip_alt_mm"] for r in st]))
+        print("   符号标定 @ μ=%.1f（粘住档）：|slip| 中位 %.2f mm，反号 |slip_alt| 中位 %.2f mm"
+              % (top, a, b))
+        if a <= b:
+            print("   → 当前符号正确（粘住时滑移近零）。")
+        else:
+            print("   → **当前符号仍然是反的！physics_v2._lateral 里滚动项的正负要再翻一次，**")
+            print("     本次 μ_crit 结论全部作废，别往下用。")
+    print("-" * 74)
     fin = [t for t in tab if np.isfinite(t["mu_crit"])]
     if fin:
         lo, hi = min(t["mu_crit"] for t in fin), max(t["mu_crit"] for t in fin)
@@ -331,14 +347,16 @@ def report_b(rows, args):
         row = dict(Fr=float(fr), fail=fr_fail)
         if sel:
             row.update(sink_p95=float(np.percentile([r["sink_mm"] for r in sel], 95)),
-                       e_p95=float(np.nanpercentile(np.abs([r["e_gain"] for r in sel]), 95)),
+                       e_p95=float(np.nanmax([r["e_gain"] for r in sel])),
                        slip=float(np.nanmedian([r["slip_mm"] for r in sel])),
                        mu=float(np.nanmedian([r["mu_demand"] for r in sel])))
         tab.append(row)
         print("   %6.1f %10.1f %10.2f %12.4f %12.1f %12.3f"
               % (fr, fr_fail, row.get("sink_p95", np.nan), row.get("e_p95", np.nan),
                  row.get("slip", np.nan), row.get("mu", np.nan)))
-    bad = [t for t in tab if t["fail"] > 20 or t.get("e_p95", 0) > 0.02]
+    # e_p95 现在存的是 max(e_gain)：只有能量被"造出来"才算数值崩，
+    # 势能正常下降造成的大负值不算（report_a 修过这个坑，这里当时漏了）
+    bad = [t for t in tab if t["fail"] > 20 or t.get("e_p95", -9) > 0.02]
     print("-" * 74)
     if bad:
         fr0 = bad[0]["Fr"]

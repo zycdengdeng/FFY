@@ -394,23 +394,31 @@ def _lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h, rot_tarso=None):
         # bearing 模式下 r 最大到 60 mm，杆转 15° 就是 15 mm ——
         # 和整个压缩行程同量级。不扣的话测到的是腿的运动学，不是滑移：
         # P9 首跑时 μ 从 0.30 加到 2.50（8 倍）站住率纹丝不动，就是这个原因。
-        #   纯滚动：Δx_center = −r·Δφ_y   ⇒   滑移 = Δx_center + r·Δφ_y
+        # 纯滚动的正确关系（叉积推导，z 上 x 右、转角绕 +y）：
+        #   v_contact = v_c + ω×(−r ẑ) = 0  ⇒  Δx_center = **+r·Δφ_y**
+        # 所以净滑移 = Δx − r·Δφ。第一版写成了 +，粘住时（转角最大）
+        # 不但没扣掉运动学反而加倍 —— μ 扫描里"摩擦越大越站不住"的病理就是它。
+        # 符号约定这种事不能只信推导：slip_alt 把反号版本也存下来，
+        # μ 扫描在最大摩擦档做在真引擎上的标定（粘住时哪个≈0 哪个就是对的）。
         rf = float(s["r_foot"])
         phi = np.asarray(rot_tarso, float) if rot_tarso is not None else np.zeros(len(fx))
         roll = rf * phi[:len(fx)]
         i0 = int(np.argmax(on))
         imin = i0 + int(np.argmin(z[i0:])) if i0 < len(z) - 1 else i0
-        slip_sig = (fx - fx[i0]) + (roll - roll[i0])          # 扣掉滚动后的净滑移
+        slip_sig = (fx - fx[i0]) - (roll - roll[i0])          # 扣掉滚动后的净滑移
+        slip_alt = (fx - fx[i0]) + (roll - roll[i0])          # 反号版，仅供标定
         slip_tot = float(np.max(np.abs(slip_sig[on])))
         # **只统计竖直冲击窗口内的滑移**（触地 → 机体最低点）。
         # 整段接触期的滑移没有判据意义：带水平速度落地本来就会滑出
         # v_x²/(2μg) 那么远（2.6 m/s、μ=0.4 时就是 0.86 m），那是"滑行"不是"失效"。
         # 真正决定腿好不好的是：**竖直冲量还在传递的时候，足端有没有从机体底下走开**。
         slip_imp = float(abs(slip_sig[imin])) if imin < len(fx) else slip_tot
-        out["roll_mm"] = float(1e3 * abs(roll[imin] - roll[i0])) if imin < len(fx) else 0.0
-        out["foot_dx_mm"] = float(1e3 * abs(fx[imin] - fx[i0])) if imin < len(fx) else 0.0
+        out["slip_alt"] = float(abs(slip_alt[imin])) if imin < len(fx) else 0.0
+        out["roll_mm"] = float(1e3 * (roll[imin] - roll[i0])) if imin < len(fx) else 0.0
+        out["foot_dx_mm"] = float(1e3 * (fx[imin] - fx[i0])) if imin < len(fx) else 0.0
     else:
         mu_dem, slip_tot, slip_imp = float("nan"), 0.0, 0.0
+        out["slip_alt"] = 0.0
         out["roll_mm"] = out["foot_dx_mm"] = 0.0
     out.update(mu_demand=mu_dem if s.get("planar") else float("nan"),
                slip=slip_imp, slip_total=slip_tot, contact_frac=float(on.mean()))

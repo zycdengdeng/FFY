@@ -1,0 +1,172 @@
+{
+  "arm": "bio",
+  "prior": {
+    "arm": "bio",
+    "a": 0.4789938330118746,
+    "b": 0.39112926377807683,
+    "sigma": 0.07835045439266342,
+    "u_max": 2.5,
+    "L1_ref_mm": 73.01823105157997,
+    "clip": false,
+    "v21": true,
+    "v25": true,
+    "ndim": 10,
+    "kap_range": [
+      [
+        0.75,
+        8.0
+      ],
+      [
+        1.5,
+        8.0
+      ],
+      [
+        3.0,
+        32.0
+      ]
+    ],
+    "zeta_range": [
+      0.005,
+      0.1
+    ],
+    "tha_range": [
+      113.0,
+      160.0
+    ],
+    "thk_range": [
+      118.0,
+      157.0
+    ],
+    "q1_range": [
+      27.6,
+      54.8
+    ],
+    "outside_observed": 0.11675,
+    "fit_n": 214,
+    "fit_r2": 0.754128606756704
+  },
+  "keys": [
+    "peak_a",
+    "stroke",
+    "leg_stroke",
+    "sink",
+    "eta",
+    "cfe",
+    "peak_jerk",
+    "E_abs",
+    "F_peak",
+    "rebound",
+    "n_bounce",
+    "t_settle",
+    "leg_mass_kg",
+    "mass_frac",
+    "struct_over",
+    "mass_over",
+    "a_res",
+    "peak_ax",
+    "mu_demand",
+    "slip",
+    "slip_total",
+    "x_drift",
+    "e_gain",
+    "contact_frac",
+    "v0",
+    "v_x",
+    "mu_ground",
+    "D1_mm",
+    "D2_mm",
+    "D3_mm",
+    "L1_mm",
+    "L2_mm",
+    "L3_mm"
+  ],
+  "keys_v23": [
+    "peak_a",
+    "stroke",
+    "leg_stroke",
+    "sink",
+    "eta",
+    "cfe",
+    "peak_jerk",
+    "E_abs",
+    "F_peak",
+    "rebound",
+    "n_bounce",
+    "t_settle",
+    "leg_mass_kg",
+    "mass_frac",
+    "struct_over",
+    "mass_over"
+  ],
+  "keys_v25": [
+    "a_res",
+    "peak_ax",
+    "mu_demand",
+    "slip",
+    "slip_total",
+    "x_drift",
+    "e_gain",
+    "contact_frac",
+    "v0",
+    "v_x",
+    "mu_ground",
+    "D1_mm",
+    "D2_mm",
+    "D3_mm",
+    "L1_mm",
+    "L2_mm",
+    "L3_mm"
+  ],
+  "v21": true,
+  "v25": true,
+  "u_dim": 10,
+  "foot_mode": "bearing",
+  "planar": false,
+  "fr_max": 0.0,
+  "fr_zero_frac": 0.4,
+  "c_phys_order": [
+    "m",
+    "v0",
+    "kc",
+    "Fr"
+  ],
+  "m_range": [
+    4.0,
+    36.0
+  ],
+  "v0_range": [
+    0.5,
+    2.0
+  ],
+  "kc_range": [
+    50000.0,
+    1000000.0
+  ],
+  "v0_cap_hard": 1.5,
+  "kc_hard": 500000.0,
+  "nglobal": 375,
+  "npath": 25,
+  "K": 5,
+  "nd": 120,
+  "npass": 2,
+  "seed": 7,
+  "walk_mix": [
+    [
+      "v0",
+      10
+    ],
+    [
+      "m_allo",
+      6
+    ],
+    [
+      "m_iso",
+      4
+    ],
+    [
+      "kc",
+      5
+    ]
+  ],
+  "note": "设计在 u 空间采样;bid 为切分单元(路径束整体进训练或测试)"
+}

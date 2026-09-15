@@ -40,7 +40,9 @@ esac
 # 物理代码的版本戳。工厂/闭环都有续跑缓存，但缓存只在**同一版物理**下才合法：
 # 首跑的 v25 产物是用错的 μ（mu_from_ground 未生效）和错的 slip（没扣足球滚动）算的，
 # 直接续跑会把污染数据捡回来。目录里 .codever 不等于这个值就整体挪到 *_stale_<时间>。
-CODEVER="v25.2-sliproll-mufix"
+# v25.3：滑移的滚动扣除符号修正（Δx − r·Δφ，此前为 +），列清单加 slip_alt。
+# 旧 v25.2 工厂的 slip 列在"粘住"场景整体虚高约 2·r·Δφ，闸误杀，必须整体归档重跑。
+CODEVER="v25.3-slipsign"
 W="${WORKERS:-128}"; ROUNDS="${ROUNDS:-40}"; SEEDS="${SEEDS:-0 1}"
 OUT_F="${OUT_F:-outputs/v25_${CONFIG}_data}"; OUT_E="${OUT_E:-outputs/v25_${CONFIG}_e5}"
 ROOT_D="${ROOT_D:-outputs/v25_${CONFIG}_root}"; P9="${P9:-outputs/v25_${CONFIG}_p9}"

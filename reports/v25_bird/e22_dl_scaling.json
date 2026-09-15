@@ -1,0 +1,254 @@
+{
+ "n_rows": 11586,
+ "clamp_pct": 0.0,
+ "clamp_ok": true,
+ "clamp_cap": 0.2,
+ "at_min_pct": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "at_max_pct": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "fits": {
+  "D_vs_L": {
+   "tarso (L1)": {
+    "alpha": 0.8207157395410917,
+    "intercept": -0.35822556417973905,
+    "r2": 0.679003109563531,
+    "ci95": 0.010276236491747923,
+    "n": 11586
+   },
+   "tibio (L2)": {
+    "alpha": 0.7173422348272661,
+    "intercept": -0.31119633644687433,
+    "r2": 0.6337348233961464,
+    "ci95": 0.009931097072850935,
+    "n": 11586
+   },
+   "femur (L3)": {
+    "alpha": 0.6320837838283972,
+    "intercept": 0.0014186651437194091,
+    "r2": 0.5644046174641097,
+    "ci95": 0.010112250053113196,
+    "n": 11586
+   },
+   "pooled": {
+    "alpha": 0.4829207446863598,
+    "intercept": 0.29868971946794426,
+    "r2": 0.4429535491872951,
+    "ci95": 0.005693556720808758,
+    "n": 34758
+   }
+  },
+  "D_vs_m": {
+   "tarso (L1)": {
+    "alpha": 0.4168174614055141,
+    "intercept": 0.9258429260363967,
+    "r2": 0.6272955815059069,
+    "ci95": 0.005850848565428262,
+    "n": 11586
+   },
+   "tibio (L2)": {
+    "alpha": 0.4054866212267784,
+    "intercept": 0.950838550592904,
+    "r2": 0.6603900742837892,
+    "ci95": 0.005295332623349608,
+    "n": 11586
+   },
+   "femur (L3)": {
+    "alpha": 0.36721951448343637,
+    "intercept": 0.9602528820523557,
+    "r2": 0.6378973361092883,
+    "ci95": 0.005038404308221257,
+    "n": 11586
+   },
+   "pooled": {
+    "alpha": 0.3965078657052432,
+    "intercept": 0.9456447862272188,
+    "r2": 0.6345753363010815,
+    "ci95": 0.0031633723755853387,
+    "n": 34758
+   }
+  },
+  "DL_vs_L": {
+   "tarso (L1)": {
+    "alpha": -0.17928426045890794,
+    "intercept": -0.35822556417973894,
+    "r2": 0.09168652223414397,
+    "ci95": 0.010276236491747923,
+    "n": 11586
+   },
+   "tibio (L2)": {
+    "alpha": -0.28265776517273333,
+    "intercept": -0.3111963364468749,
+    "r2": 0.21175827937300862,
+    "ci95": 0.009931097072850935,
+    "n": 11586
+   },
+   "femur (L3)": {
+    "alpha": -0.36791621617160275,
+    "intercept": 0.0014186651437189488,
+    "r2": 0.30506873671207524,
+    "ci95": 0.010112250053113196,
+    "n": 11586
+   },
+   "pooled": {
+    "alpha": -0.5170792553136403,
+    "intercept": 0.2986897194679445,
+    "r2": 0.47689234759342314,
+    "ci95": 0.005693556720808758,
+    "n": 34758
+   }
+  },
+  "DL_vs_L_bymass": {
+   "tarso (L1)": {
+    "alpha": 0.08936649312053375,
+    "intercept": -0.9061205566130083,
+    "r2": 0.8431807777891653,
+    "ci95": 0.02388746624501857,
+    "n": 12
+   },
+   "tibio (L2)": {
+    "alpha": 0.03439844668424624,
+    "intercept": -1.0429589005733708,
+    "r2": 0.3454874570517893,
+    "ci95": 0.0293452455259157,
+    "n": 12
+   },
+   "femur (L3)": {
+    "alpha": -0.059191864458242045,
+    "intercept": -0.6421191557622161,
+    "r2": 0.6536368743815143,
+    "ci95": 0.0267064181110526,
+    "n": 12
+   }
+  },
+  "L_vs_m": {
+   "tarso (L1)": {
+    "alpha": 0.39050042446237987,
+    "r2": 0.9973491910922362,
+    "ci95": 0.012477948027915166
+   },
+   "tibio (L2)": {
+    "alpha": 0.39418214185280487,
+    "r2": 0.9971675252598214,
+    "ci95": 0.013021228974430794
+   },
+   "femur (L3)": {
+    "alpha": 0.3900118345089583,
+    "r2": 0.9962922388382517,
+    "ci95": 0.014746751390180607
+   }
+  }
+ },
+ "bio": {
+  "_核实状态": "已核实。2026-09-10 逐行读取会议帧 frames/t_00-45-45.jpg（Shizhuo 分享的第 35 页）。",
+  "_图题": "Allometric scaling of long-bone proportions across vertebrates",
+  "_横轴原文": "Scaling exponent α  (d/L ∝ L^α)  —— 所以口径是 DL_vs_L，不是 D_vs_L",
+  "_骨骼对应": {
+   "tarso (L1)": "GROUND-foot · bird tarsometatarsus",
+   "tibio (L2)": "图上没有胫跗骨这一行 —— 我们的 L2 没有生物参照，不比",
+   "femur (L3)": "PERCH · bird femur"
+  },
+  "_我们该用哪一组": "AVONET 拟合用的是 waterbirds_all(n=214)，主体是鸭雁天鹅 → Heavy-bodied fliers；鹈鹕/鸬鹚/鹭属 Diving water-feeders。两组都列，先比 Heavy-bodied。",
+  "source": "Shizhuo Weng, 会议第 35 页 (2026-09-09, 45:45)；Heavy-bodied fliers (ducks/pheasants/cranes), n=63",
+  "convention": "DL_vs_L",
+  "values": {
+   "tarso (L1)": -0.38,
+   "femur (L3)": 0.12
+  },
+  "alternatives": [
+   {
+    "source": "同图 · Diving water-feeders (cormorants/herons/boobies), n=19",
+    "values": {
+     "tarso (L1)": -0.57,
+     "femur (L3)": -0.39
+    }
+   },
+   {
+    "source": "同图 · Wading shorebirds (sandpipers/plovers), n=24",
+    "values": {
+     "tarso (L1)": -0.12,
+     "femur (L3)": 0.12
+    }
+   },
+   {
+    "source": "同图 · Open-ocean soaring (gulls/albatross/auks), n=25",
+    "values": {
+     "tarso (L1)": 0.02,
+     "femur (L3)": 0.2
+    }
+   },
+   {
+    "source": "同图 · Forest fliers (songbirds/pigeons/parrots), n=131",
+    "values": {
+     "tarso (L1)": -0.24,
+     "femur (L3)": 0.14
+    }
+   },
+   {
+    "source": "同图 · Raptors (hawks/falcons/owls), n=40",
+    "values": {
+     "tarso (L1)": -0.3,
+     "femur (L3)": 0.22
+    }
+   }
+  ],
+  "_跗跖骨全表_从图上逐行读出": {
+   "Open-ocean soaring (gulls/albatross/auks)": [
+    0.02,
+    25
+   ],
+   "Wading shorebirds (sandpipers/plovers)": [
+    -0.12,
+    24
+   ],
+   "Forest fliers (songbirds/pigeons/parrots)": [
+    -0.24,
+    131
+   ],
+   "Raptors (hawks/falcons/owls)": [
+    -0.3,
+    40
+   ],
+   "Heavy-bodied fliers (ducks/pheasants/cranes)": [
+    -0.38,
+    63
+   ],
+   "Diving water-feeders (cormorants/herons/boobies)": [
+    -0.57,
+    19
+   ]
+  },
+  "_股骨全表": {
+   "Raptors (hawks/falcons/owls)": [
+    0.22,
+    46
+   ],
+   "Open-ocean soaring (gulls/albatross/auks)": [
+    0.2,
+    25
+   ],
+   "Forest fliers (songbirds/pigeons/parrots)": [
+    0.14,
+    131
+   ],
+   "Wading shorebirds (sandpipers/plovers)": [
+    0.12,
+    24
+   ],
+   "Heavy-bodied fliers (ducks/pheasants/cranes)": [
+    0.12,
+    63
+   ],
+   "Diving water-feeders (cormorants/herons/boobies)": [
+    -0.39,
+    19
+   ]
+  }
+ }
+}
