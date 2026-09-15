@@ -179,8 +179,8 @@ cp -f "$LOG" "$REPORTS/run.log" 2>/dev/null
 echo; echo "=========== 全部结束（$(( ($(date +%s)-t0)/60 )) 分钟）==========="
 echo
 echo "构型 $CONFIG 的产物：$OUT_F · $OUT_E(+_s1) · v25_${CONFIG}_e18b/e20/e21 · $P9"
-echo "小文件已收进 $REPORTS —— 带回本地："
-echo "  git add -A reports && git commit -m 'v2.5 结果' && git push"
+echo "小文件已收进 $REPORTS —— 直接下载这个目录到本地 FFY/ 下即可。"
+echo "（reports/ 已在 .gitignore 里，git 不参与搬运，下载后也**不要** sync 它。）"
 echo
 echo "⚠ 口径提醒（三条，别记混）："
 echo "  ① v2.5 的机体能水平走了，**即使 Fr=0 也与 v2.3 不同物理** ——"
