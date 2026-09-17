@@ -183,6 +183,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arms", default="bio")
     ap.add_argument("--outroot", default="outputs", help="v2_e5_<arm> 的父目录")
+    ap.add_argument("--ckpt", default=None,
+                    help="直接指定权重文件；v2.5 布局没有 v2_e5_<arm> 子目录，与 e21 同口径")
     ap.add_argument("--conds", default=",".join(CONDS))
     ap.add_argument("--nz", type=int, default=216,
                     help="每格采多少隐变量。216 约 50 分钟(128 核);"
@@ -212,7 +214,7 @@ def main():
     print(f"[e20] {len(a.arms.split(','))} 臂 × {len(conds)} 工况 × "
           f"{len(M_GRID)}+{len(ANCHORS)} 级 × {a.nz} = {n} 次评价/臂\n")
     for arm in a.arms.split(","):
-        run_arm(arm, latest_ckpt(a.outroot, arm), conds, M_GRID,
+        run_arm(arm, a.ckpt or latest_ckpt(a.outroot, arm), conds, M_GRID,
                 a.nz, a.workers, a.out)
     print(f"[e20] 完成 → {a.out}")
 

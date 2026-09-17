@@ -154,7 +154,7 @@ run "6a/6 · E18b 四臂走廊" \
     --mlo 2 --mhi 40 --nu 9 --nm 16 --nprobe 48 --workers "$W" --out "outputs/v25_${CONFIG}_e18b"
 
 run "6b/6 · E20 生成走廊" \
-  python src/stage10_v2/e20_gen_corridor.py --v21 --foot bearing --outroot "$ROOT_D" \
+  python src/stage10_v2/e20_gen_corridor.py --v21 --foot bearing --ckpt "$OUT_E/cvae_r$((ROUNDS-1)).pt" \
     --mgrid 2,40,16 --anchors "5:产品下端,12:样机档,30:产品上端" \
     --nz 216 --workers "$W" --out "outputs/v25_${CONFIG}_e20"
 
