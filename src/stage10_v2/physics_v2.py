@@ -67,7 +67,11 @@ def mu_of_kc(kc):
 ZETA_C_RANGE = (0.05, 0.35)
 
 # ---------------------------------------------------------------- 结构(绝对量)
-MAT_DEFAULT = "cfnylon"
+# 材料由环境变量 FFY_MATERIAL 选（cfnylon / al7075 / ti64），默认打印碳纤尼龙。
+# 在 import 时读取一次，所有下游（factory / e5 / e18b / e20 / e21 / p9）自动跟随，
+# 不需要逐个脚本传参。切材料 = 换一套 (ρ, σ_y, E)，定尺判据与安全系数不变。
+MAT_DEFAULT = os.environ.get("FFY_MATERIAL", "cfnylon")
+assert MAT_DEFAULT in MATERIALS, f"FFY_MATERIAL={MAT_DEFAULT} 不在 {list(MATERIALS)}"
 SF = 2.0                 # 安全系数
 D_MAX_RATIO = 0.25       # 外径 / 段长 上限:超过即判不可行(杆件假设失效+干涉)
 D_MIN = 0.004            # 最小可制造外径 4mm(壁厚 0.4mm)

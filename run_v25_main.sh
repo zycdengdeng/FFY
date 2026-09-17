@@ -42,13 +42,22 @@ esac
 # 直接续跑会把污染数据捡回来。目录里 .codever 不等于这个值就整体挪到 *_stale_<时间>。
 # v25.3：滑移的滚动扣除符号修正（Δx − r·Δφ，此前为 +），列清单加 slip_alt。
 # 旧 v25.2 工厂的 slip 列在"粘住"场景整体虚高约 2·r·Δφ，闸误杀，必须整体归档重跑。
-CODEVER="v25.3-slipsign"
+# ---- 材料：MATERIAL=al7075 bash run_v25_main.sh ----
+#   cfnylon = 打印碳纤尼龙（默认，样机可打印口径）
+#   al7075  = 航空铝（与真实起落架同材料，对标口径；腿更细更轻，定尺判据不变）
+#   注意：换材料改变杆件质量→回代进动力学，所以必须全量重跑，不能后处理。
+#   μ(k_c) 估计式不随材料变（铝-混凝土与尼龙-混凝土同量级），文档里已标"本工作设定"。
+MATERIAL="${MATERIAL:-cfnylon}"
+export FFY_MATERIAL="$MATERIAL"
+MSUF=""
+if [ "$MATERIAL" != "cfnylon" ]; then MSUF="_${MATERIAL}"; fi
+if [ "$MATERIAL" = "cfnylon" ]; then CODEVER="v25.3-slipsign"; else CODEVER="v25.4-${MATERIAL}"; fi   # cfnylon 保持旧戳，避免误归档已完成的 18h 产物
 W="${WORKERS:-128}"; ROUNDS="${ROUNDS:-40}"; SEEDS="${SEEDS:-0 1}"
-OUT_F="${OUT_F:-outputs/v25_${CONFIG}_data}"; OUT_E="${OUT_E:-outputs/v25_${CONFIG}_e5}"
-ROOT_D="${ROOT_D:-outputs/v25_${CONFIG}_root}"; P9="${P9:-outputs/v25_${CONFIG}_p9}"
-REPORTS="reports/v25_${CONFIG}"
+OUT_F="${OUT_F:-outputs/v25_${CONFIG}${MSUF}_data}"; OUT_E="${OUT_E:-outputs/v25_${CONFIG}${MSUF}_e5}"
+ROOT_D="${ROOT_D:-outputs/v25_${CONFIG}${MSUF}_root}"; P9="${P9:-outputs/v25_${CONFIG}${MSUF}_p9}"
+REPORTS="reports/v25_${CONFIG}${MSUF}"
 mkdir -p logs "$ROOT_D/v2_e5_bio" "$P9" "$REPORTS"
-LOG="logs/v25_${CONFIG}_$(date +%Y%m%d_%H%M%S).log"
+LOG="logs/v25_${CONFIG}${MSUF}_$(date +%Y%m%d_%H%M%S).log"
 exec > >(tee -a "$LOG") 2>&1
 export OMP_NUM_THREADS=1
 t0=$(date +%s); el(){ echo "[累计 $(( ($(date +%s)-t0)/60 )) 分钟]"; }
@@ -66,9 +75,9 @@ fresh(){  # fresh DIR：版本不符就归档；随后建目录并盖章（同�
 RC=0
 run(){ echo; echo "=========== $1 ==========="; shift; "$@"; RC=$?; echo "退出码 $RC"; el; }
 
-echo "构型 CONFIG=$CONFIG (planar=$PLANAR)  workers=$W  rounds=$ROUNDS  seeds=$SEEDS  codever=$CODEVER"
+echo "材料 MATERIAL=$MATERIAL  构型 CONFIG=$CONFIG (planar=$PLANAR)  workers=$W  rounds=$ROUNDS  seeds=$SEEDS  codever=$CODEVER"
 for d in "$P9" "$OUT_F" "$OUT_E" "${OUT_E}_s1" "$ROOT_D" \
-         "outputs/v25_${CONFIG}_e18b" "outputs/v25_${CONFIG}_e20" "outputs/v25_${CONFIG}_e21"; do
+         "outputs/v25_${CONFIG}${MSUF}_e18b" "outputs/v25_${CONFIG}${MSUF}_e20" "outputs/v25_${CONFIG}${MSUF}_e21"; do
   fresh "$d"
 done
 echo "日志 $LOG"
@@ -76,6 +85,11 @@ echo "日志 $LOG"
 # ---- 0 · 回归测试：先证明重构没动物理，不过就别往下跑 ----
 # 拿 v2.3 工厂里存档的设计与工况原样重跑（planar=False, v_x=0），逐条比 peak_a。
 # 这是唯一能证明「新代码在旧条件下和旧代码等价」的办法。
+if [ "$MATERIAL" != "cfnylon" ]; then
+  echo; echo "=========== 0/6 · 回归测试跳过：材料=$MATERIAL，v2.3 基线是 cfnylon，逐条比对无意义 ==========="
+  echo "（代码等价性已由 cfnylon 版的回归测试保证；本次只换材料常数。）"
+  RC=0
+else
 run "0/6 · 回归测试（对 v2.3 存档逐条比 peak_a，要求最大偏差 < 0.5%）" \
   python src/stage10_v2/p9_friction.py --mode reg --n 300 --workers "$W" \
     --factory outputs/v23_data_bio/factory.jsonl --out "$P9"
@@ -83,6 +97,7 @@ if [ "$RC" != "0" ]; then
   echo; echo "!!!! 回归测试没过。重构动到了不该动的地方，**停在这里**，别跑后面 18 小时。"
   echo "     诊断：logs/ 里这份日志 + $P9/p9_reg.json"
   exit 1
+fi
 fi
 
 # ---- 1 · 准入体检：新物理数值上站不站得住 ----
@@ -151,16 +166,16 @@ run "5b/6 · 两种子比对（出汇报口径；训练类指标 ≥2 种子才�
 # ---- 6 · 下游：口径变了，必须全套重跑 ----
 run "6a/6 · E18b 四臂走廊" \
   python src/stage10_v2/e18b_corridor_multi.py --v21 --foot bearing \
-    --mlo 2 --mhi 40 --nu 9 --nm 16 --nprobe 48 --workers "$W" --out "outputs/v25_${CONFIG}_e18b"
+    --mlo 2 --mhi 40 --nu 9 --nm 16 --nprobe 48 --workers "$W" --out "outputs/v25_${CONFIG}${MSUF}_e18b"
 
 run "6b/6 · E20 生成走廊" \
   python src/stage10_v2/e20_gen_corridor.py --v21 --foot bearing --ckpt "$OUT_E/cvae_r$((ROUNDS-1)).pt" \
     --mgrid 2,40,16 --anchors "5:产品下端,12:样机档,30:产品上端" \
-    --nz 216 --workers "$W" --out "outputs/v25_${CONFIG}_e20"
+    --nz 216 --workers "$W" --out "outputs/v25_${CONFIG}${MSUF}_e20"
 
 run "6c/6 · E21 真鸟 vs 生成" \
   python src/stage10_v2/e21_bird_vs_gen.py --v21 --foot bearing \
-    --ckpt "$OUT_E/cvae_r$((ROUNDS-1)).pt" --workers "$W" --out "outputs/v25_${CONFIG}_e21"
+    --ckpt "$OUT_E/cvae_r$((ROUNDS-1)).pt" --workers "$W" --out "outputs/v25_${CONFIG}${MSUF}_e21"
 
 # ---- 附 · E22 现在是零成本了（D 已落盘） ----
 run "附 · E22 D/L 标度（v2.5 工厂已落盘 D_mm，不用再重评）" \
@@ -178,7 +193,7 @@ cp -f "$LOG" "$REPORTS/run.log" 2>/dev/null
 
 echo; echo "=========== 全部结束（$(( ($(date +%s)-t0)/60 )) 分钟）==========="
 echo
-echo "构型 $CONFIG 的产物：$OUT_F · $OUT_E(+_s1) · v25_${CONFIG}_e18b/e20/e21 · $P9"
+echo "构型 $CONFIG 的产物：$OUT_F · $OUT_E(+_s1) · v25_${CONFIG}${MSUF}_e18b/e20/e21 · $P9"
 echo "小文件已收进 $REPORTS —— 直接下载这个目录到本地 FFY/ 下即可。"
 echo "（reports/ 已在 .gitignore 里，git 不参与搬运，下载后也**不要** sync 它。）"
 echo
