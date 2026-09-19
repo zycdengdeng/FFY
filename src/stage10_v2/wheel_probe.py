@@ -129,16 +129,17 @@ def eval_wheel(x7, m, v0, kc, zeta_c=0.15, base=None, v_x=0.0, planar=True,
     def _brake(mbs_, t_, item_, rot, rot_t, k_, d_, off_,
                _tm=tau_max, _oth=om_th, _ow=oneway, _mode=mode, _lc=LOCK_C, _st=_rst):
         om = rot_t
+        # ⚠ exudyn 符号约定（台架实测 2026-09-19）：springTorqueUserFunction 的
+        # 返回值按内置公式 k·Δ+d·ω 的位置代入（随内置负反馈一起施加），
+        # 所以「阻力矩」必须返回 +|τ|·sign(ω)；写 − 号会变成电机。
+        # M1–M3 的 brake/bc 臂全踩了这个坑（末速>初速是它的指纹），已修。
         if _mode == "locked":
-            return -_lc * om
-        # 反离心刹车（对称作用）+ 平滑化 sign，避免 ω≈0 处颤振
+            return _lc * om
         frac = max(0.0, 1.0 - abs(om)/max(_oth,1e-6))
-        tau = -np.tanh(om/0.5) * _tm * frac
-        # 单向轴承：反向速度阻尼式（平滑），允许微小蠕滑，数值友好。
-        # _ow=+1 允许 ω>0 自由；ω<0 被强阻尼压住（半 tanh 门控，无不连续）。
+        tau = np.tanh(om/0.5) * _tm * frac
         if _ow != 0:
             gate = 0.5*(1.0 - np.tanh((_ow*om)/0.2))   # 反向≈1，正向≈0
-            tau += -20.0 * gate * om
+            tau += 20.0 * gate * om
         return tau
     if mode != "locked":
         con = mbs.CreateTorsionalSpringDamper(bodyNumbers=[tarso, wheel_b],
@@ -321,8 +322,9 @@ def eval_wheel2(x7, m, v0, kc, zeta_c=0.15, base=None, v_x=0.0,
             mbs.CreateRevoluteJoint(bodyNumbers=[tarso, wheel_b], position=list(Fp), axis=[0,1,0])
             tau_max = float(w["tau_max"]); om_th = float(w["omega_th"])
             def _brake(mbs_, t_, item_, rot, rot_t, k_, d_, off_, _tm=tau_max, _oth=om_th):
+                # 符号约定见单腿 _brake 的注释：阻力矩返回 +|τ|·sign(ω)
                 frac = max(0.0, 1.0 - abs(rot_t)/max(_oth,1e-6))
-                return -np.tanh(rot_t/0.5) * _tm * frac
+                return np.tanh(rot_t/0.5) * _tm * frac
             con = mbs.CreateTorsionalSpringDamper(bodyNumbers=[tarso, wheel_b],
                                                   position=list(Fp), axis=[0,1,0],
                                                   stiffness=0.0, damping=0.0)
