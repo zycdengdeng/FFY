@@ -143,7 +143,7 @@ fi
 
 # ---- 3 · 数据工厂 ----
 run "3/6 · 数据工厂 v2.5（10 维设计 + 6 维条件 + 面内平动）" \
-  python src/stage10_v2/factory_v2.py --v25 --foot bearing --m-range 4,36 --arm bio \
+  python src/stage10_v2/factory_v2.py --v25 --foot bearing --m-range 4,36 --arm "${ARM:-bio}" \
     --planar "$PLANAR" --fr-max "$FRMAX" \
     --nglobal 375 --npath 25 --K 5 --nd 120 --npass 2 --workers "$W" --out "$OUT_F"
 
