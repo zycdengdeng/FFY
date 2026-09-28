@@ -1,0 +1,106 @@
+{"kind":"deck","id":"pr/49ydet","name":"Deck"}
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"","type":"master","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"body","type":"body","textPreview":"单击此处编辑母版文本样式 | 二级 | 三级 | 四级 | 五级"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"标题幻灯片","type":"title","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"subtitle","type":"subtitle","textPreview":"单击此处编辑母版副标题样式"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout2.xml","name":"标题和内容","type":"obj","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"2","textPreview":"单击此处编辑母版文本样式 | 二级 | 三级 | 四级 | 五级"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout3.xml","name":"节标题","type":"secHead","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"body","type":"body","textPreview":"单击此处编辑母版文本样式"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout4.xml","name":"两栏内容","type":"twoObj","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"2","textPreview":"单击此处编辑母版文本样式 | 二级 | 三级 | 四级 | 五级"},{"name":"3","textPreview":"单击此处编辑母版文本样式 | 二级 | 三级 | 四级 | 五级"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout5.xml","name":"比较","type":"twoTxTwoObj","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"body","type":"body","textPreview":"单击此处编辑母版文本样式"},{"name":"3","textPreview":"单击此处编辑母版文本样式 | 二级 | 三级 | 四级 | 五级"},{"name":"body","type":"body","textPreview":"单击此处编辑母版文本样式"},{"name":"5","textPreview":"单击此处编辑母版文本样式 | 二级 | 三级 | 四级 | 五级"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout6.xml","name":"仅标题","type":"titleOnly","placeholders":[{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout7.xml","name":"2_空白","type":"blank","placeholders":[{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout8.xml","name":"1_空白","type":"blank","placeholders":[{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout9.xml","name":"3_空白","type":"blank","placeholders":[{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout10.xml","name":"空白","type":"blank","placeholders":[{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout11.xml","name":"内容与标题","type":"objTx","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"2","textPreview":"单击此处编辑母版文本样式 | 二级 | 三级 | 四级 | 五级"},{"name":"body","type":"body","textPreview":"单击此处编辑母版文本样式"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout12.xml","name":"图片与标题","type":"picTx","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"picture","type":"picture"},{"name":"body","type":"body","textPreview":"单击此处编辑母版文本样式"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout13.xml","name":"标题和竖排文字","type":"vertTx","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"body","type":"body","textPreview":"单击此处编辑母版文本样式 | 二级 | 三级 | 四级 | 五级"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout14.xml","name":"竖排标题与文本","type":"vertTitleAndTx","placeholders":[{"name":"title","type":"title","textPreview":"单击此处编辑母版标题样式"},{"name":"body","type":"body","textPreview":"单击此处编辑母版文本样式 | 二级 | 三级 | 四级 | 五级"},{"name":"dateTime","type":"dateTime","textPreview":"2026/9/27"},{"name":"footer","type":"footer"},{"name":"slideNumber","type":"slideNumber","textPreview":"‹#›"}]}
+{"kind":"slide","id":"sl/y90nupkv","slide":1,"title":"面向关键部件设计的机理约束生成式设计与优化方法","textShapes":33}
+{"kind":"textbox","id":"sh/547294r6","slide":1,"name":"TextBox 1","text":"面向关键部件设计的机理约束生成式设计与优化方法","textPreview":"面向关键部件设计的机理约束生成式设计与优化方法","textChars":23,"textLines":1,"bbox":[45.12,19.2,931.2,55.68]}
+{"kind":"textbox","id":"sh/k3yl0zql","slide":1,"name":"TextBox 2","text":"研究载体  航空起落架轻量化设计","textPreview":"研究载体  航空起落架轻量化设计","textChars":16,"textLines":1,"bbox":[45.12,98.88,499.2,40.32]}
+{"kind":"textbox","id":"sh/7qp4be9c","slide":1,"name":"TextBox 3","text":"协同优化目标","textPreview":"协同优化目标","textChars":6,"textLines":1,"bbox":[609.6,98.88,148.8,40.32]}
+{"kind":"textbox","id":"sh/65g3298r","slide":1,"name":"Rounded Rectangle 4","text":"结构轻量化","textPreview":"结构轻量化","textChars":5,"textLines":1,"bbox":[768,102.72,107.52,32.64]}
+{"kind":"textbox","id":"sh/ts7md4r2","slide":1,"name":"Rounded Rectangle 5","text":"强度安全","textPreview":"强度安全","textChars":4,"textLines":1,"bbox":[885.12,102.72,107.52,32.64]}
+{"kind":"textbox","id":"sh/sryl4zqx","slide":1,"name":"Rounded Rectangle 6","text":"疲劳寿命","textPreview":"疲劳寿命","textChars":4,"textLines":1,"bbox":[1002.24,102.72,107.52,32.64]}
+{"kind":"textbox","id":"sh/fu94fe98","slide":1,"name":"Rounded Rectangle 7","text":"制造约束","textPreview":"制造约束","textChars":4,"textLines":1,"bbox":[1119.36,102.72,107.52,32.64]}
+{"kind":"shape","id":"sh/utg3698n","slide":1,"name":"Rounded Rectangle 8","bbox":[45.12,163.2,316.8,508.8]}
+{"kind":"textbox","id":"sh/wn6dc7eh","slide":1,"name":"TextBox 9","text":"共性难题","textPreview":"共性难题","textChars":4,"textLines":1,"bbox":[69.12,182.4,268.8,38.4]}
+{"kind":"textbox","id":"sh/hofulsf2","slide":1,"name":"TextBox 10","text":"①","textPreview":"①","textChars":1,"textLines":1,"bbox":[69.12,240,38.4,40.32]}
+{"kind":"textbox","id":"sh/ul4vaxgb","slide":1,"name":"TextBox 11","text":"真实试验成本高","textPreview":"真实试验成本高","textChars":7,"textLines":1,"bbox":[112.32,240,230.4,40.32]}
+{"kind":"textbox","id":"sh/vmdcj2xw","slide":1,"name":"TextBox 12","text":"②","textPreview":"②","textChars":1,"textLines":1,"bbox":[69.12,299.52,38.4,40.32]}
+{"kind":"textbox","id":"sh/4r6dg7et","slide":1,"name":"TextBox 13","text":"仿真预算有限","textPreview":"仿真预算有限","textChars":6,"textLines":1,"bbox":[112.32,299.52,230.4,40.32]}
+{"kind":"textbox","id":"sh/5sfepcfe","slide":1,"name":"TextBox 14","text":"③","textPreview":"③","textChars":1,"textLines":1,"bbox":[69.12,359.04,38.4,40.32]}
+{"kind":"textbox","id":"sh/ipovexwn","slide":1,"name":"TextBox 15","text":"设计变量高维耦合","textPreview":"设计变量高维耦合","textChars":8,"textLines":1,"bbox":[112.32,359.04,230.4,40.32]}
+{"kind":"textbox","id":"sh/3qxwn2x8","slide":1,"name":"TextBox 16","text":"④","textPreview":"④","textChars":1,"textLines":1,"bbox":[69.12,418.56,38.4,40.32]}
+{"kind":"textbox","id":"sh/sfqdkrep","slide":1,"name":"TextBox 17","text":"物理约束强","textPreview":"物理约束强","textChars":5,"textLines":1,"bbox":[112.32,418.56,230.4,40.32]}
+{"kind":"textbox","id":"sh/dgzetcfa","slide":1,"name":"TextBox 18","text":"⑤","textPreview":"⑤","textChars":1,"textLines":1,"bbox":[69.12,478.08,38.4,40.32]}
+{"kind":"textbox","id":"sh/1cvuxc7e","slide":1,"name":"TextBox 19","text":"多目标权衡困难","textPreview":"多目标权衡困难","textChars":7,"textLines":1,"bbox":[112.32,478.08,230.4,40.32]}
+{"kind":"textbox","id":"sh/0bmd476t","slide":1,"name":"TextBox 20","text":"核心问题\n有限数据下，如何生成满足强物理约束、兼顾多目标的最优部件设计","textPreview":"核心问题 | 有限数据下，如何生成满足强物理约束、兼顾多目标的最优部件设计","textChars":35,"textLines":2,"bbox":[69.12,547.2,268.8,115.2]}
+{"kind":"shape","id":"sh/zadcv2p8","slide":1,"name":"Chevron 21","bbox":[374.4,388.8,30.72,57.6]}
+{"kind":"shape","id":"sh/e94v2hon","slide":1,"name":"Rounded Rectangle 22","bbox":[422.4,163.2,379.2,230.4]}
+{"kind":"textbox","id":"sh/90ve1w7q","slide":1,"name":"Oval 23","text":"a","textPreview":"a","textChars":1,"textLines":1,"bbox":[441.6,173.06,40.32,40.32]}
+{"kind":"textbox","id":"sh/ozmd8r65","slide":1,"name":"TextBox 24","text":"多源融合数据集","textPreview":"多源融合数据集","textChars":7,"textLines":1,"bbox":[494.4,173.06,292.8,40.32]}
+{"kind":"shape","id":"sh/p4bu5s76","slide":1,"name":"Rounded Rectangle 27","bbox":[856.32,163.2,379.2,230.4]}
+{"kind":"textbox","id":"sh/432dwn6l","slide":1,"name":"Oval 28","text":"b","textPreview":"b","textChars":1,"textLines":1,"bbox":[875.52,173.05,40.32,40.32]}
+{"kind":"textbox","id":"sh/uxgjq907","slide":1,"name":"TextBox 29","text":"物理一致性高效代理模型","textPreview":"物理一致性高效代理模型","textChars":11,"textLines":1,"bbox":[928.32,173.05,292.8,40.32]}
+{"kind":"shape","id":"sh/h072l4jy","slide":1,"name":"Rounded Rectangle 32","bbox":[856.32,441.6,379.2,230.4]}
+{"kind":"textbox","id":"sh/i1gje90j","slide":1,"name":"Oval 33","text":"c","textPreview":"c","textChars":1,"textLines":1,"bbox":[875.52,458.88,40.32,40.32]}
+{"kind":"textbox","id":"sh/j2pkne14","slide":1,"name":"TextBox 34","text":"性能条件生成式逆向设计","textPreview":"性能条件生成式逆向设计","textChars":11,"textLines":1,"bbox":[928.32,458.88,292.8,40.32]}
+{"kind":"shape","id":"sh/y5wjip0z","slide":1,"name":"Rounded Rectangle 37","bbox":[422.4,441.6,379.2,230.4]}
+{"kind":"textbox","id":"sh/z650ba1k","slide":1,"name":"Oval 38","text":"d","textPreview":"d","textChars":1,"textLines":1,"bbox":[441.6,454.08,40.32,40.32]}
+{"kind":"textbox","id":"sh/z2xgf6to","slide":1,"name":"TextBox 39","text":"缩比原型制造与力学实验","textPreview":"缩比原型制造与力学实验","textChars":11,"textLines":1,"bbox":[494.4,454.08,292.8,40.32]}
+{"kind":"shape","id":"sh/036h8but","slide":1,"name":"Connector 42","bbox":[809.28,278.4,39.36,0]}
+{"kind":"shape","id":"sh/nqxgjqtk","slide":1,"name":"Connector 43","bbox":[1045.92,399.36,0,36.48]}
+{"kind":"shape","id":"sh/mpozalcz","slide":1,"name":"Connector 44","bbox":[809.28,556.8,39.36,0]}
+{"kind":"shape","id":"sh/9sfylgbq","slide":1,"name":"Connector 45","bbox":[612,399.36,0,36.48]}
+{"kind":"textbox","id":"sh/or6hcvu5","slide":1,"name":"TextBox 46","text":"数据回灌","textPreview":"数据回灌","textChars":4,"textLines":1,"bbox":[623.52,400.32,134.4,34.56]}
+{"kind":"textbox","id":"sh/buh0nqtg","slide":1,"name":"Rounded Rectangle 47","text":"闭环迭代","textPreview":"闭环迭代","textChars":4,"textLines":1,"bbox":[769.44,398.4,119.04,38.4]}
+{"kind":"textbox","id":"sh/xsfy5grm","slide":1,"name":"文本框 58","text":"生物观测、仿真与试验融合数据集","textPreview":"生物观测、仿真与试验融合数据集","textChars":15,"textLines":1,"bbox":[475.39,365.84,302.98,32.31]}
+{"kind":"textbox","id":"sh/cby5k3yt","slide":1,"name":"文本框 60","text":"有限仿真预算下关键性能快速预测","textPreview":"有限仿真预算下关键性能快速预测","textChars":15,"textLines":1,"bbox":[898.24,362.38,302.98,32.8]}
+{"kind":"textbox","id":"sh/q9wnidgn","slide":1,"name":"文本框 62","text":"缩比原型制造与实测结果回灌","textPreview":"缩比原型制造与实测结果回灌","textChars":13,"textLines":1,"bbox":[481.92,640.24,302.98,32.8]}
+{"kind":"textbox","id":"sh/4ne5g3yh","slide":1,"name":"文本框 64","text":"目标性能条件生成与约束筛选","textPreview":"目标性能条件生成与约束筛选","textChars":13,"textLines":1,"bbox":[894.43,641.69,302.98,34.24]}
+{"kind":"image","id":"im/g36h8ral","slide":1,"name":"图片 31","bbox":[427.02,223.64,182.58,146.96]}
+{"kind":"image","id":"im/14fi1wr6","slide":1,"name":"图片 41","bbox":[613.07,223.64,182.58,146.96]}
+{"kind":"image","id":"im/6x4z2hsj","slide":1,"name":"图片 48","bbox":[862.08,222.97,182.37,146.96]}
+{"kind":"image","id":"im/ryd0vm9o","slide":1,"name":"图片 50","bbox":[1050.21,222.97,182.37,146.96]}
+{"kind":"image","id":"im/9s321kb6","slide":1,"name":"图片 52","bbox":[862.08,498.19,182.4,146.96]}
+{"kind":"image","id":"im/8rul8fu1","slide":1,"name":"图片 55","bbox":[1050.24,499.71,180.54,145.44]}
+{"kind":"image","id":"im/nqlkzutg","slide":1,"name":"图片 56","bbox":[427.92,498.19,184.08,145.76]}
+{"kind":"image","id":"im/mps36pcv","slide":1,"name":"图片 57","bbox":[615.51,496.96,182.58,148.36]}
+{"kind":"notes","id":"nt/y90nupkv","slide":1,"text":"本页说明研究问题与总体技术路线。左侧概括真实试验昂贵、仿真预算有限、高维耦合、强物理约束和多目标权衡五项共性难题。右侧四项研究形成闭环：a 融合生物观测、有限元仿真与力学试验数据；b 以机理模型为基础、由数据学习残差，在有限预算下预测关键性能；c 给定轻量化、强度与寿命目标生成候选设计，并用知识图谱、物理约束和制造规则筛选；d 制造缩比原型并开展力学实验，将实测偏差回灌数据集与模型。下一页进一步说明观察数据和受控干预分别在闭环中承担什么作用。"}
+{"kind":"slide","id":"sl/hwbqtkby","slide":2,"title":"因果干预驱动的有限数据设计闭环","textShapes":26}
+{"kind":"textbox","id":"sh/9072xkry","slide":2,"name":"TextBox 1","text":"因果干预驱动的有限数据设计闭环","textPreview":"因果干预驱动的有限数据设计闭环","textChars":15,"textLines":1,"bbox":[45.12,19.2,931.2,55.68]}
+{"kind":"textbox","id":"sh/ozy1ofad","slide":2,"text":"观察数据提供设计先验，受控干预识别可控效应，原型试验校准真实偏差","textPreview":"观察数据提供设计先验，受控干预识别可控效应，原型试验校准真实偏差","textChars":32,"textLines":1,"bbox":[48,92,1184,43]}
+{"kind":"shape","id":"sh/b29kza94","slide":2,"bbox":[50,154,280,260]}
+{"kind":"textbox","id":"sh/a10jqpsj","slide":2,"text":"a","textPreview":"a","textChars":1,"textLines":1,"bbox":[68,171,40,40]}
+{"kind":"textbox","id":"sh/x4r21kru","slide":2,"text":"数据融合","textPreview":"数据融合","textChars":4,"textLines":1,"bbox":[118,171,194,42]}
+{"kind":"textbox","id":"sh/w3i1sfa9","slide":2,"text":"观察数据  \n水鸟形态、着陆视频与历史记录\n得到  相关关系  P(Y|X)\n干预数据  \n有限元扫描与受控缩比试验\n得到  因果效应  P(Y|do(X))","textPreview":"观察数据   | 水鸟形态、着陆视频与历史记录 | 得到  相关关系  P(Y|X) | 干预数据   | 有限元扫描与受控缩比试验 | 得到  因果效应  P(Y|do(X))","textChars":79,"textLines":6,"bbox":[68,222,244,170]}
+{"kind":"shape","id":"sh/r65knqtk","slide":2,"bbox":[350,154,280,260]}
+{"kind":"textbox","id":"sh/q5wjelsz","slide":2,"text":"b","textPreview":"b","textChars":1,"textLines":1,"bbox":[368,171,40,40]}
+{"kind":"textbox","id":"sh/ove9o7yd","slide":2,"text":"因果代理模型","textPreview":"因果代理模型","textChars":6,"textLines":1,"bbox":[418,171,194,42]}
+{"kind":"textbox","id":"sh/9wnqhczy","slide":2,"text":"结构  设计变量 X、机理状态 M、性能响应 Y 分层建模\n工况  冲击、静载与载荷谱作为条件输入\n采样  按预测不确定性与干预价值选择下一次高保真仿真","textPreview":"结构  设计变量 X、机理状态 M、性能响应 Y 分层建模 | 工况  冲击、静载与载荷谱作为条件输入 | 采样  按预测不确定性与干预价值选择下一次高保真仿真","textChars":76,"textLines":3,"bbox":[368,222,244,170]}
+{"kind":"shape","id":"sh/mtwrmxg7","slide":2,"bbox":[650,154,280,260]}
+{"kind":"textbox","id":"sh/nu58f2hs","slide":2,"text":"c","textPreview":"c","textChars":1,"textLines":1,"bbox":[668,171,40,40]}
+{"kind":"textbox","id":"sh/wjy9sry9","slide":2,"text":"条件逆向生成","textPreview":"条件逆向生成","textChars":6,"textLines":1,"bbox":[718,171,194,42]}
+{"kind":"textbox","id":"sh/xk7qlczu","slide":2,"text":"输入  目标重量、强度与疲劳寿命\n输出  几何、壁厚、材料、刚度与阻尼候选\n筛选  知识图谱规则与科学神经网络嵌入物理、制造约束","textPreview":"输入  目标重量、强度与疲劳寿命 | 输出  几何、壁厚、材料、刚度与阻尼候选 | 筛选  知识图谱规则与科学神经网络嵌入物理、制造约束","textChars":64,"textLines":3,"bbox":[668,222,244,170]}
+{"kind":"shape","id":"sh/ahwrqhgj","slide":2,"bbox":[950,154,280,260]}
+{"kind":"textbox","id":"sh/bip8jmho","slide":2,"text":"d","textPreview":"d","textChars":1,"textLines":1,"bbox":[968,171,40,40]}
+{"kind":"textbox","id":"sh/cnupgny5","slide":2,"text":"原型验证与回灌","textPreview":"原型验证与回灌","textChars":7,"textLines":1,"bbox":[1018,171,194,42]}
+{"kind":"textbox","id":"sh/do3q9szq","slide":2,"text":"控制变量  制造关键参数不同的缩比原型\n检验  代理模型预测的性能增量\n回灌  校准仿真偏差与模型不确定性\n迁移  依据相似律验证全尺寸设计","textPreview":"控制变量  制造关键参数不同的缩比原型 | 检验  代理模型预测的性能增量 | 回灌  校准仿真偏差与模型不确定性 | 迁移  依据相似律验证全尺寸设计","textChars":70,"textLines":4,"bbox":[968,222,244,170]}
+{"kind":"shape","id":"sh/t8byxkn2","slide":2,"bbox":[326,274,28,26]}
+{"kind":"shape","id":"sh/s72xofmh","slide":2,"bbox":[626,274,28,26]}
+{"kind":"shape","id":"sh/76twva5c","slide":2,"bbox":[926,274,28,26]}
+{"kind":"textbox","id":"sh/65kfmpor","slide":2,"text":"验证偏差回灌数据集与代理模型","textPreview":"验证偏差回灌数据集与代理模型","textChars":14,"textLines":1,"bbox":[116,423,1048,24]}
+{"kind":"textbox","id":"sh/hcvy14ne","slide":2,"text":"FFY 中的具体落点","textPreview":"FFY 中的具体落点","textChars":10,"textLines":1,"bbox":[50,465,1180,35]}
+{"kind":"textbox","id":"sh/gbmxszmt","slide":2,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[50,509,32,32]}
+{"kind":"textbox","id":"sh/fadgzu58","slide":2,"text":"观察规律","textPreview":"观察规律","textChars":4,"textLines":1,"bbox":[92,505,300,39]}
+{"kind":"textbox","id":"sh/u94fqp4n","slide":2,"text":"水鸟腿长、比例与体重和着陆姿态的关联\n用于限定仿生先验与搜索范围","textPreview":"水鸟腿长、比例与体重和着陆姿态的关联 | 用于限定仿生先验与搜索范围","textChars":32,"textLines":2,"bbox":[50,547,350,68]}
+{"kind":"textbox","id":"sh/p0vy54na","slide":2,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[440,509,32,32]}
+{"kind":"textbox","id":"sh/4zmxwzmp","slide":2,"text":"受控干预","textPreview":"受控干预","textChars":4,"textLines":1,"bbox":[482,505,300,39]}
+{"kind":"textbox","id":"sh/mlgvq147","slide":2,"text":"固定质量、速度与地面条件\n主动改变腿长比、刚度和阻尼","textPreview":"固定质量、速度与地面条件 | 主动改变腿长比、刚度和阻尼","textChars":26,"textLines":2,"bbox":[440,547,350,68]}
+{"kind":"textbox","id":"sh/nmpcj6ls","slide":2,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[830,509,32,32]}
+{"kind":"textbox","id":"sh/onydsbmd","slide":2,"text":"物理判官","textPreview":"物理判官","textChars":4,"textLines":1,"bbox":[872,505,300,39]}
+{"kind":"textbox","id":"sh/9o7ulg3y","slide":2,"text":"Exudyn、有限元与缩比原型比较\n峰值过载、行程、质量与寿命","textPreview":"Exudyn、有限元与缩比原型比较 | 峰值过载、行程、质量与寿命","textChars":31,"textLines":2,"bbox":[830,547,350,68]}
+{"kind":"shape","id":"sh/a9gvulkj","slide":2,"bbox":[420,508,0,98]}
+{"kind":"shape","id":"sh/ba9cn6l4","slide":2,"bbox":[810,508,0,98]}
+{"kind":"textbox","id":"sh/wbidwb29","slide":2,"text":"生物数据缩小搜索空间，受控仿真识别工程因果，物理试验完成真实验证","textPreview":"生物数据缩小搜索空间，受控仿真识别工程因果，物理试验完成真实验证","textChars":32,"textLines":1,"bbox":[45,630,1190,52]}
+{"kind":"notes","id":"nt/hwbqtkby","slide":2,"text":"本页回答数据和因果干预如何进入设计闭环。观察数据包括水鸟形态、着陆视频以及历史运行和试验记录，它们用于学习设计先验和相关规律，但不能单独证明改变某个参数会改善性能。有限元参数扫描和受控缩比实验主动设定设计变量，在工况保持一致时比较性能变化，因此提供模型内或实验条件下的干预证据。代理模型按照设计变量、机理状态和性能响应分层建模，并综合预测不确定性与干预价值安排下一次高保真仿真。生成模型给定目标性能提出候选，再由知识图谱、物理约束和制造规则筛选。FFY 中的具体例子是：水鸟数据提示腿长和比例的先验范围；在固定质量、着陆速度和地面条件时，主动改变腿长比、刚度和阻尼；最后由 Exudyn、有限元和缩比原型比较峰值过载、行程、质量与寿命。需要强调，仿真干预识别的是模型内因果，原型试验负责检验它能否迁移到真实结构。"}

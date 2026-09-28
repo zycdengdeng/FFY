@@ -1,0 +1,1035 @@
+R ES E A RC H
+
+R E S E A R C H A R T I C L E SSU
+UMMARY
+
+◥
+
+BIOMECHANICS
+
+Why the seahorse tail is square
+INTRODUCTION: Although the predominant
+shapes of most animal tails are cylindrical,
+seahorse tails are square prisms. The skeleton
+of their tails consists of a bony armor arranged
+into several ringlike segments composed of
+four L-shaped plates that surround a central
+vertebra. These plates articulate with specialized joints that facilitate bending and twisting,
+as well as resist vertebral fracture from crushing. Muscles attached to the vertebral column
+transmit forces to the bony plates to provide
+motion for grasping and holding on to objects
+such as sea grasses, mangrove roots, and coral
+reefs, which allows them to hide and rely on
+camouflage when evading predators and capturing prey.
+RATIONALE: We hypothesize that the square
+cross-sectional architecture of a seahorse tail
+improves mechanical performance in prehension (grasping ability) and armored functions
+(crushing resistance), relative to a cylindrical
+one. To test this hypothesis, we evaluated the
+mechanics of two three-dimensional (3D)–
+printed prototypes composed of articulating
+plates and vertebrae that mimic the natural
+(square prism) and a hypothetical (cylindrical)
+tail structure. We compared the bending, twisting, and compressive behavior of the biomimetic prototypes to show that the square profile
+is better than the circular one for two integrated functions: grasping ability and crushing
+resistance.
+RESULTS: Seahorse tails (and the prototypes)
+
+have three primary joints that enable motion:
+ball-and-socket, peg-and-socket, and gliding.
+The ball-and-socket joints connect adjacent
+vertebrae and constrain
+ON OUR WEB SITE
+bending in both the square
+and cylindrical prototypes
+Read the full article
+to the same degree, exhibat http://dx.doi.
+org/10.1126/
+iting a behavior similar to
+science.aaa6683
+that of a natural seahorse
+..................................................
+tail. The peg-and-socket
+joints connect the plates of adjacent segments
+and substantially restrict twisting in the prototype with a square profile, as compared with
+the circular one. The square geometry limits
+◥
+
+46
+
+3 JULY 2015 • VOL 349 ISSUE 6243
+
+Engineering designs answer biological questions. 3D-printed models that mimic a seahorse tail
+were designed not only for potential engineering applications but also to answer the biological
+question, why might tails organized into square prisms be better than cylinders? A mechanical
+comparison of the prototypes shows that articulated square prisms perform better than do cylinders for grasping and resistance to crushing.
+
+excessive torsion and preserves articulatory
+organization, which could provide seahorses a
+natural safety factor against torsion-induced
+damage and assist in tail relaxation. Further,
+the square architecture is flat (increasing surface contact) and undergoes an exterior shape
+change when twisted, which could allow seahorses to grasp objects with more control. Gliding joints are present at the plate overlaps along
+all four sides of both prototypes. Under transverse compression and impact (with a rubber
+mallet), the plates of the square prototype slide
+past one another with one degree of translation
+freedom (analogous to the crushing behavior of
+a natural seahorse tail), exhibiting a response
+that is stiffer, stronger, and more resilient
+than its cylindrical counterpart, whose plates
+translate and rotate on impact.
+CONCLUSION: Exploration of these biologi-
+
+cally inspired designs provides insight into
+
+the mechanical benefits for seahorses to have
+evolved prehensile tails composed of armored plates organized into square prisms.
+Beyond their intended practical applications, engineering designs are convenient
+means to answer elusive biological questions
+when live animal data are unavailable (for
+example, seahorses do not have cylindrical
+tails). Understanding the role of mechanics in
+these prototypes may help engineers to develop future seahorse-inspired technologies
+that mimic the prehensile and armored functions of the natural appendage for a variety of
+applications in robotics, defense systems, or
+biomedicine.
+
+▪
+
+The list of author affiliations is available in the full article online.
+*Corresponding author. E-mail: mmporte@clemson.edu
+Cite this article as M. M. Porter et al., Science 349, aaa6683
+(2015). DOI: 10.1126/science.aaa6683
+
+sciencemag.org SCIENCE
+
+Downloaded from www.sciencemag.org on July 22, 2015
+
+Michael M. Porter,* Dominique Adriaens,
+Ross L. Hatton, Marc A. Meyers, Joanna McKittrick
+
+R ES E A RC H
+
+RESEARCH ARTICLE
+
+◥
+
+BIOMECHANICS
+
+Why the seahorse tail is square
+Michael M. Porter,1* Dominique Adriaens,2 Ross L. Hatton,3
+Marc A. Meyers,4,5,6 Joanna McKittrick4,5
+Whereas the predominant shapes of most animal tails are cylindrical, seahorse tails are
+square prisms. Seahorses use their tails as flexible grasping appendages, in spite of a
+rigid bony armor that fully encases their bodies. We explore the mechanics of two
+three-dimensional–printed models that mimic either the natural (square prism) or
+hypothetical (cylindrical) architecture of a seahorse tail to uncover whether or not the
+square geometry provides any functional advantages. Our results show that the square
+prism is more resilient when crushed and provides a mechanism for preserving articulatory
+organization upon extensive bending and twisting, as compared with its cylindrical
+counterpart. Thus, the square architecture is better than the circular one in the context
+of two integrated functions: grasping ability and crushing resistance.
+
+S
+
+eahorses do not use their tails for swimming because they lack a caudal fin (1), but
+instead as flexible prehensile appendages
+that allow them to hide and rely on body
+crypsis to evade predators (2) and capture
+prey (3) by holding on to objects such as sea
+grasses, mangrove roots, and coral reefs (4). The
+skeleton of a seahorse consists of a rigid, subdermal armor of articulating bony plates, formed
+within the skin, that fully encase its body (Fig. 1A)
+(5–13). The tail armor is arranged into several
+ring-like segments composed of four L-shaped
+plates that surround a central vertebra (Fig. 1B).
+Muscles attached to the vertebrae transmit forces
+to the bony plates to control motion (10–12).
+Recent studies on the musculoskeletal structure,
+biomechanics, and kinematics of seahorse tails
+suggest that this bony-plated armor actively facilitates tail bending and twisting (Fig. 1B)
+(10–12) as well as resists vertebral fracture due to
+impact and crushing (Fig. 1C) (13). Selective pressures related to the defensive strategies [bony
+plates make eating seahorses difficult (2)] and
+feeding behavior [tail-attached, sit-and-wait suction feeding (3)] of seahorses may have driven
+the evolution of an ancestral plated system (square
+in cross section, but rather rigid and nonprehensile) into a more flexible system of similar
+plate organization for an added grasping functionality. Accordingly, we hypothesize that the
+cross-sectional square architecture of a seahorse
+tail possesses several mechanical advantages that
+
+could have helped promote this adaptation, especially when compared with other grasping appendages in unrelated animal species and other
+plated (nonsquare) skeletons in unrelated fish
+species.
+Whereas several animals have developed grasping appendages that are cylindrical and composed of soft tissues surrounding a central axis of
+articulating skeletal elements (for example, tails
+of New World monkeys and some lizards, sala-
+
+manders, marsupials, and rodents) (14–17), a peripherally plated skeleton is not exclusive to
+fishes and is even an ancestral condition of the
+vertebral lineages (18, 19), with different patterns
+having arisen independently (such as ostracoderms,
+polypterids, gasterosteids, loricariids, and pegasids)
+(20). One recurrent pattern is where consecutive
+plates articulate through a peg-and-socket connection, combining some level of flexibility with
+strength. Such a joint is also present in seahorses,
+as well as closely related species from the same
+family of Syngnathidae (pipehorses, pipefishes,
+and seadragons). What differs among them, however, is that there is notable variation in the size
+of pegs and shape of sockets, as has recently been
+observed (12). The ancestral syngnathid configuration is a rather rigid nonprehensile tail that is
+completely enclosed by strongly abutting but
+articulating (peg-and-socket) bony plates, such
+as those found in pipefishes (12). Seahorses and
+pipehorses are the only lineages that use their
+tails as prehensile organs. Yet, they share with
+other syngnathids, and closely related seamoths
+(Pegasidae), a similar tail cross section that is not
+ovally shaped (as would be expected for fishes),
+but approximately square (5–13). Because the latter (pipefishes, seadragons, and seamoths) do not
+have flexible tails, this suggests that the square
+morphology may not reflect a structural adaptation directly related to tail prehensility but could
+provide some form of protection. Although it is
+likely that larger fish may swallow seahorses and
+other syngnathids whole, the peripherally plated
+
+1
+
+Department of Mechanical Engineering, Clemson University,
+Clemson, SC 29634, USA. 2Evolutionary Morphology of
+Vertebrates, Ghent University, K.L. Ledeganckstraat 35,
+B-9000 Ghent, Belgium. 3School of Mechanical, Industrial,
+and Manufacturing Engineering, Oregon State University,
+Corvallis, OR 97330, USA. 4Materials Science and
+Engineering Program, University of California, San Diego,
+La Jolla, CA 92093, USA. 5Department of Mechanical and
+Aerospace Engineering, University of California, San Diego,
+La Jolla, CA 92093, USA. 6Department of NanoEngineering,
+University of California, San Diego, La Jolla, CA 92093, USA.
+*Corresponding author. E-mail: mmporte@clemson.edu
+
+SCIENCE sciencemag.org
+
+Fig. 1. Seahorse skeletons are composed of highly articulated bony plates that surround a central
+vertebral column. (A and B) mCT images of (A) a seahorse skeleton (H. reidi) and (B) its tail, illustrating
+its square cross section and particular flexibility. (C) mCT image of a seahorse tail segment (H. kuda)
+after crushing up to ~60% of its original height. For visual clarity, the vertebrae are color-masked
+magenta, and the bony plates are color-masked red, yellow, blue, and green. Scale bars, (A) 10 mm; (B)
+and (C) 2 mm.
+3 JULY 2015 • VOL 349 ISSUE 6243
+
+aaa6683-1
+
+R ES E A RC H | R E S EA R C H A R T I C LE
+
+skeleton can protect their soft tissues against
+bites from smaller predators (13). In the case of
+pipefishes, which closely resemble the syngnathid
+ancestral state, fortifying the body as a poorly
+bendable “stick” makes them difficult prey to
+swallow and digest (2). Also, their second largest
+group of predators (next to teleosts) are waterbirds, with waders and seabirds accounting for
+32% of all syngnathid predators (2). Because many
+birds use beaks to clamp down and capture prey
+before feeding, it is likely that the skeletal armor
+could protect seahorses from crushing (13). When
+a seahorse tail is crushed, for instance, the bony
+plates slide past one another, acting as an energy
+absorption mechanism, which resists fracture of
+the vertebral column (Fig. 1C) (13). This is different from the mechanisms observed in the skin
+and scales of other fish that provide an optimal
+flexural stiffness for both swimming and protection against predatory attacks (21–23). Hence,
+this complex skeletal system may provide seahorses
+an advantageous combination of joint flexibility
+for prehension with shielding from external forces
+for protection.
+Similar to recent works that used robots to
+investigate animal behavior and locomotion
+(24, 25), we used three-dimensional (3D)–printed
+models to explore the mechanics of seahorse
+tails. Because cylindrical seahorse tails do not
+exist in nature, 3D printing allows us to build
+functional models of this hypothetical system
+so as to investigate what mechanical advantages
+an articulated square prism may have over a cylinder, which is the common shape of most other
+animal tails. This falsifiable methodology is
+particularly useful to examine the mechanics
+of musculoskeletal systems in vertebrates that
+are difficult or impossible to study in nature
+(for example, seahorses do not have cylindrical
+tails). Thus, via 3D printing we replicated comparative models that mimic the specialized joints
+and complex morphologies of both the natural
+(square prism) and hypothetical (cylindrical)
+systems.
+
+In a quest to better understand armored prehensility in seahorses and develop useful tools
+inspired by their tails, we designed this new class
+of highly articulated structures—not only for biological research, but also for a wide range of potential robotics, armored systems, and biomedical
+applications. Such applications for the seahorseinspired technology would be able to take advantage of a large body of kinematics and actuation
+work that has been developed for similar long,
+slender “continuum” structures inspired by organisms such as snakes and worms (26–30),
+squids and octopuses (tentacles) (31, 32), elephants (trunks) (33), and plants (tendrils and
+roots) (34, 35). The combination of articulated
+rigid plates and elastic deformability observed in
+a seahorse tail (Fig. 1) could strike a promising balance between the two dominant paradigms in robotics design: being lighter and more compliant
+than traditional “hard” robots built from servos
+and metal, but more robust and resistant to external tractions than the emerging class of “soft”
+robots with silicone-membrane bodies. However,
+akin to nature, the vast majority of these serially
+articulated structures (26–35) have cylindrical
+profiles. Therefore, we ask the question, why
+might square prisms be better than cylinders?
+Inspired by seahorses, designed
+by engineers
+Seahorse tails predominantly bend ventrally (7),
+an adaptation that allows seahorses to grasp
+objects in front of their line of sight. However,
+seahorses can also hyperextend and twist their
+tails to achieve moderate degrees of bending in
+the dorsal and lateral directions. Measuring the
+angle of tail rotation of a seahorse (Hippocampus
+kuda) shows that the tail can bend ~850° ventrally, ~290° dorsally, and ~570° laterally, whereas
+concurrent bending and twisting allows the tail
+to bend in the dorsal or lateral directions to nearly
+the same degree as in pure ventral bending (Fig. 2A).
+Although tail movement is primarily controlled
+by the epaxial, hypaxial, and ventral intervertebral
+
+muscles, and constrained by the vertebral connections and segment interlocks (7, 10, 12), three
+additional morphological features present in the
+skeletal armor also influence tail bending (Fig.
+2, B and C): (i) plate size, (ii) plate skew, and (iii)
+plate overlapping.
+Recently, Praet et al. (10) measured the size
+and skewing of the bony plates along the length
+of a seahorse tail. The plates, and consequently
+the segments, decrease in size from the proximal
+to distal end of the tail; the resulting finer articulation enables a seahorse to smoothly bend
+its tail into a logarithmic spiral, with increasing
+curvature toward the tip (10). The plate skew
+[measured as the angle q between the midline of
+the lateral plates and a normal vector to the central spinal column (Fig. 2B)] increases linearly
+along the length of the tail, so that the lateral
+plates and the spinal column are nearly orthogonal (q = ~0°) at the proximal base, while highly
+skewed (q = ~45°) at the distal tip (10). On the
+basis of a 2D geometric model of the tail kinematics that reduces the segment joints to their
+key salient features [two peg-and-socket joints
+that rotate about a single ball-and-socket joint
+(fig. S2C)], we identified two primary mechanisms
+by which the skew of the tail segments produces
+a bias toward ventral bending over dorsal bending (36): (i) The ventral plates are shifted proximally (toward the trunk), whereas the dorsal
+plates are shifted distally (away from the trunk).
+This proximal-distal shift changes the position of
+the pegs within the sockets when the tail is in a
+straightened position, so that the pegs are centered
+in the sockets on the ventral side but positioned
+increasingly closer to the distal-most end of the
+sockets on the dorsal side (fig. S2). This offset
+placement limits the range of motion of these
+joints in dorsal bending while increasing their
+range in ventral bending. (ii) Distally shifting the
+dorsal peg-and-socket joints angles them toward
+the ventral surface, so that they remain tangent
+to the rotation of the ball-and-socket joint (fig.
+S2). During ventral bending, this offset inclination
+
+Fig. 2. Seahorse tails predominantly
+bend ventrally into a logarithmic
+spiral. (A) Plot of the angle of
+rotation of a seahorse tail (H. kuda)
+from the proximal base (0%) to the
+distal tip (100%) of the tail in
+different bending orientations.
+(B and C) mCT images of a seahorse
+tail (H. reidi) bent in the ventral
+direction, illustrating (B) the segment
+size, plate skew, and ventral-overdorsal overlapping features, and (C)
+the ball-and-socket, peg-and-socket,
+and gliding joints. For visual clarity,
+the vertebral column is color-masked
+magenta, and the dorsal and ventral
+plates are color-masked green and
+red, respectively. Scale bars, (B) 6 mm;
+(C) 1.5 mm.
+
+aaa6683-2
+
+3 JULY 2015 • VOL 349 ISSUE 6243
+
+sciencemag.org SCIENCE
+
+RE S E ARCH | R E S E A R C H A R T I C L E
+
+allows the sockets of the distal plates to lie flush
+with the pegs of the proximal plates on the dorsal
+side of the tail, instead of “peeling” away at these
+joints. These two mechanisms both increase the
+range of motion of the joints in the ventral direction, producing the different sagittal (ventro-dorsal)
+bend angles observed in Fig. 2A, and improve the
+alignment of adjacent plates when the tail is in a
+curled position (Fig. 2B). Further, it was previously
+noted that the ventral plates always overlap the
+dorsal plates along the lateral sides of the tail (Fig.
+2B) (13). This bisymmetric ventral-over-dorsal overlapping arrangement likely promotes ventral tail
+bending as well (fig. S3), so that the ventral plates
+have more freedom to slide and rotate, and hence
+more articulation space, because they are not rigidly attached to the vertebral column [as in the
+case of the dorsal plates (7, 10)]. Consequently, we
+hypothesize that eliminating all of these morphological features (plate size, skew, and ventral-overFig. 3. Computer models
+designed to mimic the structural organization of a seahorse tail. (A) mCT images of a
+seahorse tail skeleton (H. kuda)
+composed of three segments.
+(B) CAD models of three
+segments from both the square
+prism (top) and cylindrical
+(bottom) artificial skeletons. For
+visual clarity, the vertebrae are
+color-masked magenta, and the
+plates are color-masked yellow,
+red, green, and blue.
+
+dorsal overlaps) from the skeletal armor of a seahorse would allow its tail to bend equally in all
+directions (ignoring the effect of muscular orientation and connective tissue composition).
+To test this hypothesis, we designed and built
+two artificial skeletons composed of articulating
+plates and vertebrae arranged into either the
+natural square prism or a hypothetical cylindrical architecture (36). In Fig. 3, microcomputed
+tomography (mCT) images of three segments of a
+natural seahorse tail skeleton are juxtaposed with
+computer-aided design (CAD) models generated
+to fabricate the 3D-printed prototypes. Pictures
+of the two prototypes are shown in Fig. 4, highlighting the key structural elements incorporated
+into the designs. The primary components of the
+prototypes were scaled up and modified via CAD
+software (SolidWorks, Dassault Systemes, Waltham,
+MA) by mimicking the dominant geometries observed from mCT scans of a natural bony plate
+
+and vertebra extracted from the proximal base of
+a seahorse tail. The computer models were then
+transferred to a 3D printer (Dimension 1200es,
+Stratasys, Eden Prairie, MN) to build the artificial plates and vertebrae from a rigid thermoplastic [ABSplus (Stratasys), where both the black
+and blue materials have nearly equivalent properties, with a compressive modulus of ~700 MPa],
+which were assembled together with compression
+springs (with a spring constant of 3.36 N/mm) and
+elastic bands (with a tensile modulus of 15 MPa)
+(Fig. 4 and table S1). The materials selected for
+the different components of the prototypes were
+chosen for convenience (ABSplus is available inhouse, and the elastic bands are available at local
+retailers) and showed a similar order-of-magnitude
+difference in stiffness to that observed in natural
+fish bones (3.5 to 19.4 GPa) (37) and fibrous tissues
+(1.2 to 10 MPa) (37), respectively (table S1). The
+compression springs were selected to mimic the
+highly deformable compressive behavior observed
+in the vertebral struts of a natural seahorse tail
+[more detail is available in (13)]. Because the 3Dprinted plates and vertebrae are nearly two orders
+of magnitude stiffer than the other load-bearing
+components (springs and elastic bands), they
+are approximated as fully rigid bodies throughout this study. Thus, the small volumetric differences between the “square” and “circular” plates
+can be considered negligible because the artificial
+plates and vertebrae are assumed to experience
+deformations much smaller than those observed
+in the overall structures (36).
+In addition, both prototypes have three primary joints: ball-and-socket, peg-and-socket, and
+gliding (Fig. 4). These specialized joints provide
+the prototypes several internal degrees of rotational and translational freedom, allowing the
+structures to bend, twist, and compress with
+multiple modes of deformation. In building the
+prototypes, we excluded two features of the natural tail morphology: the tapering of the segments toward the distal end of the tail, and the
+
+Fig. 4. 3D-printed prototypes designed to mimic the specialized joints of a seahorse tail. (A and B) Images of the seahorse-inspired prototypes
+with (A) a square cross section and (B) a circular cross section, depicting the primary structural features and joints incorporated into the designs.
+
+SCIENCE sciencemag.org
+
+3 JULY 2015 • VOL 349 ISSUE 6243
+
+aaa6683-3
+
+R ES E A RC H | R E S EA R C H A R T I C LE
+
+skewing of the segments. This simplification focuses attention on the cross-sectional structure
+of the plates. The tapering is relatively small
+[<5% size difference between adjacent links near
+the proximal base (10)] and allows the tail to grasp
+small objects (10, 11). Similarly, the change in
+segment skew is relatively small (~2° to 3°
+angular difference between adjacent links) and
+can be accounted for in the tail’s bias toward
+ventral bending (fig. S2). If we had incorporated
+the segment skew in our model, we anticipate
+that the resulting offset between the ventral and
+dorsal plates would have provided a small increase to the crushing resistance of the prototypes (by spreading loads applied to a ventral
+plate across two dorsal plates, and vice versa). The
+sequence of intrasegmental connections (plate
+overlaps) in the prototypes was asymmetrically
+alternated, so that each alternating segment contains right-over-left overlaps, followed by leftover-right overlaps, along the central midlines,
+eliminating the regular ventral-over-dorsal overlapping arrangement observed in the natural
+tail. These design modifications produced a
+quadraxial symmetry in both prototypes, which
+as hypothesized facilitates equal bending in all
+three directions (ventral, dorsal, and lateral).
+Bending, twisting, and prehension
+The images and CAD models of the square
+prismatic and cylindrical prototypes shown in
+Fig. 5 illustrate the limits of bending and twisting, which would likely change by altering the
+size and skewing of the plates (36). If the plates
+are bisymmetrically overlapped to more closely
+mimic the natural configuration, the prototypes
+favor bending in the “ventral” direction, which
+was confirmed via experimental observations
+(fig. S3). Regardless, for comparative purposes,
+
+bending is primarily constrained by the ball-andsocket joints, which are designed to have a
+maximum rotation angle of ~12° in all directions
+(ignoring contact between the plates of adjacent
+segments). According to this constraint and as
+seen in Fig. 5, C and D, both artificial skeletons
+can bend ~90° over a span of approximately eight
+segments, matching that of the proximal base of
+a seahorse tail (12). When considering contact between the plates of adjacent segments, however,
+bending is slightly less restricted in the cylindrical
+prototype than in the square one. As shown in
+movie S1 and Fig. 5B, the cylindrical prototype can
+bend to nearly the same degree in any plane offaxis from the vertebral struts (covering all 360° of
+rotation), whereas the square prototype can bend
+to a higher degree in the planes oriented parallel
+and perpendicular to the vertebral struts (in the
+ventral-dorsal and lateral directions) than those
+off-axis because contact at the peg-and-socket
+joints restricts substantial out-of-plane bending.
+Twisting, on the other hand, is fully constrained
+by the physical boundaries imposed at each pegand-socket joint. As seen in Fig. 5, C and D, the
+overall twist of the cylindrical prototype is approximately twice that of the square prototype,
+with an angle of twist of ~30°—as opposed to only
+~15°—between adjacent segments. This difference
+is due to the type of interference that occurs at the
+peg-and-socket joints. In the cylindrical prototype,
+interference between the pegs and vertebral struts
+limits twisting (Fig. 5D). However, in the square
+prototype, interference between the pegs and
+sockets occurs well before contact with the vertebral struts, restricting excessive torsion between
+segments (Fig. 5C).
+This natural geometric constraint imposed by
+the peg-and-socket joints of the square architecture could help preserve musculoskeletal or-
+
+ganization in a seahorse tail because it provides a
+natural safety factor against possible torsioninduced damage or misalignment from overtwisting. It also provides a passive mechanism
+for articulatory reorganization upon extensive
+bending and twisting, which could be advantageous for seahorses to expend less energy when
+returning their tails to a neutral resting position—
+slightly bent in the ventral direction (a result of
+skewing), but straight in the lateral directions
+[based on observations of a sedated seahorse (11)].
+This mechanism observed in the square prototype
+is demonstrated in movie S1. After deformation, the
+square prototype always returns to the same linearly aligned resting position, whereas the cylindrical one does not (movie S1, dashed yellow
+lines). Instead, the lack of interference between
+its pegs and sockets allows the cylindrical prototype to rest in nearly any bent or twisted position.
+In addition, the flat exterior surfaces of the
+square cross section increase contact area and stability when wrapped around an object, as compared with a circular cross section. When twisted,
+the square segments transform its exterior shape
+from a square prism to a solid helix, whereas
+the exterior profile of the cylindrical prototype
+remains unchanged under torsion (Fig. 5). The
+corner edges of this twisted configuration could
+provide the square architecture more prehensile
+control—for instance, when a seahorse adjusts its
+tail-grip on objects. Although not yet observed in
+nature, this type of twisted shape transformation
+could also be used to generate a sequence of repetitive forces allowing the articulated square
+prism to move or wriggle along a variety of substrates in a traveling-coil motion, akin to that
+demonstrated in modular snake robots (38). Thus,
+the flattened topology of the square architecture has
+several functional advantages related to bending
+
+Fig. 5. Bending and twisting performance of the prototypes. (A and B) Photographs and (C and D) CAD models of the square (left) and cylindrical
+(right) prototypes, illustrating the limits of bending and twisting. A more complete comparison of bending and twisting is provided in movie S1.
+
+aaa6683-4
+
+3 JULY 2015 • VOL 349 ISSUE 6243
+
+sciencemag.org SCIENCE
+
+RE S E ARCH | R E S E A R C H A R T I C L E
+
+and twisting that could allow seahorses to grasp
+objects with more control.
+Impact, crushing, and protection
+Beyond simple bending and twisting, the artificial skeletons also mimic the protective energy
+absorption mechanism observed in the highly deformable skeleton of a seahorse tail (Fig. 1C) (13).
+When subject to impact, such as the compressive
+force of a rubber mallet (Fig. 6, A and B, and
+movie S2), the gliding joints and vertebral struts
+of the prototypes allow the plates to slide past
+one another (or rotate, in the case of the cylindrical prototype), absorb the impact when compressed, and subsequently protect the internal
+vertebral column from brittle fracture. As seen in
+movie S2, the square prototype returns to its linearly aligned resting position after impact, whereas
+the cylindrical one remains partially deformed and
+misaligned (even when the first and last segments
+are taped to the supporting plane). Although there
+is some plate rotation observed in segments of the
+square prototype adjacent to the primary impact
+point, the plates directly impacted mainly show
+linear sliding. In contrast, the cylindrical prototype experiences extreme reverberations transferred through its vertebral column upon impact.
+Under ideal uniaxial compression, the artificial square skeleton deforms linearly by sliding
+its plates past one another with approximately
+one degree of translational freedom (Fig. 6C).
+The cylindrical skeleton, on the other hand, deforms with approximately two degrees of freedom
+(one translational and one rotational), resulting in
+linear compressive and expansive deformations
+parallel and perpendicular to the applied force,
+respectively, leading to a cross-sectional shape
+change from circular to elliptical (Fig. 6D). When
+subject to biaxial compression, both the square
+and cylindrical skeletons deform bisymmetrically.
+However, the square architecture can contract its
+outer profile by ~30% (apparent reduction of
+cross-sectional area) (Fig. 6E), whereas the con-
+
+tracted profile of the circular one is reduced by
+only ~10% (Fig. 6F). The difference in the compressive behavior of the two cross sections is a
+result of the different plate geometries. The flattened morphology of the plates in the square
+skeleton allows linear sliding to occur without
+disrupting its outer profile, whereas the rounded
+plates in the circular one interfere and create
+large gaps or rotation between adjacent plates.
+Although seahorses are unlikely to experience biaxial compression in nature, this type of contractive deformation is of interest for comparison to
+similar behaviors that occur in other organisms
+and mimetic technologies (such as peristalsis and
+burrowing) (29, 39).
+In contrast, the mechanical behavior of square
+and circular solid rings (without gliding joints)
+subject to transverse uniaxial and transverse biaxial
+compression is shown to the right of each image
+in Fig. 6, C to F (where the resulting deformations
+are exaggerated for clarity). Derivations of analytical expressions describing these shapes, shown
+in figs. S4 and S5, are included in (36). Under
+transverse uniaxial compression, thin solid rings
+buckle at their midsections when the internal
+stresses accumulated in the rings exceed the yield
+stress of the ring material, forming plastic yield
+hinges where permanent deformation begins (Fig.
+6, C and D) (40–42). By analogy, rings subject to
+biaxial compression also form plastic hinges at
+the locations of maximum stress where yielding
+begins (Fig. 6, E and F, red dots). The onset of
+these plastic hinges occurs when the absolute
+internal moment (|M′|) accumulated in the rings
+exceeds the plastic yield moment of the ring material (M0), which are both approximated as a
+moments per unit length (b) for square and circular rings (40–42)
+jM ′ j > M0 ¼
+
+s0 t 2
+4
+
+ð1Þ
+
+where s0 is the yield strength of the ring material
+and t is the ring thickness, assuming plane strain
+
+so that the length of the ring (or tube) is much
+greater than its thickness (b >> t). The locations of the plastic hinge zones are shown in
+fig. S6, determined analytically in (36), and verified experimentally for unilateral compression in
+Fig. 7, F and G. Accordingly, the plastic hinge
+zones are assumed to be controlled by the tensile
+properties of the ring material (36), as noted by
+the observation of crazing that occurs because of
+tension at these locations (Fig. 7, F and G).
+In seahorses, the problem of plastic hinge formation and subsequent buckling of their ringlike armor is solved by having gliding joints at
+the locations of these plastic yield zones. The
+highly deformable vertebral struts and connective
+tissues—which exhibit local buckling and tensile
+stretching rather than brittle fracture and tearing,
+respectively—let the bony plates slide past one
+another to absorb energy when compressed (Fig.
+1C) (13). This mechanism allows the tail (of a deceased seahorse) to deform to nearly 50% before
+the onset of permanent failure in the vertebral
+column (13). Exploiting this mechanism, we mimicked the vertebral struts and connective collagen with compression springs and elastic bands,
+respectively. When crushed, the springs compress—and bend or buckle, if necessary—to allow
+the artificial plates to slide and/or rotate (Fig. 7, B
+and C, and movie S2). As the plates move, the
+elastic bands connecting adjacent plates stretch,
+a response observed to be independent of the
+displacement rate (fig. S1). These two mechanisms bear the load in the two prototypes when
+subjected to transverse compression, exhibiting up to ~17% linear elastic deformation in the
+square prototype and ~12% in the circular one
+(Fig. 7A).
+Upon further analysis, it is apparent that the
+square prototype under compression is stiffer,
+stronger, and more resilient than the circular one
+(Fig. 7A). The load carried by the square skeleton
+composed of six segments (P□) can be expressed
+as a function of its linear displacement (d), treating
+
+Fig. 6. Impact and crushing performance of the prototypes. (A and B) Images of the square (top) and cylindrical (bottom) prototypes subject to
+impact by a rubber mallet. A high-speed comparison of the prototypes subject to impact is provided in movie S2. (C to F) CAD models of the artificial
+skeletons (left) and representative schematics of solid rings (right) subject to transverse uniaxial and transverse biaxial compression, showing the
+locations of primary and secondary plastic hinges with red arrows in (C) and (D) and red dots in (E) and (F). All units are in millimeters.
+
+SCIENCE sciencemag.org
+
+3 JULY 2015 • VOL 349 ISSUE 6243
+
+aaa6683-5
+
+R ES E A RC H | R E S EA R C H A R T I C LE
+
+the 3D-printed plates and vertebrae as rigid
+bodies, so that
+
+
+1
+b
+ks þ 6 s3 þ 4ke d
+ð2Þ
+P□ ¼ 6 
+2
+Ls
+where ks = 3.36 N/mm is the compressive spring
+constant, bs = 2.0 × 10−4 N · m2 is the flexural
+rigidity of the springs, Ls = 10 mm is the active
+length of the springs in bending, and ke = 0.20 N/mm
+is the effective spring constant of the elastic bands
+(fig. S7) (36). Similarly, the load carried by the
+cylindrical skeleton composed of six segments
+(P○) can also be expressed as a function of its
+linear displacement (d)
+
+
+1
+a
+b
+P○ ¼ 6 
+ks ðd þ gÞ þ ke z
+ð3Þ
+4
+c
+c
+where a, b, and c are geometric relations dependent on the radius of plate curvature (R = 30 mm),
+
+and (d + g) and z are the vertical and lateral
+displacements of the cylindrical skeleton, respectively (36). To account for the six segments in each
+prototype compressed in parallel (Fig. 7, A to C),
+Eqs. 2 and 3 are both multiplied by a factor of six.
+A plot of these equations (dashed lines) is shown
+in Fig. 7A, compared with experimental data obtained via compression tests of the prototypes
+(Fig. 7A, solid lines), each composed of six segments. The analytical expressions (P□ and P○)
+both underpredict the actual load carried by the
+two prototypes. This discrepancy is because for
+simplicity, the frictional forces between adjacent
+plates and the prototypes with the compression
+platforms were neglected throughout the analyses. Regardless, the force-displacement curves in
+Fig. 7A illustrate the fact that the square prototype is ~3× stiffer, ~4× stronger, and ~1.5× more
+elastic than its circular counterpart. At the point
+
+Fig. 7. Unilateral compression of the prototypes and solid rings. (A)
+Plot of the compressive load versus normalized displacement for the
+square (black) and cylindrical (blue) prototypes subject to unilateral compression between two rigid plates. The solid lines correspond to direct
+experimental measurements, and the dashed lines correspond to theoretical predictions of load and displacement from Eqs. 2 and 3. (B and C)
+Images of the square (top) and cylindrical (bottom) prototypes subject to
+transverse unilateral compression just before strut disjoining, correspond-
+
+aaa6683-6
+
+3 JULY 2015 • VOL 349 ISSUE 6243
+
+at which the load drops off because of a minor
+collapse of the structures (Fig. 7A, red arrows),
+the springs are almost fully compressed and
+begin to buckle before disjoining from the plates.
+At this point, the prototypes no longer exhibit a
+purely elastic behavior. Although recoverable, the
+structural integrity of the internal struts (compression springs) becomes compromised, making
+these points the elastic limits of the prototypes.
+In juxtaposition, the compressive behavior of
+square and circular solid rings composed of the
+same 3D-print material (ABSplus) used to fabricate the seahorse-inspired prototypes is shown
+in Fig. 7, D to G. As seen in the plot of Fig. 7D, the
+solid rings are seemingly much stronger and
+stiffer than the articulated prototypes (Fig. 7A).
+Also, the square ring is an order of magnitude
+stiffer and stronger than the circular one of equal
+height but undergoes much less transverse
+
+ing to the red arrows in (A). (D) Plot of the compressive load versus
+normalized displacement for a square (black dashed line) and circular (blue
+dashed-dotted line) solid ring subject to transverse unilateral compression
+between two rigid plates. (E) Magnified plot illustrating the elastic region
+and yield points of the load-displacement curves in (D). (F and G) Images
+of the square (top) and circular (bottom) solid rings subject to transverse
+unilateral compression just before fracture, corresponding to the red arrows in (D).
+
+sciencemag.org SCIENCE
+
+RE S E ARCH | R E S E A R C H A R T I C L E
+
+displacement before failure. Nevertheless, these
+behaviors (Fig. 7D) occur when the solid rings
+are loaded within the plastic regime, beyond the
+initial formation of plastic hinges [which begin
+at the yield point, the first sign of permanent deformation (Fig. 7E)]. Considering this, it is more
+useful to compare the elastic behavior of the
+articulated prototypes (Fig. 7A) with that of the
+solid rings (Fig. 7E). As indicated in Fig. 7E, both
+solid rings begin to yield at ~30 N, whereas the
+square ring elastically deforms only ~0.1% and
+the circular ring ~0.8%. When crushed, the square
+prototype outperforms the cylindrical one, exhibiting a higher strength and stiffness, analogous
+to the mechanical performance of the solid rings.
+The square prototype is also more resilient than
+the cylindrical one, absorbing more energy before failure (strut disjoining), a trend not observed
+in the solid rings (solid rings with circular cross
+sections are more resilient than square ones).
+Thus, the specialized joints present in the prototypes (and likewise in a seahorse tail) provide the
+structures an enhanced range of motion, not
+only in bending and twisting but also in resistance to crushing.
+Concluding remarks
+The highly articulated bony plates that surround
+the central vertebral axis of a seahorse tail actively facilitate bending and twisting as well as
+resist vertebral fracture from impact and crushing. To explore why the bony plates are arranged
+into cross-sectional squares rather than circles,
+we analyzed the mechanics of 3D-printed models
+that mimic the natural (square prism) and hypothetical (cylindrical) architectures of a seahorse
+tail skeleton. Physical manipulation of the two
+prototypes revealed that the square architecture
+possesses several mechanical advantages over its
+circular counterpart in bending, twisting, and resistance to crushing. The enhanced performance
+realized in the square architecture provides insight into the way in which seahorses may benefit from having prehensile tails composed of
+armored plates organized into square prisms,
+rather than cylinders. This study demonstrates
+that engineering designs are convenient means
+to answer elusive biological questions when biological data are nonexistent or difficult to obtain.
+In addition, understanding the role of mechanics
+in these biologically inspired designs may help
+engineers to develop seahorse-inspired technologies for a variety of applications in robotics, defense systems, or biomedicine.
+
+RE FE RENCES AND N OT ES
+
+1. M. A. Ashley-Ross, Mechanical properties of the dorsal fin
+muscle of seahorse (Hippocampus) and pipefish (Syngnathus).
+J. Exp. Zool. 293, 561–577 (2002). doi: 10.1002/jez.10183;
+pmid: 12410605
+2. D. Kleiber, L. K. Blight, I. R. Caldwell, A. C. J. Vincent, The
+importance of seahorses and pipefishes in the diet of marine
+animals. Rev. Fish Biol. Fish. 21, 205–223 (2011). doi: 10.1007/
+s11160-010-9167-5
+3. S. Van Wassenbergh, G. Roos, L. Ferry, An adaptive
+explanation for the horse-like shape of seahorses. Nat.
+Commun. 2, 164 (2011). doi: 10.1038/ncomms1168;
+pmid: 21266964
+
+SCIENCE sciencemag.org
+
+4. S. A. Lourie, S. J. Foster, E. W. T. Cooper, A. C. J. Vincent,
+A Guide to the Identification of Seahorses (Project Seahorse,
+Washington, DC, 2004).
+5. R. Anthony, L. Chevroton, Considérations sur les attitudes et la
+locomotion de l’hippocampe, étude chronophotographique.
+Arch. Zool. Exp. Gen. 51, 11–22 (1913).
+6. H. Peters, [On the ecologic physiology of the sea horse
+(Hippocampus brevirostris)]. Z. Vgl. Physiol. 33, 207–265
+(1951). doi: 10.1007/BF00395584; pmid: 24541372
+7. M. E. Hale, Functional morphology of ventral tail bending
+and prehensile abilities of the seahorse, Hippocampus kuda.
+J. Morphol. 227, 51–65 (1996). doi: 10.1002/(SICI)1097-4687
+(199601)227:1<51::AID-JMOR4>3.0.CO;2-S
+8. E. Bruner, V. Bartolino, Morphological variation in the seahorse
+vertebral system. Int. J. Morphol. 26, 247–262 (2008).
+doi: 10.4067/S0717-95022008000200002
+9. S. Van Cauter et al., Virtual design from nature: Kinematic
+modeling of the seahorse tail. SIMULIA Customer Conference,
+770–783 (2010).
+10. T. Praet et al., Inspiration from nature: Dynamic modelling of
+the musculoskeletal structure of the seahorse tail. Int. J.
+Numer. Method Biomed. Eng. 28, 1028–1042 (2012).
+doi: 10.1002/cnm.2499; pmid: 23027633
+11. T. Praet, thesis, Ghent University, Ghent, Belgium (2013).
+12. C. Neutens et al., Grasping convergent evolution in
+syngnathids: A unique tale of tails. J. Anat. 224, 710–723
+(2014). doi: 10.1111/joa.12181; pmid: 24697519
+13. M. M. Porter, E. Novitskaya, A. B. Castro-Ceseña, M. A. Meyers,
+J. McKittrick, Highly deformable bones: Unusual deformation
+mechanisms of seahorse armor. Acta Biomater. 9, 6763–6770
+(2013). doi: 10.1016/j.actbio.2013.02.045; pmid: 23470547
+14. G. C. Hickman, The mammalian tail: A review of functions.
+Mammal Rev. 9, 143–157 (1979). doi: 10.1111/j.1365-2907.1979.
+tb00252.x
+15. L. Emmons, A. H. Gentry, Tropical forest structure and the
+distribution of gliding and prehensile-tailed vertebrates.
+Am. Nat. 121, 513–524 (1983). doi: 10.1086/284079
+16. K. C. Zippel, R. E. Glor, J. E. Bertram, On caudal prehensility
+and phylogenetic constraint in lizards: The influence of
+ancestral anatomy on function in Corucia and Furcifer.
+J. Morphol. 239, 143–155 (1999). doi: 10.1002/(SICI)1097-4687
+(199902)239:2<143::AID-JMOR3>3.0.CO;2-O
+17. J. M. Organ, V. B. Deleon, Q. Wang, T. D. Smith, From head to
+tail: New models and approaches in primate functional
+anatomy and biomechanics. Anat. Rec. 293, 544–548 (2010).
+doi: 10.1002/ar.21132; pmid: 20235310
+18. J.-Y. Sire, A. Huysseune, Formation of dermal skeletal and
+dental tissues in fish: A comparative and evolutionary
+approach. Biol. Rev. Camb. Philos. Soc. 78, 219–249 (2003).
+doi: 10.1017/S1464793102006073; pmid: 12803422
+19. P. C. J. Donoghue, I. J. Sansom, J. P. Downs, Early evolution of
+vertebrate skeletal tissues and cellular interactions, and the
+canalization of skeletal development. J. Exp. Zoolog. B Mol.
+Dev. Evol. 306, 278–294 (2006). doi: 10.1002/jez.b.21090;
+pmid: 16555304
+20. J. S. Nelson, Fishes of the World (Wiley, New York, 2006).
+21. J. Long, M. Hale, M. Mchenry, M. Westneat, Functions of fish
+skin: Flexural stiffness and steady swimming of longnose gar,
+Lepisosteus osseus. J. Exp. Biol. 199, 2139–2151 (1996).
+pmid: 9320050
+22. B. J. F. Bruet, J. Song, M. C. Boyce, C. Ortiz, Materials design
+principles of ancient fish armour. Nat. Mater. 7, 748–756
+(2008). doi: 10.1038/nmat2231; pmid: 18660814
+23. F. J. Vernerey, F. Barthelat, Skin and scales of teleost fish:
+Simple structure but high performance and multiple functions.
+J. Mech. Phys. Solids 68, 66–76 (2014). doi: 10.1016/
+j.jmps.2014.01.005
+24. T. Libby et al., Tail-assisted pitch control in lizards, robots and
+dinosaurs. Nature 481, 181–184 (2012). doi: 10.1038/
+nature10710; pmid: 22217942
+25. A. J. Ijspeert, Biorobotics: Using robots to emulate and
+investigate agile locomotion. Science 346, 196–203 (2014).
+doi: 10.1126/science.1254486; pmid: 25301621
+26. K. Xu, N. Simaan, Actuation compensation for flexible surgical
+snake-like robots with redundant remote actuation. IEEE
+International Conference on Robotics and Automation,
+4148–4154 (2006).
+27. C. Wright et al., Design of a modular snake robot. IEEE/RSJ
+International Conference on Intelligent Robots and Systems
+(2007).
+28. J. K. Hopkins, B. W. Spranklin, S. K. Gupta, A survey of snakeinspired robot designs. Bioinspir. Biomim. 4, 021001 (2009).
+doi: 10.1088/1748-3182/4/2/021001; pmid: 19158415
+
+29. K. A. Daltorio et al., Efficient worm-like locomotion: Slip and
+control of soft-bodied peristaltic robots. Bioinspir. Biomim. 8,
+035003 (2013). doi: 10.1088/1748-3182/8/3/035003;
+pmid: 23981561
+30. C. D. Onal, R. J. Wood, D. Rus, An origami-inspired approach to
+worm robots. IEEE/ASME Trans. Mechatron. 18, 430–438
+(2013). doi: 10.1109/TMECH.2012.2210239
+31. I. D. Walker et al., Continuum robot arms inspired by
+cephalopods. Conference on Unmanned Ground Vehicle
+Technology VII 5804, 303–314 (2005).
+32. R. F. Shepherd et al., Multigait soft robot. Proc. Natl. Acad. Sci.
+U.S.A. 108, 20400–20403 (2011). doi: 10.1073/
+pnas.1116564108; pmid: 22123978
+33. I. D. Walker, M. W. Hannan, A novel ‘elephant’s trunk’ robot.
+IEEE/ASME International Conference on Advanced Intelligent
+Mechatronics, 410–415 (1999).
+34. J. S. Mehling, M. A. Diftler, M. Chu, M. Valvo, A minimally
+invasive tendril robot for in-space inspection. IEEE/RAS-EMBS
+International Conference on Biomedical Robotics and
+Biomechatronics 1–3, 423–428 (2006).
+35. A. Sadeghi, A. Tonazzini, L. Popova, B. Mazzolai, Robotic
+mechanism for soil penetration inspired by plant root. IEEE
+International Conference on Robotics and Automation,
+3457-3462 (2013).
+36. Materials and methods are available as supplementary
+materials on Science Online.
+37. A. P. Summers, J. H. Long, Skin and bones, sinew and gristle:
+The mechanical behavior of fish skeletal tissues. Fish Physiol.
+23, 141 (2006).
+38. M. Tesch et al., Parameterized and scripted gaits for modular
+snake robots. Adv. Robot. 23, 1131–1158 (2009). doi: 10.1163/
+156855309X452566
+39. K. J. Quillin, Kinematic scaling of locomotion by hydrostatic
+animals: Ontogeny of peristaltic crawling by the earthworm
+lumbricus terrestris. J. Exp. Biol. 202, 661–674 (1999).
+pmid: 10021320
+40. C. Hwang, Plastic collapse of thin rings. J. Aeronaut. Sci. 20,
+819–826 (1953). doi: 10.2514/8.2868
+41. J. A. DeRuntz, P. Hodge, Crushing of a tube between rigid plates.
+J. Appl. Mech. 30, 391–395 (1963). doi: 10.1115/1.3636567
+42. D. K. Sinha, N. R. Chitkara, Plastic collapse of square rings. Int.
+J. Solids Struct. 18, 819–826 (1982). doi: 10.1016/0020-7683
+(82)90038-5
+AC KNOWLED GME NTS
+
+We thank L. Matsushige (Scripps Institute of Oceanography) for
+providing the seahorse specimens; E. Cory and R. Sah (University
+of California, San Diego) and Pieter Vanderniepen, Manu Dierick,
+and Luc Van Hoorebeke (Centre for X-ray Tomography of the
+Ghent University) for assistance in microcomputed tomography
+of the seahorses; C. Cassidy (University of California, San Diego)
+for assistance in 3D printing; R. Blob and C. Mayerl (Clemson) for
+assistance in high-speed videography; V. Sherman (University of
+California, San Diego) for assistance in compression testing the
+solid rings; and L. Lundgren (Clemson University), C. Neutens
+(Ghent University), and W. Shih and R. Ochoa (University of
+California, San Diego) for insightful discussions. This work was
+partially supported by the Department of Mechanical Engineering,
+Clemson University; the School of Mechanical, Industrial, and
+Manufacturing Engineering, Oregon State University; the von Liebig
+Entrepreneurism Center, University of California, San Diego; the
+National Science Foundation, Division of Materials Research,
+Ceramics Program Grant 1006931; the Multi-University Research
+Initiative through the Air Force Office of Scientific Research,
+AFOSR-FA9550-15-1-0009; and the Agency for Innovation by
+Science and Technology (IWT), grant IWT/SB-111249. The
+University of California, San Diego, holds the following provisional
+patent: M. Porter, J. McKittrick, M. Meyers, S. Cai, D. Adriaens,
+T. Praet, M. De Beule, B. Verhegghe, “Seahorse Inspired Devices”
+(Application Number 62044058). Data reported, detailed materials
+and methods, as well as additional discussion and figures are
+included in the supplementary materials.
+SUPPLEMENTARY MATERIALS
+
+www.sciencemag.org/content/349/6243/aaa6683/suppl/DC1
+Materials and Methods
+Figs. S1 to S8
+Table S1
+References (43–52)
+Movies S1 and S2
+13 January 2015; accepted 14 May 2015
+10.1126/science.aaa6683
+
+3 JULY 2015 • VOL 349 ISSUE 6243
+
+aaa6683-7
+
+Why the seahorse tail is square
+Michael M. Porter et al.
+Science 349, (2015);
+DOI: 10.1126/science.aaa6683
+
+This copy is for your personal, non-commercial use only.
+
+If you wish to distribute this article to others, you can order high-quality copies for your
+colleagues, clients, or customers by clicking here.
+Permission to republish or repurpose articles or portions of articles can be obtained by
+following the guidelines here.
+
+Updated information and services, including high-resolution figures, can be found in the online
+version of this article at:
+http://www.sciencemag.org/content/349/6243/aaa6683.full.html
+Supporting Online Material can be found at:
+http://www.sciencemag.org/content/suppl/2015/07/01/349.6243.aaa6683.DC1.html
+A list of selected additional articles on the Science Web sites related to this article can be
+found at:
+http://www.sciencemag.org/content/349/6243/aaa6683.full.html#related
+This article cites 37 articles, 4 of which can be accessed free:
+http://www.sciencemag.org/content/349/6243/aaa6683.full.html#ref-list-1
+This article has been cited by 1 articles hosted by HighWire Press; see:
+http://www.sciencemag.org/content/349/6243/aaa6683.full.html#related-urls
+This article appears in the following subject collections:
+Engineering
+http://www.sciencemag.org/cgi/collection/engineering
+Materials Science
+http://www.sciencemag.org/cgi/collection/mat_sci
+
+Science (print ISSN 0036-8075; online ISSN 1095-9203) is published weekly, except the last week in December, by the
+American Association for the Advancement of Science, 1200 New York Avenue NW, Washington, DC 20005. Copyright
+2015 by the American Association for the Advancement of Science; all rights reserved. The title Science is a
+registered trademark of AAAS.
+
+Downloaded from www.sciencemag.org on July 22, 2015
+
+The following resources related to this article are available online at
+www.sciencemag.org (this information is current as of July 21, 2015 ):
+
+

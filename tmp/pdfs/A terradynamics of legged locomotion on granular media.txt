@@ -1,0 +1,1044 @@
+                                                                      A Terradynamics of Legged Locomotion on Granular Media
+
+                                                                                  Chen Li1,2 , Tingnan Zhang1 , and Daniel I. Goldman1∗
+                                                                        1
+                                                                         School of Physics, Georgia Institute of Technology, Atlanta, Georgia 30332, USA
+                                                               2
+                                                                   Department of Integrative Biology, University of California, Berkeley, California, 94720, USA
+                                                                               ∗
+                                                                                 Corresponding author. E-mail: daniel.goldman@physics.gatech.edu
+
+
+
+                                                    The theories of aero- and hydrodynamics pre-                   movement in fluids. For example, recent studies of legged
+                                                 dict animal movement and device design in air                     animals (16) and robots (21) moving on granular media
+                                                 and water through the computation of lift, drag,                  [collections of particles (24)] such as sand and gravel (Fig.
+                                                 and thrust forces. Although models of terrestrial                 1, A and B) have demonstrated that at an instant of time
+arXiv:1303.7065v1 [physics.bio-ph] 28 Mar 2013
+
+
+
+
+                                                 legged locomotion have focused on interactions                    during a step, each element of a leg moves through the
+                                                 with solid ground, many animals move on sub-                      substrate at a specific depth, orientation, and movement
+                                                 strates that flow in response to intrusion. How-                  direction, all of which can change over time (16, 21). Fur-
+                                                 ever, locomotor-ground interaction models on                      thermore, the leg interacts with a material that can dis-
+                                                 such flowable ground are often unavailable. We                    play both solid-like and fluid-like features (24) (Fig. 1, C
+                                                 developed a force model for arbitrarily-shaped                    and D). Compared to the theories of aero- and hydrody-
+                                                 legs and bodies moving freely in granular media,                  namics, predictive models are less well developed for cal-
+                                                 and used this “terradynamics” to predict a small                  culating forces and predicting legged locomotion on such
+                                                 legged robot’s locomotion on granular media us-                   flowable ground (16, 21). Research in the field of terrame-
+                                                 ing various leg shapes and stride frequencies. Our                chanics (2) has advanced the mobility of off-road vehicles
+                                                 study reveals a complex but generic dependence                    on flowable ground such as sand and soil. These models
+                                                 of stresses in granular media on intruder depth,                  were developed for large wheeled and tracked vehicles,
+                                                 orientation, and movement direction and gives in-                 which sink only slightly into the substrate (2, 25). Thus,
+                                                 sight into the effects of leg morphology and kine-                in terramechanical models, interaction with the ground
+                                                 matics on movement.                                               is approximated as the indentation of a horizontal, flat,
+                                                    The locomotion of animals (1) and devices (2–4)                rectangular plate (2, 25). It was a breakdown of this flat-
+                                                 emerges from the effective interaction of bodies and/or           plate approximation, however, that led to overpredicted
+                                                 appendages with an environment. For flying in air and
+                                                 swimming in water, there is a history of theoretical pre-
+                                                 dictive models (3–5) to describe the complex interactions
+                                                 between the locomotor and the surrounding fluids, based
+                                                 on the fundamental equations for fluid flow, the Navier-
+                                                 Stokes equations. These models have not only allowed
+                                                 understanding of the movement of a variety of aerial and
+                                                 aquatic organisms (5) [such as bacteria and spermatazoa
+                                                 (6), insects (7), birds (8), and fish and whales (9)] and
+                                                 their functional morphology, evolution, and ecology (9,
+                                                 10), but also advanced the engineering design of aircraft
+                                                 (3), marine vehicles (4), and flying (11) and swimming
+                                                 (12) robots. For running and walking on ground, studies
+                                                 using solid ground such as running tracks and treadmills
+                                                 have inspired general models (13, 14); building on these
+                                                 models, researchers have begun to apply dynamical sys-            FIG. 1. Examples of legged locomotion on flowable ground.
+                                                 tems theory (15). In these studies, the leg-ground inter-         (A) A zebra-tailed lizard running on sand (16). (B) A bi-
+                                                 action was often approximated as a point contact on a             ologically inspired RHex robot (22) walking on dirt [Photo
+                                                 rigid, flat, and nonslip ground (13–15).                          credit: Galen Clark Haynes, Aaron M. Johnson, and Daniel
+                                                    Many small legged animals (16–19) [and increasingly            E. Koditschek, University of Pennsylvania]. Dashed boxes
+                                                                                                                   in (A) and (B) indicate the regions of leg-ground interaction
+                                                 robots (20–23)] face the challenges of moving on natural
+                                                                                                                   shown in (C) and (D). Schematic of leg-ground interaction for
+                                                 substrates such as sand (16, 17, 21), gravel (16, 20), rub-       (C) a hind foot of a zebra-tailed lizard (16) and (D) a c-leg of
+                                                 ble (20), soil (20, 22),mud (17, 20), snow (18, 20), grass        a RHex robot (21) during a step on granular media. Dashed,
+                                                 (20, 22), and leaf litter (19, 20, 22), which, unlike solid       solid, and dotted tracings are leg positions at early, mid-, and
+                                                 ground, can flow during movement when a yield stress is           late stance. Bars and arrows indicate local orientations and
+                                                 exceeded. The complexity of the interactions with such            movement directions of leg elements. The gray area is the
+                                                 flowable ground may rival or even exceed that during              granular substrate.
+                                                                                                                            2
+
+speeds for small vehicles such as the Mars rovers, whose      diameter) allowed us to probe general principles for nat-
+small wheels have substantially curved ground contact         urally occurring granular media of high sphericity and
+interfaces (25). Because leg-ground interaction on flow-      roundness [such as Ottawa sand (30)]. We discuss at the
+able substrates is a more diverse, complex, and dynamic       end of the paper possible effects of particle nonsphericity
+process (16, 21) than the flat-plate indentation, terrame-    and angularity also found in many natural sands (30).
+chanics is not expected to apply to legged locomotors on         In all media tested, we observed that for all attack
+flowable ground (2).                                          angles β and intrusion angles γ, σz,x were nearly propor-
+   Granular materials such as sand and gravel (24), home      tional to depth |z| when the plate was fully submerged
+to a variety of small desert animals (16, 17, 26), have       and far from the bottom of the container (Fig. 2B and
+proved to be a promising model substrate for studying         movie S1). This is because friction-dominated forces are
+legged locomotion on flowable ground (16, 21). Despite        proportional to the hydrostatic-like pressure in granu-
+their diversity in particle size, shape, density, friction,
+polydispersity, and compaction (24), dry granular me-
+dia are relatively simple as compared to media such as
+soil and mud, because granular particles interact purely
+through dissipative, repulsive contact forces and have no
+cohesion (24). In addition, the penetration resistance of
+granular media can be repeatably controlled using lab-
+oratory apparatus such as an air-fluidized bed (16, 21,
+26).
+   To begin to create a “terradynamics” that allows the
+prediction of legged locomotion on a flowable ground, we
+hypothesized that the net forces on a leg (or a body)
+moving in a granular medium in the vertical plane could
+be approximated by the linear superposition of resistive
+forces on infinitesimal leg (or body) elements. Our hy-
+pothesis was inspired by our recent success in applying
+the methods of resistive force theory (6) to predict the
+forces and movement during the limbless locomotion of a
+lizard swimming in sand (26) and in describing the drag
+(26, 27) and lift (27) on simple objects moving in gran-
+ular media at fixed depths. In these studies, the linear
+superposition was valid for intruders moving in granu-
+lar media in the horizontal plane at low enough speeds        FIG. 2. Measurement of resistive forces in granular media
+[for example, ≤ 0.5 m/s for 0.3-mm glass particles (26)],     in the vertical plane using a plate element (28). (A) Lift fz
+where intrusion forces are dominated by particle friction     (blue arrow) and drag fx (green arrow) on a thin rigid plate
+(insensitive to speed) and non-inertial (26). However, it     of area A moving in granular media (gray area) in the verti-
+                                                              cal plane at speed v = 1 cm/s were measured as a function
+was unclear whether linear superposition could apply to       of the plate’s depth |z| below the surface, angle of attack β,
+legs (or bodies) of complex morphology and kinematics         and angle of intrusion γ. The granular media were fluidized
+moving in the vertical plane.                                 (and then compacted when a closely packed state was pre-
+   To measure resistive forces for leg elements, we moved     pared) using an air-fluidized bed (26) before each intrusion
+a thin rigid plate (of area A) in granular media in the       (γ ≥ 0) and extraction (γ ≤ 0). g is gravitational accelera-
+vertical plane at 1 cm/s and measured lift fz and drag        tion. (B) Vertical (blue curve) and horizontal (green curve)
+                                                              stresses σz,x = fz,x /A versus |z| for representative intrusion
+fx on the plate (in the continuously yielding regime). We
+                                                              and extraction using (β, γ) = ±(π/6, π/4) (movie S1). Blue
+determined vertical and horizontal stresses σz,x = fz,x /A    and green dashed lines are linear fits with zero intercept over
+as a function of the plate’s depth |z| below the surface,     intermediate depths at which the plate was fully submerged
+angle of attack β, and angle of intrusion γ (Fig. 2A and      and far from the bottom of the container. Horizontal ar-
+movie S1) (28). To test the generality of our resistive       rows on top indicate the range of leg depths in Figs. 3 and
+force model, we used three dry granular media of vari-        4. (C) Vertical and (D) horizontal stresses per unit depth
+ous particle size, shape, density, and friction, prepared     αz,x [slopes of dashed fit lines in (B)] versus β and γ. Plate
+                                                              schematics with arrows denote representative orientations and
+into flat, naturally occurring, loosely and closely packed
+                                                              movement directions. Black curves indicate where αz,x = 0.
+states (16, 21, 26) (supplementary text section 2, fig. S3,   The shaded areas indicate where αz (or αx ) is not opposing
+and table S1). Slightly polydispersed near-spherical glass    the plate’s vertical (or horizontal) velocity. Circles indicate
+particles 0.3 and 3 mm in diameter [covering the particle     αz,x from data shown in (B). Arrows above and below the
+size range of natural dry sand (∼0.1 to ∼1 mm) (29)] and      color bars indicate directions of αz,x for positive and negative
+rounded, slightly kidney-shaped poppy seeds (0.7 mm in        values.
+                                                                                                                             3
+
+lar media. Therefore, we modeled the hydrostatic-like            of different geometries [with the same maximal leg length
+stresses as                                                      2R (28)]: a RHex robot’s c-leg (21, 22), a flat leg, and
+                            (                                    a reversed c-leg (Fig. 3, A to C). In model calculations,
+                             αz,x (β, γ)|z| if z < 0             each leg was divided into 30 elements.
+         σz,x (|z|, β, γ) =                          (1)
+                             0              if z > 0                In all media tested (Fig. 3,D to F, and fig. S5), we
+                                                                 observed that for all three legs, the measured net lift and
+where αz,x are vertical and horizontal stresses per unit         thrust Fz,x as a function of leg angle θ (solid curves) were
+depth (slopes of dashed fit lines in Fig. 2B). We found          asymmetric to the vertical downward direction (θ = 0),
+that in all media tested, αz,x depended sensitively on           and were larger during intrusion (θ ≤ 0) than during ex-
+both attack angle β and intrusion angle γ (Fig. 2, C and         traction (θ ≥ 0). Peak Fz,x were largest on the c-leg and
+D, fig. S4, and additional data table S5). αz (or αx )           smallest on the reversed c-leg. The reversed c-leg experi-
+was opposing the plate’s vertical (or horizontal) velocity       enced significant negative lift (suction force, Fz < 0) dur-
+for most but, counterintuitively, not all β and γ (excep-        ing extraction. For all media tested, our resistive force
+tions are indicated by the shaded regions). For almost all       model predicted Fz,x versus θ for all three legs (dashed
+attack angles β, αz,x had larger magnitudes (|αz,x |) for        curves), capturing both the magnitudes and asymmetric
+intrusion angle γ ≥ 0 than for γ ≤ 0; i.e., it was harder        profiles. The relative errors of peak forces between data
+to push the plate into granular media than to extract it.        and model predictions were within 10% for the c-leg in
+For all intrusion angles γ except γ = ±π/2, |αz,x | were         four media tested, and within 33% for all three legs in all
+asymmetric to attack angles β = 0 and β = ±π/2; i.e.,            media tested. The accuracy of our resistive force model
+only when the plate moved vertically were stress mag-            was significantly better than that of previous force mod-
+nitudes the same for vertically or horizontally mirrored         els in which stresses depended only on depth (Fig. 3, D
+orientations (e.g., β = ±π/6). These asymmetries are a
+result of gravity breaking symmetry in the vertical plane
+and differ from the case in the horizontal plane (26). Our
+resistive force measurements are an advance from previ-
+ous force models based on the flat-plate approximation
+used in many terramechanical models (2, 25), which cap-
+ture only the dependence of stresses on intruder depth,
+but not on its orientation or movement direction (sup-
+plementary text section 1 and fig. S1). Despite their
+different magnitudes and subtle differences in shape, the
+overall profiles of stresses (per unit depth) αz,x (β, γ) were
+similar for all media tested. Furthermore, these stress
+profiles could be approximated (to the first order) by a
+simple scaling of generic stress profiles (supplementary
+text section 3, figs. S6 and S7, and tables S2 and S3).
+   We next tested our hypothesis that forces on a com-
+plex intruder moving in granular media in the vertical
+plane could be approximated by the linear superposition
+of forces on all intruder elements. We measured the net
+lift Fz and thrust Fx on thin rigid model legs rotating
+about a fixed axle [simulating a tethered body (7, 11)]          FIG. 3. The resistive force model predicts forces on intrud-
+through granular media in the vertical plane at ∼1 cm/s          ers of complex morphology and kinematics moving in granular
+(Fig. 3 and movie S2) (28). We then compared them to             media (28). Three thin rigid model legs of different geome-
+                                                                 tries, (A) a c-leg, (B) a flat leg, and (C) a reversed c-leg,
+predictions from the resistive force model by the integra-
+                                                                 were rotated about a fixed axle at a hip height h through
+tion of stresses over the legs (movie S3)                        granular media (gray area) in the vertical plane at an angular
+          Z                           Z                          velocity ω, generating leg speeds of v ∼ 1 cm/s, and net lift
+  Fz,x = σz,x (|z|s , βs , γs ) dAs = αz,x (βs , γs )|z|s dAs    Fz (blue) and thrust Fx (green) were measured as a function
+                                                                 of leg angle θ (movie S2). All three legs had identical maxi-
+         S                           S
+                                                                 mal length 2R from the axle. g is gravitational acceleration.
+                                                         (2)     (D to F) Fz,x versus θ on the three legs measured in the ex-
+where S is the leading surface of the leg; dAs , |z|s , βs ,     periment (solid curves) and predicted by the resistive force
+and γs are the area, depth below the surface, angle of at-       model (dashed curves) using Eq. 2 (movie S3). Insets: Fz,x
+tack, and angle of intrusion of infinitesimal leg elements;      versus θ from experiment (solid curves) versus predicted (dot-
+and αz,x (βs , γs ) are element stresses per unit depth (in-     ted curves) using Eq. 2 and previous force models in which
+terpolated from data in Fig. 2, C and D). To test the            stresses depended only on depth (supplementary text section
+robustness of our force model, we used three model legs          1 and fig. S2).
+                                                                                                                            4
+
+ to F, insets; supplementary text section 1 and fig. S2).      medium, calculated from our resistive force model by the
+ Furthermore, our resistive force model revealed that the      integration of stresses over each leg and the body using
+ c-leg generated the largest forces, because its morphol-      Eq. 2; m and I are the robot’s mass and moment of
+ ogy allowed leg elements to not only reach deeper depths      inertia; and t and dt are time and time step. To test the
+ but also access larger stress regions in Fig. 2, C and D      robustness of our resistive force model and simulation,
+ (particularly for elements at large depths).                  we used legs of seven geometries with different curvatures
+    Our discovery of the insensitivity of the stress pro-      1/r (given maximal leg length 2R0 ) (Fig. 4C, inset) and
+ files to particle properties (fig. S4) has practical ben-     varied stride frequency f to up to 5 Hz (28).
+ efits: For granular media of near-monodispersed, near-           We observed similar robot kinematics (Fig. 4A) and
+ spherical, rounded particles, as an alternative to measur-    forward speed vx versus time t (Fig. 4B) in both the
+ ing αz,x for all attack angles β and intrusion angles γ in    experiment (movie S5) and simulation (movie S6). The
+ the laboratory, one can simply perform a single measure-      robot moved faster and penetrated its legs less deeply
+ ment [of αz (0, π/2), using a horizontal plate penetrating    during stance using c-legs (Fig. 4A, left; Fig. 4B, red)
+ vertically downward] to infer all αz,x (β, γ) by a scaling    than using reversed c-legs (Fig. 4A, right; Fig. 4B, blue).
+ routine (supplementary text section 3 and fig. S9) and        Average forward speed v x increased with stride frequency
+ predict forces (with a small loss in accuracy for the c-      f for legs of all curvatures 1/r and was lower at any f us-
+ leg and the flat leg, but a larger loss in accuracy for the   ing legs of negative curvatures than using legs of positive
+ reversed c-leg, fig. S8).                                     curvatures (Fig. 4, C and D). The agreement between
+    We tested the ability of our resistive force model to      experiment and simulation in v x (f, 1/r) was remarkable:
+ predict legged locomotion. We chose to study the loco-
+ motor performance (speed) of a small RHex-like robot
+ (22) (Fig. 4A, top, and movie S4) moving on granular
+ media (28). The robot’s six legs rotated nearly entirely in
+ the vertical plane during locomotion, and its small size
+ ensured that leg intrusion speeds were low enough for
+ particle inertia to be negligible. We chose poppy seeds as
+ the test granular medium, because the grains were both
+ small enough be prepared in our fluidized bed track (21)
+ and large enough to not jam the robot’s motor and gear
+ trains. The robot’s legs had a similar friction coefficient
+ with poppy seeds to that of the model legs and were suffi-
+ ciently rigid so that they experienced negligible bending
+ during movement (28).
+    Unlike the sand-swimming lizard, which moves within
+ granular media quasistatically (thrust and drag are al-
+ ways roughly balanced) (26), legged locomotion on the
+ surface of granular media is dynamic (forces are not al-
+ ways instantaneously balanced). As a result, the resistive    FIG. 4. A multibody dynamic simulation using the resis-
+ force theory (which solves for speed by balancing forces)     tive force model predicts legged locomotion on granular me-
+ (6, 26) cannot be directly applied. Thus, to use our resis-   dia (28). (A) Side views of a small RHex-like robot (movie
+ tive force model to calculate robot speed, we developed a     S4) at mid-stance during locomotion on granular media, us-
+ three-dimensional multibody dynamic simulation of the         ing c-legs (left) and reversed c-legs (right) in the experiment
+ robot (Fig. 4A, bottom) (28). The simulated robot had         (top, movie S5) and simulation (bottom,movie S6). Arrows in
+                                                               the simulation indicate element forces on one tripod of legs.
+ the same body and leg morphology and used the same
+                                                               g is gravitational acceleration. (B) Forward speed vx versus
+ alternating tripod gait as the actual robot and had its       time t from two representative runs using c-legs (red, stride
+ motion constrained in the vertical plane. We divided          frequency f = 2.0 Hz, curvature 1/r = 1/R0 ) and reversed
+ each body plate and leg into 30 elements. The velocity        c-legs (blue, f = 2.2 Hz, 1/r = −1/R0 ). (C) Average forward
+~v and angular velocity ω  ~ of the simulated robot’s body     speed v x versus f using legs of seven curvatures 1/r transi-
+ were calculated by                                            tioning from reversed c-legs to c-legs (inset), where r is the
+                                                               radius of curvature, 2R0 is the maximal length of the robot
+                                                               legs, and the minus sign denotes reversed legs. (D) v x versus
+                                                               1/r at f = 1, 2, 3, and 4 Hz. In (B) to (D), solid and dashed
+               (                       ~
+                                       F
+                ~v (t + dt) = ~v (t) + m dt
+                                       ~                (3)    curves indicate the experiment and simulation, respectively.
+                 ω            ~ (t) + NI dt
+                 ~ (t + dt) = ω                                Error bars in (C) denote ±1 SD ( 1 cm/s in the simulation).
+                                                               Experimental data in (D) are interpolated from those in (C)
+where F~ and N  ~ are the sum of net forces and torques        (hence no error bars). Red and blue arrows in (C) and (D)
+on all the six legs and the body exerted by the granular       indicate averages from data shown in (B).
+                                                                                                                           5
+
+Errors were within 20% for 90% of the f and 1/r tested        ics relies on new resistive force measurements and lin-
+and within 35% for all the f and 1/r tested. Simulation       ear superposition (6, 26, 27). The general profiles of
+using our scaling routine also achieved reasonable accu-      these resistive force measurements are insensitive (other
+racy (supplementary text section 5 and fig. S13). This        than magnitudes) to a variety of granular media com-
+was an improvement over simulation using previous force       posed of slightly polydispersed, approximately spherical,
+models in which stresses depended only on depth (fig.         rounded particles. Our terradynamics may not be limited
+S13). Our resistive force model and simulation revealed       to legged locomotion, because the integration of stresses
+that the robot moved faster using c-legs than using re-       should in principle work for devices of other morphology
+versed c-legs, because whereas the c-legs penetrated less     and kinematics, such as wheels, tracks, and earth movers
+deeply, their elements accessed larger stress regions in      moving on granular media (2, 25). For the particle types
+Fig. 2, C and D, resulting in larger leg lift (fig. S14)      tested here, an important addition to our model would be
+and smaller body drag. Our model and simulation also          to capture three-dimensional effects (16) and spatial and
+allowed the prediction of ground reaction forces on gran-     temporal variation in compaction (21) and slopes (17),
+ular media(Fig. 4A, red arrows, and fig. S13), which          and test its validity in the high speed “inertial fluid”
+would be difficult to measure otherwise. Furthermore,         regime (when leg intrusion speed is ≥ 1 m/s, at which
+our model and simulation predicted that using arc-like        particle inertia dominates forces) (23). Our resistive force
+legs (given maximal leg length 2R0 ) of an optimal curva-     model also provides opportunities to test and develop
+ture of 1/r = 0.86/R0 , the robot would achieve maximal       new physics theories of dense granular flow (32). Finally,
+speed of v x = 72 cm/s (≈ 5 body length/s) at 5 Hz.           we envision that, in concert with aero- and hydrodynam-
+Our approach affords significant reduction in the com-        ics (3–12), a general terradynamics of complex ground
+putational time needed to model movement on granular          will not only advance understanding of how animals move
+media. For example, relative to our multiparticle dis-        (1) at present (5–10, 13–19, 26) and in the past (17, 33),
+crete element method (DEM) simulation of movement             but also facilitate the development of robots with loco-
+on granular media (23, 27), our simulation using the re-      motor capabilities approaching those of organisms (11,
+sistive force model can achieve a factor of 106 in speed-up   12, 20–23).
+(e.g., 10 s versus 30 days using DEM to simulate 1 s of
+locomotion on a granular bed of 5 × 106 poppy seeds).
+   We close with a brief discussion of the limitations of
+our model.We tested the predictive power of our scaling
+                                                               [1] M. H. Dickinson, C. T. Farley, R. J. Full, M. A. R. Koehl,
+routine (supplementary text section 3 and fig. S9) for             R. Kram, S. Lehman, How animals move: An integrative
+two highly polydispersed, nonspherical, highly angular             view. Science 288, 100 (2000).
+natural sands (supplementary text section 4, figs. S10         [2] M. G. Bekker, Off-the-Road Locomotion, Research and
+to S12, and table S4). We found that the model accu-               Development in Terramechanics (Univ. of Michigan
+racy for natural sands was slightly worse than found in            Press, Ann Arbor, MI, 1960).
+the glass spheres and poppy seeds (for example, 35% ver-       [3] B. Etkin, Dynamics of Atmospheric Flight (Wiley, New
+sus 20% error in peak Fz for a rotating c-leg). As was             York, 1972).
+                                                               [4] J. N. Newman, Marine Hydrodynamics (MIT Press,
+the case for the near-spherical granular media tested, the         Cambridge, MA, 1977).
+functional forms of forces on the c-leg and the flat leg       [5] S. Vogel, Life in Moving Fluids: The Physical Biology of
+were still well captured by our scaling routine. Further-          Flow (Princeton Univ. Press, Princeton, NJ, 1996).
+more, the overestimation was not affected by reducing          [6] E. Lauga, T. R. Powers, The hydrodynamics of swim-
+the polydispersity of the natural sand. This suggests that         ming microorganisms. Rep. Prog. Phys. 72, 096601
+the nonsphericity and angularity of natural sand particles         (2009).
+(30) may be the cause of this overestimation, which may        [7] Z. J. Wang, Dissecting insect flight. Annu. Rev. Fluid
+                                                                   Mech. 37, 183 (2005).
+require additional model fitting parameters and scaling        [8] C. J. Pennycuick, Mechanics of flight. Avian Biol. 5, 1
+factors. Our model is intended for dry sand [∼0.1 to ∼1            (1975).
+mm in particle diameter (29)] and may not work for dry         [9] G. V. Lauder, J. C. Nauen, E. G. Drucker, Experimental
+cohesive powder (≤∼0.01 mm) (31). We do not expect                 hydrodynamics and evolution: Function of median fins
+our model to work if the particle size approaches a char-          in ray-finned fishes. Integr. Comp. Biol. 42, 1009 (2002).
+acteristic length of the locomotor (for example, ∼1-cm        [10] R. Dudley, The Biomechanics of Insect Flight: Form,
+particles for our robot of ∼1-cm foot size), so that the           Function, Evolution (Princeton Univ. Press, Princeton,
+                                                                   NJ, 2002).
+continuum assumption breaks down and particles effec-         [11] R. S. Fearing, K. H. Chiang, M. H. Dickinson, D. L. Pick,
+tively become boulders. We also do not expect our model            M. Sitti, J. Yan, Wing transmission for a micromechani-
+to capture wet, cohesive flowable media such as soil and           cal flying insect. IEEE Int. Conf. Rob. Auto. 2000, 1509
+mud.                                                               (2000).
+   We have developed a new approach to predicting             [12] G. V. Lauder, E. J. Anderson, J. Tangorra, P. G. A. Mad-
+legged locomotion on granular media. This terradynam-              den, Fish biorobotics: Kinematics and hydrodynamics of
+                                                                                                                                 6
+
+     self-propulsion. J. Exp. Biol. 210, 2767 (2007).             [34] G. L. Ghiringhelli, P. Masarati, P. Mantegazza, M. W.
+[13] R. Blickhan, The spring-mass model for running and hop-           Nixon, Multi-body analysis of a tiltrotor conguration.
+     ping. J. Biomech. 22, 1217 (1989).                                Nonlin. Dyn. 19, 333 (1999).
+[14] G. A. Cavagna, H. Thys, A. Zamboni, The sources of           [35] G. Hill, S. Yeung, S. A. Koehler, Scaling vertical drag
+     external work in level walking and running. J. Physiol.           forces in granular media. Europhys. Lett. 72, 137 (2005).
+     262, 639 (1976).                                             [36] R. Albert, M. A. Pfeifer, A.-L. Barabási, P. Schiffer, Slow
+[15] P. Holmes, R. J. Full, D. E. Koditschek, J. Guckenheimer,         drag in a granular medium. Phys. Rev. Lett. 82, 205
+     The dynamics of legged locomotion: Models, analyses,              (1999).
+     and challenges. SIAM Rev. 48, 207 (2006).                    [37] N. Mazouchova, N. Gravish, A. Savu, D. I. Goldman, Uti-
+[16] C. Li, S. T. Hsieh, D. I. Goldman, Multi-functional foot          lization of granular solidification during terrestrial loco-
+     use during running in the zebratailed lizard (Callisaurus         motion of hatchling sea turtles. Biol. Lett. 6, 398 (2010).
+     draconoides). J. Exp. Biol. 215, 3293 (2012).                [38] N. Gravish, P. B. Umbanhowar, D. I. Goldman, Force
+[17] L. R. Brand, Variations in salamander trackways result-           and flow transition in plowed granular media. Phys. Rev.
+     ing from substrate differences. J. Paleontol. 70, 1004            Lett. 105, 208301 (2010).
+     (1996).
+[18] S. G. Fancy, R. G. White, Energy expenditures by cari-       Acknowledgements
+     bou while cratering in snow. J. Wildl. Manage. 49, 987
+     (1985).                                                         We thank Y. Ding, P. Umbanhowar, N. Gravish,
+[19] L. J. Vitt, S. S. Sartorius, T. C. S. Avila-Pires, M. C.
+     Espósito, Life on the leaf litter: The ecology of Anolis
+                                                                  G. Meirion-Griffith, S. Sharpe, H. Komsuoglu, D.
+     nitens tandai in the Brazilian Amazon. Copeia 2001, 401      Koditschek, and R. Full for discussions; J. Shen for as-
+     (2001).                                                      sistance with robot modification; P. Masarati for multi-
+[20] M. Raibert, K. Blankespoor, G. Nelson, R. Playter, and       body dynamic simulator support; S. Sharpe for measur-
+     the BigDog Team, BigDog, the rough-terrain quadruped         ing the angle of repose of 3-mm glass spheres and assis-
+     robot. Inter. Fed. Auto. Cont. 2008, 10822 (2008).           tance with photography; P. Umbanhowar and H. Marvi
+[21] C. Li, P. B. Umbanhowar, H. Komsuoglu, D. E.                 for natural sand collection; and all the members of the
+     Koditschek, D. I. Goldman, Sensitive dependence of the
+     motion of a legged robot on granular media. Proc. Natl.
+                                                                  Complex Rheology And Biomechanics Lab at Georgia
+     Acad. Sci. U.S.A. 106, 3029 (2009).                          Tech for general assistance. This work was supported
+[22] A. M. Johnson, M. T. Hale, G. C. Haynes, D. E.               by the Burroughs Wellcome Fund, the Army Research
+     Koditschek, Autonomous legged hill and stairwell ascent.     Laboratory Micro Autonomous Systems and Technology
+     2011 IEEE Saf. Sec. Res. Rob. 2011, 134 (2011).              Collaborative Technology Alliance, the Army Research
+[23] T. Zhang, F. Qian, C. Li, P. Masarati, A. M.                 Office, and the NSF Physics of Living Systems program.
+     Hoover, P. Birkmeyer, A. Pullin, R. Fearing, D. I.           C.L. was partially supported by a Miller Research Fel-
+     Goldman, Ground fluidization promotes rapid run-
+     ning of a lightweight robot. Int. J. Robotics. Res. 32,
+                                                                  lowship from the Miller Institute for Basic Research in
+     10.1177/0278364913481690 (2013).                             Science of the University of California, Berkeley. The au-
+[24] R. M. Nedderman, Statics and Kinematics of Granular          thors declare that they have no competing interests. C.L.
+     Materials (Cambridge Univ. Press, New York, 1992).           designed the study, performed resistive force measure-
+[25] G. Meirion-Griffith, M. Spenko, An empirical study of        ments, and performed robot experiments; C.L. and T.Z.
+     the terramechanics of small unmanned ground vehicles.        performed model calculations; T.Z. performed robot sim-
+     IEEE Aerospace Conf. 2010, 1 (2010).                         ulation; D.I.G. oversaw the study; and C.L. and D.I.G.
+[26] R. D. Maladen, Y. Ding, C. Li, D. I. Goldman, Undu-
+     latory swimming in sand: Subsurface locomotion of the
+                                                                  wrote the paper.
+     sandfish lizard. Science 325, 314 (2009).
+[27] Y. Ding, N. Gravish, D. I. Goldman, Drag induced lift in     Citation Information
+     granular media. Phys. Rev. Lett. 106, 028001 (2011).
+[28] Materials and methods are available as supplementary           Chen Li, Tingnan Zhang, Daniel I. Goldman, A Ter-
+     materials on Science Online.                                 radynamics of Legged Locomotion on Granular Me-
+[29] R. A. Bagnold, The Physics of Blown Sand and Desert          dia, Science 339, 1408–1411 (2013), DOI: 10.1126/sci-
+     Dunes (Dover Publications, Mineola, NY, 2005).               ence.1229163
+[30] G. Cho, J. Dodds, J. C. Santamarina, Particle shape ef-
+     fects on packing density, stiffness, and strength: natural
+     and crushed sands. J. Geotech. Geoenviron. Eng. 132,
+     591 (2006).
+[31] B. Chaudhuri, A. Mehrotra, F. J. Muzzio, M. S. Tomas-
+     sone, Cohesive effects in powder mixing in a tumbling
+     blender. Powder Technol. 165, 105 (2006).
+[32] K. Kamrin, G. Koval, Nonlocal constitutive relation
+     for steady granular flow. Phys. Rev. Lett. 108, 178301
+     (2012).
+[33] J. A. Clack, Gaining Ground: The Origin and Evolu-
+     tion of Tetrapods (Indiana Univ. Press, Bloomington, IN,
+     2012).
+                                                                                                                         7
+
+Materials and Methods                                           Eq. 1 to averages of σz,x in the steady state regions at
+                                                                three depths (|z| = 2.54 cm, 5.08 cm, and 7.62 cm). We
+Force measurements                                              measured αz,x for γ within [−π/2, π/2], and determined
+                                                                αz,x for γ within [−π, −π/2] and [π/2, π] by symmetry:
+   We used aluminum to construct the plate element (area          (
+A = 3.81 × 2.54 cm2 , thickness = 0.64 cm) and model                αz (β, γ) = αz (−β, −π − γ) if −π ≤ γ ≤ −π/2
+                                                                                                                    (S1)
+legs (maximal length 2R = 7.62 cm, width = 2.54 cm,                 αz (β, γ) = αz (−β, π − γ)   if π/2 ≤ γ ≤ π
+thickness = 0.64 cm). We measured the friction coeffi-
+cient µ between aluminum and poppy seeds to be 0.40               (
+(later we constructed robot legs using plastic of a similar        αx (β, γ) = −αx (−β, −π − γ)       if −π ≤ γ ≤ −π/2
+friction coefficient with poppy seeds, 0.36), by placing an        αx (β, γ) = −αx (−β, π − γ)        if π/2 ≤ γ ≤ π
+aluminum plate on a wooden plate bonded with a single
+                                                                                                                      (S2)
+layer of poppy seeds, increasing the slope of the wooden
+                                                                   In the model leg rotation experiment, we rotated the
+plate from zero, and examining the angle ξ at which the
+                                                                model legs at an angular velocity ω = 0.2 rad/s at a hip
+aluminum plate began to slide. Thus µ = tanξ. The
+                                                                height h = 2 cm within leg angle −3π/4 ≤ θ ≤ 3π/4
+length and width of both the plate element and model
+                                                                (at the beginning and end of which all three legs tested
+legs were ∼ 10 times the particle diameter, ensuring that
+                                                                were fully above the granular surface), where leg angle θ
+the granular media could be approximated as a contin-
+                                                                was defined as the angle sweeping from the vertical down-
+uum.
+                                                                ward direction to the direction along which leg length was
+   Before each force measurement, we used an air flu-
+                                                                maximal. For each model leg, we separately measured
+idized bed (24 × 22 cm2 surface area) (26) to prepare
+                                                                the forces due to the weight of the model legs rotating
+the granular media (15 cm deep) to a well-defined com-
+                                                                in the air, and subtracted them to obtain the forces on
+paction (see table S1 for the volume fractions of closely
+                                                                the model legs exerted by the granular media during ro-
+and loosely packed states of the granular media tested).
+                                                                tation.
+Air flow was turned off during force measurements. We
+                                                                   Due to the high repeatability of our fluidized bed
+used a 6 degree-of-freedom robotic arm (CRS Robotics)
+                                                                and robotic arm, we found that for all media tested,
+to move the plate element and rotate the model legs.
+                                                                run-to-run variation in αz,x for fixed β and γ was always
+We used a 6-axis force and torque transducer (ATI In-
+                                                                within 0.005 N/cm3 at any given depth; thus we only
+dustrial Automation) mounted between the intruder and
+                                                                performed one trial for each combination of β and γ.
+the robotic arm to measure forces to a precision of 0.05 N
+                                                                All the stresses were calculated in the regions where the
+at a sampling frequency of 100 Hz. We performed all the
+                                                                plate was far from the container boundaries (distance
+force measurements at low speeds (∼ 1 cm/s) to ensure
+                                                                > 6 cm). We also confirmed that for low enough speeds,
+that particle inertia was negligible, and in a vertical plane
+                                                                intrusion forces in granular media were insensitive to
+at the middle of the air fluidized bed and far from the
+                                                                speed (for example, in loosely packed poppy seeds, at
+sidewalls (distance > 3 cm) to minimize boundary effects.
+                                                                v = 1 m/s, force only increased by less than 20% from
+   In the plate element intrusion experiment, we attached
+                                                                that at v = 1 cm/s); thus, particle inertia was negligible.
+the plate to the force and torque transducer via a sup-
+porting rod and an adjustable mount with which attack
+angle β could be varied. We varied intrusion angle γ by         Robot experiments
+adjusting the trajectory of the robotic arm. For each
+combination of β and γ, we separately measured the                 We built our robot (body length = 13 cm, body mass
+forces on the supporting rod and mount moving in the            = 150 g) by modifying a small commercially available
+granular media without the plate, and subtracted them           robot (RoboXplorer, Smart Lab). The robot had simi-
+to obtain forces exerted by the granular media on the           lar morphology and kinematics as a RHex robot, with a
+plate alone.                                                    rigid body and six legs performing 1 degree-of-freedom
+   During each test session, we first prepared the granular     rotation in an alternating tripod gait. We substituted
+media while the plate was above the surface. We then            the stock motor with a stronger one (RadioShack Super
+moved the plate (oriented at attack angle β) downward to        Speed 9–18 VDC Hobby Motor, Model # 273-256) and
+the surface (depth |z| = 0), paused it for 2 seconds, and       modified the gear trains (gear ratio: 47 revolutions in
+then intruded it into the granular media along intrusion        the motor transmits into 1 rotation of the legs). These
+angle γ. After intrusion was finished, we prepared the          changes increased maximal stride frequency f to 5 Hz.
+granular media again, and extracted the plate along the         We removed the external body shell to reduce weight
+same path. This gave us measurements of stresses σz,x           and the belly area (to 13 × 2 cm2 ). This reduced drag on
+for both ±(β, γ). For horizontal movements (γ = 0),             the belly during locomotion on granular media.
+σz,x were nearly constant when the plate was far from              We used 3-D printing to make custom robot legs. All
+the container sidewalls, and we obtained αz,x by fitting        the legs had the same maximal length 2R0 = 4.1 cm,
+                                                                                                                       8
+
+width = 1.0 cm, and thickness = 0.3 cm, but different          stride frequency f between 0 ≤ f ≤ 5 Hz in increments
+curvatures 1/r = [−1, −0.92, −0.60, 0, 0.60, 0.92, 1]/R0 .     of 0.2 Hz. For each f and 1/r, we performed three trials
+The ABS plastic used to fabricate the legs had a sim-          using different initial conditions with a phase difference
+ilar friction coefficient with poppy seeds (0.36) to that of   of 2π/3 for each tripod. We found that this resulted in
+aluminum with poppy seeds (0.40). The leg width and            variation in average forward speed v x of  1 cm/s; thus,
+length were ∼ 10 times the particle diameter, allowing         we reported only the means of v x in simulation. We con-
+the granular media to be approximated as a continuum.          firmed that at the maximal stride frequency tested (5 Hz)
+We ensured that the legs had large enough stiffness and        the leg speeds were < 1 m/s averaged over a stance, al-
+moved like rigid bodies (< 5% deformation) during loco-        lowing particle inertia to be negligible.
+motion.
+   We tuned the center of mass of the robot to overlap
+with the geometric center of the body by adding mass to
+the lighter end of the robot. We measured the masses,
+dimensions, and relative positions of all robot body and
+leg parts, and calculated the moment of inertia of the
+robot to be I = 2.08 × 103 g cm2 about the pitch axis
+through the center of mass. We powered the robot by
+an external power supply (Power Ten Inc.) to ensure
+constant voltage during trials, and adjusted voltage to
+vary stride frequency f between trials.
+   Before each trial, we used an air fluidized bed track
+(200 × 50 cm2 surface area) to prepare the granular
+media (12 cm deep) to a well-defined compaction, using
+methods similar to those in (21). We used two synchro-
+nized high-speed cameras (X-PRI, AOS Technologies)
+to capture top and side views of the robot’s locomotion
+at 500 frame/s. We measured f from the side view,
+and measured forward speed vx from the top view by
+digitizing a high contrast marker placed near the center
+of mass. For each f and 1/r, we performed three trials
+and reported mean ± s.d. for average forward speed v x
+in experiment.
+
+
+Robot simulation
+   We used a multibody dynamic simulator, MBDyn (34),
+to create a simulation of the robot locomotion on granu-
+lar media. MBDyn features a full three-dimensional sim-
+ulation with 6 degrees of freedom (3 translations and 3
+rotations). We constructed the robot body using 3 rigid
+plates (the front, rear, and belly surfaces) and 6 rigid
+legs. We constrained the robot body movement within
+the vertical plane, with fore-aft and dorso-ventral transla-
+tions and pitch, and allowed the legs to only rotate about
+their axles perpendicular to the vertical plane. For each
+time step, we calculated the depth |z|s , attack angle βs ,
+and intrusion angle γs for each element to determine el-
+ement stresses σz,x (using Eq. 1 and αz,x interpolated
+from the data in Fig. 2, C and D). We then summed
+forces on all elements to obtain net forces Fz,x using our
+resistive force model by Eq. 2, and calculated the body
+dynamics by Eq. 3. We found that dividing each body
+plate and leg into fewer elements could further increase
+simulation speed at the cost of model accuracy.
+   In simulation tests, we varied curvature 1/r between
+−1/R0 ≤ 1/r ≤ 1/R0 in increments of 0.04/R0 , and varied
+                                                                                                                              9
+
+Supplementary Text
+
+   This supplementary text contains 5 sections:
+   In section 1, we review the depth-only vertical pene-
+tration and horizontal drag force models. Based on the
+flat-plate approximation, we then calculate stresses per
+unit depth and net forces on rotating legs using these
+depth-only force models, and compare with our resistive
+force measurements and model predictions.
+   In section 2, we present our resistive force measure-
+ments and model calculations for a variety of granular
+media tested, which have different particle size, density,      FIG. S1.
+                                                                                                  |z|
+                                                                               Effective vertical (αz (β, γ), left) and horizon-
+friction, and compaction; from these results we discover               |z|
+                                                                tal (αz,x (β, γ), right) stresses per unit depth as a function
+that the stress profiles are generic.                           of attack angle β and intrusion angle γ for loosely packed
+   In section 3, we develop a scaling routine to capture        poppy seeds, calculated from eq. S7 using αz (0, sgn(ż)π/2)
+the similar stress profiles observed for the variety of gran-   and αx (π/2, 0) measured in experiment (Fig. 2, C and D).
+ular media, by scaling generic stress profiles determined       See Fig. 2, A and B for schematic of the experiment and def-
+from averages of fits to the measured stress profiles. This     inition of variables.
+provides a practical means to easily apply our resistive
+force model.
+   In section 4, we test the ability of our scaling routine
+to predict forces on intruders moving in natural sands,
+and discuss limitations of our model for natural sands.
+   In section 5, we compare the predictive accuracy for
+locomotor performance (speed) of the robot using our
+resistive force model to that using our scaling routine
+and that using the depth-only force models.
+
+1. Depth-only force models and their limitations
+
+  Previous studies of intrusion forces in granular me-
+dia focused on simple intruders (e.g. plates, rods, and
+spheres) moving with simple kinematics (e.g. vertical
+penetration and horizontal drag). For example, the verti-
+cal force fz on a horizontal plate element (β = 0) moving
+vertically (γ = ±π/2) in granular media was observed to
+be proportional to the plate’s depth |z| and area A (21,
+35):
+
+                fz = αz (0, sgn(ż)π/2)|z|A             (S3)
+
+Similarly, the horizontal force fx on a vertical plate ele-
+ment (β = ±π/2) moving horizontally (γ = 0) in granu-
+lar media was proportional to plate depth |z| and plate
+area A (36–38):
+                                                                FIG. S2. Net lift Fz (blue) and thrust Fx (green) versus leg
+                   fx = αx (π/2, 0)|z|A                 (S4)    angle θ on the three model legs for all media tested. Solid
+                                                                curves: experimental measurements. Dotted curves: predic-
+where ż is the velocity of the plate in the vertical di-       tions from the depth-only force models. See Fig. 3 A to C for
+rection, and αz (0, sgn(ż)π/2) and αx (π/2, 0) are verti-      schematic of the experiment and definition of variables.
+cal and horizontal stresses per unit depth for (β, γ) =
+(0, ±π/2) and (π/2, 0) (determined from measurements
+in Fig. 2, C and D).                                            (intrusion angle γ). Hereafter we refer to these force
+   Both the vertical penetration and horizontal drag force      models as the “depth-only force models”.
+models only account for the dependence of stresses on              In previous studies of legged locomotion on granular
+the intruder’s depth (|z|), but not the dependence on           media (16, 21, 37), due to the lack of the resistive force
+its orientation (attack angle β) or movement direction          model, the forces on a complex intruder were estimated
+                                                                                                                           10
+
+from the depth-only force models, using the flat-plate        model legs rotated through all media tested, by the inte-
+                                                                                                                |z|
+approximation: The vertical force on a leg element of area    gration of stresses over the legs (Eq. 3) using αz,x (β, γ).
+dAs and arbitrary β and γ was approximated by that on         We found that they not only significantly overpredicted
+a horizontal leg element whose area was the element area      peak Fz (by up to 1400%) but also erroneously predicted
+projected into the horizontal plane (16, 21):                 similar peak Fz,x for the c-leg and reversed c-leg (fig. S2).
+                    dAzs = |cosβ|dAs                  (S5)
+                                                              2. Generality of resistive force model for a variety of
+Similarly, the horizontal force on the leg element was ap-    granular media
+proximated by that on a vertical leg element whose area
+was the element area projected into the vertical plane          To test the generality of our resistive force model and
+(37):                                                         provide a database for future studies (we provide the
+                                                              force measurements in this section in Additional Data
+                    dAzs = |sinβ|dAs                  (S6)
+  The effective stresses per unit depth calculated from
+these depth-only force models using flat plate approxi-
+mation were then:
+        (
+            |z|
+          αz (β, γ) = αz (0, sgn(ż)π/2)|cosβ|
+            |z|                                     (S7)
+          αx (β, γ) = αx (π/2, 0)|sinβ|
+                      |z|
+   Comparing the αz,x (β, γ) calculated using eq. S7
+(fig. S1) to our resistive force measurements αz,x (β, γ)
+(Fig. 2, C and D) for loosely packed poppy seeds, we
+found that these depth-only force models did not cap-
+ture most of the measured stress profiles. In particular,
+the depth-only vertical penetration force model overpre-
+dicted αz (β, γ) for all β and γ except when the plate was
+horizontal (β = 0) and moving vertically (γ = ±π/2).
+                                                   |z|
+Contrary to experimental measurements, the αz,x cal-
+culated from the depth-only models were symmetric to
+                                        |z|    |z|
+β = 0 (horizontal orientation), and αz (or αx ) was al-
+ways opposing the plate’s vertical (or horizontal) velocity
+(the shaded regions shrank to a line).
+   We used these depth-only force models to calculate the
+net lift Fz and thrust Fx versus leg angle θ for the three
+
+
+
+
+                                                                                    |z|                             |z|
+                                                              FIG. S4. Vertical (αz (β, γ), left) and horizontal (αz,x (β, γ),
+FIG. S3. The three granular media tested in our study. Top:   right) stresses per unit depth as a function of attack angle β
+regular images. Bottom: microscope images. The length of      and intrusion angle γ for all media tested. (A) and (B) are
+each scale bar is 1 mm. Photo credit of (A) and (C): Sarah    reproduced from Fig. 2, C and D. See Fig. 2, A and B for
+Sharpe.                                                       schematic of the experiment and definition of variables.
+                                                                                                                             11
+
+                                                                 model
+
+                                                                    To provide a means for practical use of our resistive
+                                                                 force model and comparison with new theories of dense
+                                                                 granular flow (32), we performed a fitting approximation
+                                                                 to the stress per unit depth data αz,x for all media tested,
+                                                                 and developed a scaling routine based on the data fits.
+                                                                    We first performed a discrete Fourier transform of the
+                                                                 αz,x (β, γ) data (fig. S4) over −π/2 ≤ β ≤ π/2 and −π ≤
+                                                                 γ ≤ π to obtain a fitting function. We examined the
+                                                                 Fourier coefficients and found that the αz,x (β, γ) data
+                                                                 of all media tested could be well approximated by the
+                                                                 following fits:
+                                                                   
+                                                                                     1    1
+                                                                   
+                                                                    αfit (β, γ) =
+                                                                                    X    X                mβ     nγ
+                                                                                             [Am,n cos2π(     +     )
+                                                                   
+                                                                      z
+                                                                   
+                                                                   
+                                                                   
+                                                                                  m=−1 n=0
+                                                                                                           π     2π
+                                                                   
+                                                                                                         mβ     nγ
+                                                                   
+                                                                   
+                                                                   
+                                                                   
+                                                                                          +Bm,n sin2π(      +     )]
+                                                                                                          π     2π       (S8)
+                                                                                     1     1
+                                                                   
+                                                                      fit
+                                                                                    X    X                mβ     nγ
+                                                                    αx (β, γ) =
+                                                                                            [Cm,n cos2π(     +     )
+                                                                                                           π     2π
+                                                                   
+                                                                   
+                                                                                   m=−1 n=0
+                                                                   
+                                                                   
+                                                                   
+                                                                   
+                                                                   
+                                                                                                        mβ     nγ
+                                                                   
+                                                                                          +Dm,n sin2π(      +     )]
+                                                                                                          π     2π
+                                                                 using nine zeroth- and first-order terms (whose magni-
+                                                                 tudes are larger than 0.05A0,0 ) (table S2):
+FIG. S5. Net lift Fz (blue) and thrust Fx (green) versus leg
+angle θ on the three model legs for all media tested. Solid                                                                        T
+curves: experimental measurements. Dashed curves: resis-         M = A0,0 A1,0 B1,1 B0,1 B−1,1 C1,1 C0,1 C−1,1 D1,0
+tive force model predictions. (A) to (C) are reproduced from                                                           (S9)
+Fig. 3, D to F. See Fig. 3 A to C for schematic of the experi-      By symmetry, αz (β ≤ 0, π/2) = αz (β ≥ 0, π/2), and
+ment and definition of variables.                                αx (β ≤ 0, π/2) = −αx (β ≥ 0, π/2). However, the data
+                                                                 slightly deviated from this equality because the initial
+                                                                 positions of the plate were close to one of the boundaries
+Table S5), we performed resistive force measurements             of the container. Therefore, before the Fourier transform,
+for three granular media—poppy seeds, 0.3 mm glass               we averaged the raw data for γ = ±π/2 to restore sym-
+spheres, and 3 m glass spheres (fig. S3), which have             metry by αz (β ≤ 0, π/2) = αz (β ≥ 0, π/2) = 12 [αz (β ≤
+different particle size, shape, density, and friction (mea-      0, π/2) + αz (β ≥ 0, π/2)]. The raw data were also not
+sured by angle of repose) (table S1). We prepared these          uniformly sampled in the γ direction; we found that this
+granular media into well-defined compactions which af-           only resulted in small errors in data fitting.
+fected stresses (21, 38). We prepared poppy seeds and
+0.3 mm glass spheres into both a loosely packed (LP)
+and a closely packed (CP) states, and prepared 3 m glass
+spheres into a closely packed (CP) state (table S1).
+   Despite differences in magnitudes and fine features, we
+observed similar profiles of the vertical and horizontal
+stresses per unit depth αz,x (β, γ) for all media tested
+(fig. S4). We provide the αz,x (β, γ) data for all media
+in Additional Data Table S5 (separate file in Microsoft
+Excel format).
+   For all media tested, our resistive force model pre-
+dicted the net lift Fz and thrust Fx versus leg angle θ
+on the three model legs rotated through granular media
+(fig. S5). Compared with predictions from the depth-
+only force models (fig. S1), our resistive force model had
+a significant improvement in accuracy.                           FIG. S6. Scaled Fourier coefficients Mi /ζi of all media tested
+                                                                 (thin colored curves) can be approximated by a generic coef-
+3. Scaling routine for easy use of the resistive force           ficient curve M0 (thick black curve).
+                                                                                                                                 12
+
+                                                                    Fz,x scaled by the scaling factors ζ:
+                                                                                        generic
+                                                                                       Fz,x     (θ) ≈ Fz,x (θ)/ζ             (S12)
+
+                                                                    However, the agreement was worse for the reversed c-leg.
+                                                                    Our resistive force model revealed that this was because
+                                                                                  generic
+                                                                    by using Fz,x         (θ), stresses were significantly overesti-
+                                                                    mated for the reversed c-leg’s elements that reached large
+                                                                    depths.
+                                                                       We further observed that the ratio of the maximal ver-
+                                                                    tical stress (which occurred on a horizontal plate mov-
+                                                                    ing downward) between the measurements (αz (0, π/2))
+FIG. S7.             Generic stress (per unit depth) profiles       and fits (αzfit (0, π/2)) was similar for all media tested (ta-
+  generic
+αz,x      (β, γ) for all media tested. See Fig. 2, A and B for      ble S3):
+schematic of the experiment and definition of variables.
+                                                                         χ = αz (0, π/2)/αzfit (0, π/2) = 1.26 ± 0.14        (S13)
+
+  We found that for all media tested (denoted by i =                where χ is in mean ± s.d.
+poppyLP, poppyCP, 0.3mmLP, 0.3mmCP, and 3mmCP),                       Therefore, we propose that for a sufficiently level
+the Fourier coefficients Mi could be collapsed onto a               and uniform dry granular medium composed of near-
+generic coefficient curve, M0 , by dividing Mi by a scaling         monodispersed, near-spherical, rounded particles of ∼
+factor ζi (table S2, fig. S10):                                     0.1 to ∼ 1 mm in diameter, one can simply measure its
+                                                                    maximal vertical stress αz (0, π/2) by pushing a horizon-
+                         Mi /ζi ≈ M0                      (S10)     tal plate downward to infer the maximal value of the fit
+                                                                    vertical stress αzfit (0, π/2):
+   This enabled us to scale stresses per unit depth (αz,x )
+and thus forces (fz,x and Fz,x ) for all media tested. By               αzfit (0, π/2) = αz (0, π/2)/χ ≈ 0.8αz (0, π/2)      (S14)
+eq. S8, using the generic coefficient curve M0 (ζ = 1) from           The value of αzfit (0, π/2) in N/m3 then gives the scaling
+table S2, we calculated generic stress (per unit depth)             factor ζ for this granular medium, because we choose the
+           generic
+profiles αz,x      (β, γ) (fig. S7). We found that, by multi-       magnitudes of the generic curve M0 so that the values
+plication by the scaling factor ζ, these generic stress pro-        of ζ and αzfit (0, π/2) are nearly the same for all media
+files well approximated the measured αz,x (β, γ) (fig. S4)          tested:
+for all media tested:
+                                                                                                 fit
+                                                                                            ζ ≈ αz,x (β, γ)                  (S15)
+                                 generic
+                 αz,x (β, γ) ≈ ζαz,x     (β, γ)           (S11)
+                                                                    Note that this equation only equates the numeric values
+  Using Eq. 2 and αz,x   generic
+                                 (β, γ), we calculated the          on both sides, because ζ is dimensionless.
+                        generic
+generic force profiles Fz,x     (θ) on the three model legs            Then, from eq. S11, by scaling the generic stress pro-
+                                                                           generic
+rotated through granular media (fig. S8). We found that             files αz,x     (fig. S7) by the determined scaling factor ζ,
+in all media tested and for both the c-leg and the flat
+leg, these generic force profiles captured the measured
+
+
+
+
+FIG. S8.         The measured net forces scaled by the mea-
+sured scaling factors Fz,x (θ)/ζ for all media tested (thin
+curves), in comparison with the generic profiles of net forces
+  generic
+Fz,x      (θ) (thick curves) calculated from the generic stress
+            generic
+profiles αz,x       (fig. S7). See Fig. 3 A to C for schematic of   FIG. S9. A scaling routine to easily apply our resistive force
+the experiment and definition of variables.                         model.
+                                                                                                                            13
+
+we can obtain an approximation of stress profiles for this
+granular medium:
+                    scaled            generic
+     αz,x (β, γ) ≈ αz,x    (β, γ) = ζαz,x     (β, γ)   (S16)
+
+   This scaling routine provides an alternative to measur-
+ing αz,x for all β and γ (at the cost of model accuracy).
+As demonstrated by the model leg rotation experiments
+(fig. S8) and robot locomotion experiments (see fig. S13
+in the next section), our scaling routine only suffers a       FIG. S11. Maximal vertical stress σz (0, π/2) versus depth
+small loss in accuracy for much of the leg morphology          |z| measured in the natural sands using a plate element
+and stride frequencies tested. This technique can be par-      horizontally oriented and penetrating vertically downward
+ticulary useful in a field setting, because only a single      (β = 0, γ = π/2). Dashed lines are linear fits with zero inter-
+force measurement is needed.                                   cept to the data in the linear regime at shallow depths. See
+   We summarize these practical steps to use our resistive     Fig. 2, A and B for schematic of the experiment and definition
+                                                               of variables.
+force model in fig. S9.
+
+4. Applicability of resistive force model to natural sands
+                                                                  During downward penetration (γ = π/2) into both the
+   To test the predictive power of our resistive force model   Yuma and 29 Palms sands, the vertical stress σz on a
+for natural sands, we chose two natural sands of higher        horizontal plate (β = 0) increased nearly proportion-
+polidispersity and angularity than those of the granular       ally to depth |z| at low enough depths (fig. S11, solid
+media tested, and examined whether the scaling routine         curves), similar to observations in the granular media
+(fig. S9) could predict the net forces Fz,x (θ) on the three   tested. However, for both the natural sands, σz vesus |z|
+model legs during rotation through the natural sands.          displayed nonlinearity as depth further increased sooner
+   The two natural sands, referred to as “Yuma sand” and       than observed for the granular media tested. This was
+“29 Palms sand” (table S4, fig. S10), were collected from      because both natural sands had larger internal stresses
+the Mojave Desert in the southwest United States, one          (larger αz,x magnitudes) and likely suffered boundary ef-
+from Yuma, Arizona and the other from 29 Palms, Cali-          fects at much shallower depths as compared to the gran-
+fornia. The Yuma sand had most particles (70% by mass)         ular media tested. In addition, for the Yuma sand which
+in the 0.06–0.3 mm particle size range, and the 29 Palms       had more particles in the 0.06–0.3 mm particle size range,
+sand had most particles (91% by mass) in the 0.3–3 mm          this nonlinearity due to boundary effects was more pro-
+particle size range. Both naturals sands were fluidized by     nounced. Therefore, to minimize possible errors from
+the fluidized bed before each force measurement was per-       boundary effects, we perform linear fits with zero inter-
+formed. We further tested modified 29 Palms sand with
+reduced polydispersity to examine the effect of polydis-
+persity on model accuracy.
+
+
+
+
+                                                               FIG. S12.      Net lift Fz (blue) and thrust Fx (green) ver-
+                                                               sus leg angle θ on the three model legs for the natural sands
+                                                               tested. Solid curves: experimental measurements. Dashed
+FIG. S10.    The natural sands used to test the predictive     curves: resistive force model predictions using the scaling rou-
+power of our scaling routine. Top: regular images. Bottom:     tine (fig. S9). See Fig. 3 A to C for schematic of the experi-
+microscope images. The length of each scale bar is 1 mm.       ment and definition of variables.
+                                                                                                                            14
+
+cept to the σz versus |z| data (fig. S11, dashed curves)          sieving the sand to obtain only the 0.6–0.7 mm particles).
+over the linear regime (0–2 cm for the Yuma sand; 0–              We found that while both αz (0, π/2) and Fz,x (θ) dropped
+3 cm for the 29 Palms sand) to obtain αz (0, π/2) (slopes         by 14% (figs. S11 and S12), the model overprediction of
+of dashed lines) for both the natural sands. This gave            forces on the c-leg remained the same (35%). This sug-
+us their scaling factors ζ and estimates of their stress          gested that the non-spherical and angular shape of the
+                scaled            generic
+profiles from αz,x     (β, γ) = ζαz,x     (β, γ) (eq. S16).       natural sand particles, rather than their higher polydis-
+   For the three model legs rotated through both the              persity, was likely the cause of the model overprediction.
+Yuma and 29 Palms sands, both the net lift Fz and
+thrust Fx versus leg angle θ displayed asymmetric profiles        5. Comparison of model accuracy in predicting legged
+similar to those observed for the granular media tested           locomotion
+(fig. S12, solid curves). Using the αz (0, π/2) obtained
+from the vertical penetration experiment (fig. S11), our             To evaluate the accuracy of our scaling routine in pre-
+scaling routine significantly overpredicted Fz,x (θ) on the       dicting legged locomotion, we used our multibody dy-
+c-leg for both the Yuma and 29 Palms sands (both by               namic simulation to simulate the robot’s movement on
+35%). Nevertheless, the shape of model predictions were           loosely packed poppy seeds using the scaled generic stress
+                                                                             scaled      generic
+similar to experimental observations (fig. S12, dashed            profiles (αz,x    = ζαz,x      ). We calculated the robot’s
+curves). The model accuracy was best for the flat leg,            average forward speed v x versus stride frequency f and
+and worst for the reversed c-leg.                                 leg curvature 1/r (fig. S13), and compare it with exper-
+                                                                  imental measurements and resistive force model predic-
+   There are two major differences between the natural
+                                                                  tions (without using the scaling routine). As a compar-
+sands and the granular media tested: The natural sands                                                           |z|
+have higher polydispersity, and are also less spherical and       ison, we also calculated v x (f, 1/r) using αz,x obtained
+more angular. To probe where the overprediction (of               from the depth-only force models (fig. S1).
+forces on the c-leg) stemmed from, we further tested the             We found that the simulation using scaled generic
+                                                                                      generic
+29 Palms sand with reduced polydispersity (obtained by            stress profiles (ζαz,x      ) only suffered a small loss in
+                                                                  accuracy as compared to that using the measured αz,x .
+                                                                                                                 |z|
+                                                                  By contrast, the simulation using stresses αz,x from the
+                                                                  depth-only force models suffered a larger loss in accuracy
+                                                                  (by up to 150% error), and in particular, erroneously pre-
+                                                                  dicted that the robot moved at similar speeds using both
+                                                                  c-legs and reversed c-legs.
+                                                                     In addition to the predictions locomotor kinematics,
+                                                                  our resistive force model and multibody dynamic simu-
+
+
+
+
+FIG. S13. Average forward speed v x of the robot as a func-
+tion of stride frequency f (left) and leg curvature 1/r (right)
+on loosely packed poppy seeds. Solid curves: experimental
+measurements. Dashed curves: simulation predictions. Top:         FIG. S14. Vertical (Fz , top) and horizontal (Fx , bottom)
+using the measured stresses (αz,x ). Middle: using the scaled     ground reaction forces versus time t on both tripods of the
+                           scaled      generic
+generic stress profiles (αz,x     = ζαz,x      ). Bottom: using   robot during locomotion on loosely packed poppy seeds, cal-
+                                                  |z|
+stresses from the depth-only force models (αz,x ). The drop       culated from the simulation using the resistive force model.
+                       0                |z|                       Solid and dashed curves correspond to forces on the two
+of v x vs. f at near R /r = 1 using αz,x was due to pitch in-
+stability of the robot in simulation (the robot became upside     tripods of legs, respectively. Results are for the two repre-
+down). (A) and (B) are reproduced from Fig. 4, C and D.           sentative runs shown in Fig. 4B. Note that these ground re-
+See Fig. 4 A and B for representative runs of the experiment      action forces do not include those on the robot body (which
+and definition of variables.                                      were also calculated but not plotted here).
+                                                               15
+
+lation also allowed us to calculate ground reaction forces
+(fig. S14) during locomotion on granular media (which
+would be otherwise difficult to measure), in a similar
+fashion as calculations of lift, drag, thrust, traction, and
+resistance in studies of vehicle mobility in fluids and ter-
+ramechanics studies. Notice the larger vertical ground
+reaction forces produced by the C-legs relative to those
+by the reversed c-legs. This allowed the robot to main-
+tain higher lift above the granular medium, reducing drag
+on the belly.
+                                                                                                                                          16
+
+
+TABLE S1. Physical properties of the three granular media (in different compactions) for which resistive forces were measured.
+*Angle of repose for 3 mm glass spheres courtesy of Sarah Sharpe.
+
+   granular medium      particle diameter (mm) particle material density (g/cm3 )        compaction     volume fraction angle of repose (◦ )
+                                                                                    loosely packed (LP)      0.58                36
+     poppy seeds               0.7 ± 0.2                       1.1
+                                                                                    closely packed (CP)      0.62                47
+                                                                                    loosely packed (LP)      0.58                25
+ 0.3 mm glass spheres         0.27 ± 0.04                      2.5
+                                                                                    closely packed (CP)      0.62                35
+  3 mm glass spheres           3.2 ± 0.2                       2.6                  closely packed (CP)      0.63               21*
+
+
+
+
+TABLE S2. Zeroth- and first-order Fourier coefficients M (in N/cm3 ) for all media tested. These coefficients are > 0.05A0,0 .
+M0 is a generic coefficient curve to which the M for each granular medium can be collapsed onto by division of a scaling factor
+ζ (ζ = 1 for M0 ). We choose the magnitudes of M0 such that for all media tested the values of ζ are nearly the same as the
+values of αzfit (0, π/2) (this becomes useful later in the scaling routine). CP and LP indicates closely packed and loosely packed
+states.
+
+              granular medium      poppy seeds   0.3 mm glass spheres 3 mm glass spheres generic coefficients
+                 compaction       LP        CP       LP        CP            CP                  n/a
+               matrix notation MpoppyLP MpoppyCP M0.3mmLP M0.3mmCP        M3mmCP                 M0
+                     A0,0        0.051     0.094   0.040      0.081         0.045               0.206
+                     A1,0        0.047     0.092   0.030      0.063         0.031               0.169
+                     B1,1        0.053     0.092   0.045      0.078         0.046               0.212
+                     B0,1        0.083     0.151   0.077      0.133         0.084               0.358
+                    B−1,1        0.020     0.035      0       0.024         0.012               0.055
+                     C1,1       −0.026    −0.039  −0.031    −0.050         −0.031              −0.124
+                     C0,1        0.057     0.086   0.066      0.087         0.060               0.253
+                    C−1,1          0       0.018      0         0             0                 0.007
+                     D1,0        0.025     0.046   0.017      0.033         0.015               0.088
+               scaling factor ζ  0.248     0.488   0.194      0.371         0.214                 1
+
+
+
+
+TABLE S3. Comparison of the measurements and fits of maximal vertical stress per unit depth (in N/cm3 ) for all media
+tested. CP and LP indicates closely packed and loosely packed states.
+
+                            granular medium            poppy seeds 0.3 mm glass spheres 3 mm glass spheres
+                                compaction             LP    CP    LP        CP                CP
+                                 αz (0, π/2)           0.35 0.56 0.24        0.40             0.29
+                                αzfit (0, π/2)         0.26 0.47 0.19        0.38             0.22
+                        χ = αz (0, π/2)/αzfit (0, π/2) 1.37 1.19 1.27        1.05             1.33
+
+
+
+
+                                TABLE S4. Particle size distribution of the natural sands tested.
+
+                                     natural sand             particle diameter (mm) mass percentage (%)
+                                                                       < 0.06                  2
+                                    Yuma sand                         0.06–0.3                68
+                                                                       0.3–3.0                17
+                                                                        >3.0                  13
+                                                                        < 0.3                  5
+                                                                       0.3–0.6                36
+                                  29 Palms sand                        0.6–0.7                55
+                                                                       0.7–3.0                 3
+                                                                        >3.0                   1
+                       29 Palms sand (reduced polydispercity)          0.6–0.7               100
+                                                                                                                          17
+
+Movie S1                                                        Net lift (σz , blue curve) and thrust (σx , green curve)
+http://crablab.gatech.edu/pages/movies/files/                   versus leg angle θ. The thick red lines originating from
+Terradyn_s1.mov                                                 the center of the top panels indicate net forces on the
+                                                                model legs. The thin red lines on the model legs indicate
+   Plate element intrusion experiments. Left: Intru-            element forces (on a larger scale). See Fig. 3 A to C for
+sion for representative attack angle and intrusion angle        schematic of the experiment and definition of variables.
+(β, γ) = (π/6, π/4). Right: Extraction for representative       Movie S4
+(β, γ) = −(π/6, π/4). Top: Videos of the plate mov-             http://crablab.gatech.edu/pages/movies/files/
+ing in a granular medium (loosely packed poppy seeds).          Terradyn_s4.mov
+Bottom: Vertical (σz , blue curve) and horizontal (σx ,
+green curve) stresses versus depth |z|. Videos were taken          Robot (body length = 13 cm, body mass m = 150
+with the plate at the container boundary for illustration       g) running on a granular medium (loosely packed poppy
+purpose only. Forces were measured with the plate in            seeds) using c-legs and stride frequency f = 5 Hz. Video
+the middle of the container, far away from the boundary.        is played in real time.
+The red lines originating from the center of the top panels
+indicate granular forces on the plate element. The plate        Movie S5
+was moved at 1 cm/s. See Fig. 2, A and B for schematic          http://crablab.gatech.edu/pages/movies/files/
+of the experiment and definition of variables.                  Terradyn_s5.mov
+
+                                                                  Robot experiments. Top: Using c-legs (f = 2.0 Hz).
+Movie S2
+                                                                Middle: Using reversed c-legs (f = 2.2 Hz). Bottom:
+http://crablab.gatech.edu/pages/movies/files/
+                                                                Forward speed vx versus time t. Videos are played 5
+Terradyn_s2.mov
+                                                                times slower than real time. Note that in the trial using
+   Leg rotation experiments. Left: C-leg. Right: Re-            reversed c-legs, the robot body orientation was reversed;
+versed c-leg. Top: Videos of the leg rotating through a         we verified that this did not affect robot kinematics and
+granular medium (loosely packed poppy seeds). Bottom:           speed (because the center of mass of the robot was tuned
+Net lift (σz , blue curve) and thrust (σx , green curve) ver-   to overlap with the geometric center of the body). See
+sus leg angle θ. Videos were taken with the plate at the        Fig. 4 A for definition of variables.
+container boundary for illustration purpose only. Forces
+                                                                Movie S6
+were measured with the plate in the middle of the con-
+                                                                http://crablab.gatech.edu/pages/movies/files/
+tainer, far away from the boundary. The red lines origi-
+                                                                Terradyn_s6.mov
+nating from the center of the top panels indicate granular
+forces on the model legs. The model legs were rotated              Robot simulation. Top: Using c-legs (f = 2.0 Hz).
+at 0.2 rad/s (leg tip speed ∼ 1 cm/s). Note that in the         Middle: Using reversed c-legs (f = 2.2 Hz). Bottom:
+c-leg video the axle deflected slightly during rotation—        Forward speed vx versus time t. Videos are played 5 times
+this was an artifact due to the extra-long supporting rod       slower than real time. The red and green arrows on the
+in order for the plate to reach the boundary for illus-         two tripod of legs indicate the ground reaction forces on
+tration purpose only. For force measurements performed          the leg elements calculated from simulation. Note that
+in the middle of the container, the supporting rod was          the forces on the body are not shown. See Fig. 4 A for
+shorter and the axle did not deflect. See Fig. 3 A to C         definition of variables.
+for schematic of the experiment and definition of vari-
+ables.                                                          Additional Data Table S5 (separate file in
+                                                                Microsoft Excel format)
+Movie S3                                                        http://crablab.gatech.edu/pages/movies/files/
+http://crablab.gatech.edu/pages/movies/files/                   Terradyn_table_s5.xls
+Terradyn_s3.mov
+                                                                Original data of vertical (αz ) and horizontal (αx ) stresses
+  Leg rotation model calculations. Left: C-leg. Right:          per unit depth versus attack angle β and intrusion angle
+Reversed c-leg. Top: Videos of the leg rotating through a       γ, for all media tested. These data were used to produce
+granular medium (loosely packed poppy seeds). Bottom:           Fig. 2, C and D and fig. S4.
+
