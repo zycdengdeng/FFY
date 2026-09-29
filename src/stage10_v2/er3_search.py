@@ -77,6 +77,9 @@ def main():
     ap.add_argument("--out", default="outputs/er3")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
+    _tag = f"{a.space}_m{a.mass:g}_{a.method}_s{a.seed}"
+    if os.path.exists(os.path.join(a.out, f"er3_{_tag}.json")):
+        print(f"[er3] 已有结果,跳过: {_tag}"); return
     lo, hi = make_space(a.space, a.mass)
     rng = np.random.default_rng(a.seed)
     from multiprocessing import Pool
@@ -98,13 +101,19 @@ def main():
             k = min(a.workers * 8, a.budget - n)
             batch(rng.random((k, 10))); n += k
     else:
+        # 向量化 DE:scipy 一次把整代种群(形状 (10, N))交给目标函数,我们整批并行评价——
+        # 原版逐个评价是串行的,3000 次仿真要跑数小时(2026-10-01 修)。
         from scipy.optimize import differential_evolution
         popsize = 24
         maxiter = max(1, a.budget // (popsize * 10) - 1)
+        def fobj(zz):
+            Z = np.atleast_2d(zz)
+            if Z.shape[0] == 10 and Z.shape[1] != 10:   # (10, N) → (N, 10)
+                Z = Z.T
+            return batch(np.clip(Z, 0, 1))
         differential_evolution(
-            lambda zz: float(batch(np.atleast_2d(zz))[0]) if np.ndim(zz) == 1 else None,
-            bounds=[(0, 1)]*10, seed=a.seed, popsize=popsize, maxiter=maxiter,
-            vectorized=False, workers=1, polish=False, updating="deferred",
+            fobj, bounds=[(0, 1)]*10, seed=a.seed, popsize=popsize, maxiter=maxiter,
+            vectorized=True, workers=1, polish=False, updating="deferred",
             init=rng.random((popsize*10, 10)))
 
     feas = [(x, o) for x, o, ok in log if ok and o is not None]
