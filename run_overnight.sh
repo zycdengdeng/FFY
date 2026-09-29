@@ -1,50 +1,52 @@
 #!/usr/bin/env bash
-# 夜跑:五个实验,按「便宜且高价值」在前排序,前面挂了后面还能继续。
-#   bash run_overnight.sh
-# 1 P6 屈曲校核        几分钟   ← 国际会议前的真实缺口,先做
-# 2 P7 关节 Zener 化   ~30 分钟 ← 串联弹性的代价,自校验通过才产出
-# 3 E21 真鸟 vs 生成   ~10 分钟
-# 4 E20 生成走廊       ~30 分钟
-# 5 E18b 四臂走廊      ~2 小时  ← 最大,放最后
-# 全部用 v2.2 口径(9 维含姿态 + 髋阻尼统一式 + 4–36 kg 模型)。
-set -uo pipefail                      # 注意:不用 -e,单个实验失败不影响后续
+# 过夜脚本(2026-09-29):顺序执行 E18c 扫描 → ER3 正式跑(seed 0 → 1 → 2)。
+#   全程物理 = evalcfg(v2.5 工厂同款);每步独立日志;任一步失败不中断后面;
+#   全部可中断续跑(已完成的 json 自动跳过)。
+#   用法(A100,tmux 里):cd /mnt/zihanw/FFY && git pull && bash run_overnight.sh
+#   早上看:logs/overnight_*.log 末尾的汇总;下载 outputs/e18c_scan/ 与 outputs/er3_full/。
+set -uo pipefail
 cd "$(dirname "$0")"
-W="${WORKERS:-128}"
-CKPT="${CKPT:-outputs/v22_e5_bio/cvae_r39.pt}"
-ROOT="${ROOT:-outputs/v22_root}"      # E20 需要 <root>/v2_e5_bio/ 结构
-mkdir -p logs "$ROOT/v2_e5_bio"
-cp -f outputs/v22_e5_bio/cvae_r39.pt outputs/v22_e5_bio/cvae_r40.pt \
-      outputs/v22_e5_bio/model_meta.json "$ROOT/v2_e5_bio/" 2>/dev/null
+mkdir -p logs outputs/e18c_scan outputs/er3_full
 LOG="logs/overnight_$(date +%Y%m%d_%H%M%S).log"
 exec > >(tee -a "$LOG") 2>&1
 export OMP_NUM_THREADS=1
-t0=$(date +%s); el(){ echo "[累计 $(( ($(date +%s)-t0)/60 )) 分钟]"; }
-run(){ echo; echo "=========== $1 ==========="; shift; "$@"; echo "退出码 $?"; el; }
+W="${WORKERS:-96}"
+t0=$(date +%s); el(){ echo "[累计 $(( ($(date +%s)-t0)/60 )) 分钟] $(date '+%m-%d %H:%M')"; }
+run(){ echo; echo "=========== $1 ==========="; shift; "$@"; local rc=$?; echo "退出码 $rc"; el; return $rc; }
 
-run "1/5 · P6 屈曲校核(Euler + 局部壳屈曲)" \
-  python src/stage10_v2/p6_buckling.py --ckpt "$CKPT" \
-    --masses 5,8,12,20,30 --out outputs/v2_p6
+echo "开始 $(date)  workers=$W"
+python src/stage10_v2/evalcfg.py || { echo "!!!! evalcfg 导入失败,停"; exit 1; }
 
-run "2/5 · P7 关节 Zener 化(串联弹性的代价)" \
-  python src/stage10_v2/p7_zener.py --ckpt "$CKPT" \
-    --masses 5,12,30 --ratios 3,10,30,100,1000 --workers "$W" --out outputs/v2_p7
+# ---- 1 · E18c 绝对腿长扫描(6 工况 × 9 质量 × 19 长度 × 96 探针) ----
+run "1/4 · E18c 绝对腿长扫描" \
+  python src/stage10_v2/e18c_abs_scan.py --workers "$W" --nprobe 96 --out outputs/e18c_scan
+RC1=$?
+# 扫完立刻在机上出一版分解表(纯 numpy 后处理,几秒钟),早上直接看
+run "1b · E-R4b 分解(机上预览)" \
+  python src/stage10_v2/er4b_decompose.py --scan outputs/e18c_scan --out outputs/er4b --boot 200
 
-run "3/5 · E21 真鸟骨长 vs 生成骨长(v2.2 口径)" \
-  python src/stage10_v2/e21_bird_vs_gen.py --v21 --ckpt "$CKPT" \
-    --workers "$W" --out outputs/v22_e21
+# ---- 2 · ER3 正式跑:seed 0 全部 → seed 1 → seed 2 ----
+B="${BUDGET:-6000}"
+CONDS="${CONDS:-turf1.2 wetsand1.2 concrete1.2 wetsand2.0}"
+MASSES="${MASSES:-4 5.77 8.32 12 17.3 24.96 36}"
+for S in 0 1 2; do
+  echo; echo "=========== $((S+2))/4 · ER3 正式跑 seed=$S ==========="
+  for C in $CONDS; do
+    for M in $MASSES; do
+      for SP in common bio; do
+        echo "--- seed=$S cond=$C m=$M space=$SP de budget=$B ---"
+        python src/stage10_v2/er3_search.py --cond "$C" --space "$SP" --mass "$M" \
+          --method de --budget "$B" --seed "$S" --workers "$W" --out outputs/er3_full
+      done
+    done
+  done
+  el
+done
 
-run "4/5 · E20 生成走廊(v2.2 口径,产品区间锚点)" \
-  python src/stage10_v2/e20_gen_corridor.py --v21 --outroot "$ROOT" \
-    --mgrid 2,40,16 --anchors "5:产品下端,12:样机档,30:产品上端" \
-    --nz 216 --workers "$W" --out outputs/v22_e20
-
-run "5/5 · E18b 四臂可行走廊(v2.2 口径)" \
-  python src/stage10_v2/e18b_corridor_multi.py --v21 \
-    --mlo 2 --mhi 40 --nu 9 --nm 16 --nprobe 48 \
-    --workers "$W" --out outputs/v22_e18b
-
-echo; echo "=========== 全部结束 ==========="
-echo "产出目录: outputs/v2_p6 · v2_p7 · v22_e21 · v22_e20 · v22_e18b"
-echo "口径提醒:E18b/E20/E21 已切到 v2.2(9 维 + 统一阻尼 + 新盒),"
-echo "         与旧的 v2_e18b / v2_e20 / v2_e21 不可直接比,是替换不是对照。"
-echo "日志: $LOG"
+# ---- 汇总 ----
+echo; echo "=========== 汇总 $(date) ==========="
+echo "E18c 退出码 $RC1;扫描文件:"; ls -1 outputs/e18c_scan/ 2>/dev/null
+echo "ER3 完成数:$(ls outputs/er3_full/er3_*.json 2>/dev/null | wc -l) / 168"
+[ -f outputs/er4b/er4b_tables.md ] && { echo; echo "---- E-R4b 分解表(机上预览)----"; cat outputs/er4b/er4b_tables.md; }
+el
+echo "全部结束。下载:outputs/e18c_scan/  outputs/er4b/  outputs/er3_full/  $LOG"

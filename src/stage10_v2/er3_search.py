@@ -13,21 +13,23 @@
   random  纯随机搜索          de  scipy differential_evolution(种子化)
 
 近最优集:可行 且 目标 ≤ (1+ε)·该质量点最优,ε∈{3%,5%,10%};报 L1 带(P5/中位/P95)。
-目标:a_res(缺则 peak_a),固定正则工况 v0=1.2, kc=1e5, zc=0.15, gcap=10g, smax=24mm。
-用法: python src/stage10_v2/er3_search.py --space common --mass 12 --method de \
-        --budget 3000 --seed 0 --workers 32 --out outputs/er3
+目标:a_res(缺则 peak_a);工况由 --cond 从 evalcfg.CONDS 选(ζ_c=ζ(k_c)),gcap=10g, smax=24mm。
+2026-09-29(D-2 之后):物理配置一律取自 evalcfg(v2.5 工厂同款);旧试跑 outputs/er3 是
+base=None/ζ_c=0.15 的混合配置,只作管线冒烟证据,不与新结果合并。
+用法: python src/stage10_v2/er3_search.py --cond turf1.2 --space common --mass 12 --method de \
+        --budget 6000 --seed 0 --workers 96 --out outputs/er3_full
 """
 from __future__ import annotations
 import argparse, json, os, sys, time
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-import physics_v2 as P                                 # noqa: E402
-from bioprior import (BioPrior, R2_RANGE, R3_RANGE, KAP_RANGE_V21, ZETA_RANGE_V21,
+import evalcfg as E                                    # noqa: E402
+from bioprior import (R2_RANGE, R3_RANGE, KAP_RANGE_V21, ZETA_RANGE_V21,
                       THA_RANGE, THK_RANGE, Q1_RANGE_V25)   # noqa: E402
 
-GCAP, SMAX = 10 * 9.81, 0.024
-COND = dict(v0=1.2, kc=1e5, zeta_c=0.15)
+GCAP, SMAX = E.GCAP_G * 9.81, E.SMAX
+COND = dict(name="turf1.2", **E.CONDS["turf1.2"])       # 由 --cond 覆盖
 L1_COMMON = (20.0, 350.0)          # mm,常数区间(共同空间的关键性质)
 EDGE_BAND = 0.05                   # 贴边判定:log10 归一坐标的边界带宽
 
@@ -40,7 +42,7 @@ def make_space(space, m):
     if space == "common":
         l1lo, l1hi = L1_COMMON
     else:
-        pr = BioPrior(space, v21=True, v25=True)
+        pr = E.prior(space)
         c = pr.a + pr.b * np.log10(m * 1000.0)
         l1lo, l1hi = 10**(c - pr.u_max*pr.sigma), 10**(c + pr.u_max*pr.sigma)
     lo = [l1lo] + [r[0] for r in RANGES9]
@@ -56,10 +58,10 @@ def to_x(z, lo, hi):
 def evaluate(args):
     x, m = args
     try:
-        r = P.eval_v2(list(x), m, COND["v0"], COND["kc"], zeta_c=COND["zeta_c"])
-        if r.get("fail"):
-            return None, None, ["sim_fail"]
-        ok, viol = P.feasible_v2(r, GCAP, SMAX)
+        r = E.evaluate(list(x), m, COND["v0"], COND["kc"])
+        if r is None or r.get("fail"):
+            return None, None, [(r or {}).get("fail", "sim_fail")]
+        ok, viol = E.gates(r)
         obj = float(r.get("a_res", r.get("peak_a")))
         return obj, bool(ok), list(viol)
     except Exception as e:                              # noqa: BLE001
@@ -67,6 +69,7 @@ def evaluate(args):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--cond", default="turf1.2", choices=list(E.CONDS))
     ap.add_argument("--space", required=True,
                     choices=["common", "bio", "bio407", "geo", "elastic", "none"])
     ap.add_argument("--mass", type=float, required=True)
@@ -77,7 +80,8 @@ def main():
     ap.add_argument("--out", default="outputs/er3")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
-    _tag = f"{a.space}_m{a.mass:g}_{a.method}_s{a.seed}"
+    COND.update(name=a.cond, **E.CONDS[a.cond])
+    _tag = f"{a.cond}_{a.space}_m{a.mass:g}_{a.method}_s{a.seed}"
     if os.path.exists(os.path.join(a.out, f"er3_{_tag}.json")):
         print(f"[er3] 已有结果,跳过: {_tag}"); return
     lo, hi = make_space(a.space, a.mass)
@@ -120,8 +124,8 @@ def main():
     out = dict(space=a.space, mass=a.mass, method=a.method, seed=a.seed,
                budget=a.budget, n_eval=len(log), n_feas=len(feas),
                minutes=round((time.time()-t0)/60, 1),
-               cond=COND, gcap=GCAP, smax=SMAX,
-               l1_bounds=[float(lo[0]), float(hi[0])])
+               cond={k: v for k, v in COND.items() if k != "label"}, gcap=GCAP, smax=SMAX,
+               stamp=E.stamp(), l1_bounds=[float(lo[0]), float(hi[0])])
     if feas:
         best = min(o for _, o in feas)
         out["best_obj"] = best
@@ -134,7 +138,7 @@ def main():
                 n=len(sel), L1_p5=float(np.percentile(sel, 5)),
                 L1_med=float(np.median(sel)), L1_p95=float(np.percentile(sel, 95)),
                 edge_frac=edge)
-    tag = f"{a.space}_m{a.mass:g}_{a.method}_s{a.seed}"
+    tag = _tag
     json.dump(out, open(os.path.join(a.out, f"er3_{tag}.json"), "w"), indent=1)
     np.save(os.path.join(a.out, f"er3_{tag}_log.npy"),
             np.array([x + [o if o is not None else np.nan, float(bool(ok))]
