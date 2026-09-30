@@ -119,7 +119,12 @@ def gen_designs(model, meta, prior, m, v0, kc, nz, seed):
 def run_arm(arm, ckpt, conds, ms, nz, workers, outdir):
     model, meta = load_cvae(ckpt)
     pr = meta["prior"]
-    prior = BioPrior(arm, sigma=pr["sigma"], u_max=pr["u_max"], v21=(BASE_V21 is not None))
+    # D-10 修复(2026-09-30):按 checkpoint 保存的 meta 恢复维度,拒绝静默降维——
+    # 旧代码未传 v25,十维生成器输出被九维先验展开,q1_0 被丢弃退回场景常数。
+    prior = BioPrior(arm, sigma=pr["sigma"], u_max=pr["u_max"],
+                     v21=bool(pr.get("v21", BASE_V21 is not None)), v25=bool(pr.get("v25", False)))
+    assert prior.ndim == meta.get("u_dim", prior.ndim), \
+        f"维度不一致: prior.ndim={prior.ndim} vs checkpoint u_dim={meta.get('u_dim')}"
     print(f"[{arm}] {os.path.basename(ckpt)}  zdim={model.zdim}  "
           f"训练质量区间 10^{meta['c_lo'][0]:.3f}–10^{meta['c_hi'][0]:.3f} kg", flush=True)
 

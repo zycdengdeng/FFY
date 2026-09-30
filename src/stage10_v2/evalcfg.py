@@ -24,8 +24,9 @@ import physics_v2 as P                      # noqa: E402
 import bioprior as BP                       # noqa: E402
 from factory_v2 import zeta_of_kc, lhs      # noqa: E402,F401
 
-# 验收要求固定(与 e18b 相同),只让工况与设计变
-GCAP_G, SMAX = 10.0, 0.024
+# 验收要求默认固定(与 e18b 相同);FFY_SMAX / FFY_GCAP_G 可覆盖做敏感性(stamp 会如实记录)
+GCAP_G = float(os.environ.get("FFY_GCAP_G", 10.0))
+SMAX = float(os.environ.get("FFY_SMAX", 0.024))
 
 # 与 e18b_corridor_multi.CONDS 逐字相同
 CONDS = {

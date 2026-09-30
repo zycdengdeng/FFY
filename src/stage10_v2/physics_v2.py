@@ -228,6 +228,7 @@ def exu_eval_v2(x7, s):
     # ẏ = k2(θ−y)/c,力矩 = k1·θ + k2(θ−y)。无附加惯量,故不引入伪高频模态。
     zen = s.get("zener"); zjoints = set(zen["joints"]) if zen else set()
     _zstate = {}
+    sTrq = {}      # D-6 修复(2026-09-30):扭簧连接器编号 → 直读 TorqueLocal 的传感器
     for (jn, b0, b1, P, kj, cj) in [("hip", body, femur, H, s["k_hip"], s["c_hip"]),
                                     ("knee", femur, tibio, K, s["k_knee"], s["c_knee"]),
                                     ("ankle", tibio, tarso, A, s["k_ankle"], s["c_ankle"])]:
@@ -251,8 +252,14 @@ def exu_eval_v2(x7, s):
                                                   axis=[0, 1, 0], stiffness=kj, damping=0.0)
             mbs.SetObjectParameter(con, "springTorqueUserFunction", _tq)
         else:
-            mbs.CreateTorsionalSpringDamper(bodyNumbers=[b0, b1], position=list(P),
-                                            axis=[0, 1, 0], stiffness=kj, damping=cj)
+            con = mbs.CreateTorsionalSpringDamper(bodyNumbers=[b0, b1], position=list(P),
+                                                  axis=[0, 1, 0], stiffness=kj, damping=cj)
+        # D-6 修复:关节力矩直读连接器 TorqueLocal,不再由各杆绝对姿态的欧拉角
+        # 相减重建(欧拉角有分支折返,三杆刚性同转的最小测试可虚构 22.9° 关节运动;
+        # 外部核验实测:重建误差 膝 +21.8%/踝 −29.7%,方向不定)。传感器是被动的,
+        # 不改变动力学;旧重建保留为 M_*_legacy 作交叉核验。
+        sTrq[jn] = mbs.AddSensor(SensorObject(objectNumber=con, storeInternal=True,
+                                              outputVariableType=exu.OutputVariableType.TorqueLocal))
     # ---- P4c:膝-髋耦合连杆(无质量两力杆 ≡ 两点间距离约束) ----
     # scen["couple_rod"] = dict(off_hip=米, off_knee=米);缺省不加,老路径完全不变。
     cr = s.get("couple_rod")
@@ -321,27 +328,50 @@ def exu_eval_v2(x7, s):
     stroke = float(z[0] - np.min(z))                     # 机体总下沉
     zf = mbs.GetSensorStoredData(sFoot)[:, 3]
     sink = float(max(0.0, s["r_foot"] - np.min(zf)))     # 地面下陷(足球心低于半径部分)
-    leg_stroke = float(max(0.0, stroke - sink))          # 起落架自身行程
+    # ---- D-8 修复(2026-09-30):腿行程 = 触地后髋足相对压缩的最大值 ----
+    # 旧定义 leg_stroke = (机身总下沉 − 地面下陷) 有两个毛病:
+    #   ① 机身下沉从 t=0 起算,把触地前的自由下落(初始离地间隙 gap0 = 0.3·r_foot,
+    #      约 3.6–18 mm)也计入了"腿行程"——对 24 mm 行程闸是实质偏差;
+    #   ② 两个极值(机身最低、足端最深)未必同时发生,"最大值相减"≠"相对量的最大值"。
+    # 新定义:h(t) = z_hip(t) − z_foot(t)(v2 机身不转,机身位置即髋点),
+    # 触地时刻 i0c = 足球心首次低于半径(开始侵入),行程 = max_{t≥i0c}[h(i0c) − h(t)]。
+    # 旧值保留为 leg_stroke_legacy;行程闸(s_max)与压塌判据改用新值。
+    leg_stroke_legacy = float(max(0.0, stroke - sink))
+    rel = z[:len(zf)] - zf[:len(z)]
+    _ic = np.flatnonzero(zf <= s["r_foot"] * (1.0 + 1e-9))
+    if len(_ic):
+        i0c = int(_ic[0])
+        leg_stroke = float(max(0.0, np.max(rel[i0c] - rel[i0c:])))
+    else:
+        i0c = None
+        leg_stroke = 0.0                                 # 全程未触地:腿没有被压缩
     if leg_stroke > 0.6 * (l1 + l2 + l3):
-        return dict(fail="collapse")     # 腿真被压塌(已扣除地面下陷),设计不行
+        return dict(fail="collapse")     # 腿真被压塌(相对压缩口径),设计不行
     if sink > 0.9 * s["r_foot"]:
         return dict(fail="deep_sink")    # 侵入超过足端球半径 → 罚接触模型失效,非物理
     rot = [mbs.GetSensorStoredData(si)[:, 2] for si in sRot]
     footxyz = mbs.GetSensorStoredData(sFoot)[:, 1:4]
     h = t[1] - t[0]
+    # ---- D-6:关节力矩直读连接器;旧欧拉角重建仅存 legacy 交叉核验(用真实时间轴) ----
+    Mj = {jn: float(np.max(np.abs(mbs.GetSensorStoredData(si)[:, 1:])))
+          for jn, si in sTrq.items()}
     dth = dict(hip=rot[0] - rot[0][0],
                knee=(rot[1] - rot[0]) - (rot[1][0] - rot[0][0]),
                ankle=(rot[2] - rot[1]) - (rot[2][0] - rot[1][0]))
-    Mj = {}
+    Mj_legacy = {}
     for jn, kk_, cc_ in [("hip", s["k_hip"], s["c_hip"]),
                          ("knee", s["k_knee"], s["c_knee"]),
                          ("ankle", s["k_ankle"], s["c_ankle"])]:
         th = dth[jn]
-        Mj[jn] = float(np.max(np.abs(kk_ * th + cc_ * np.gradient(th, h))))
+        Mj_legacy[jn] = float(np.max(np.abs(kk_ * th + cc_ * np.gradient(th, t))))
     met = dict(peak_a=float(np.max(np.abs(az))), stroke=stroke)
     met.update(_metrics(t, z, az, m, g, v0))
     met.update(M_hip=Mj["hip"], M_knee=Mj["knee"], M_ankle=Mj["ankle"],
-               seg_len=[l1, l2, l3], sink=sink, leg_stroke=leg_stroke)
+               M_hip_legacy=Mj_legacy["hip"], M_knee_legacy=Mj_legacy["knee"],
+               M_ankle_legacy=Mj_legacy["ankle"],
+               seg_len=[l1, l2, l3], sink=sink, leg_stroke=leg_stroke,
+               leg_stroke_legacy=leg_stroke_legacy,
+               i0_contact=(-1 if i0c is None else int(i0c)))
     met.update(_lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h,
                         rot_tarso=rot[2]))
     met["mu_used"] = float(s["mu"])
@@ -378,7 +408,10 @@ def _lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h, rot_tarso=None):
     a_res = float(np.max(np.hypot(ax, az)))
     out = dict(a_res=a_res, peak_ax=float(np.max(np.abs(ax))))
 
-    mr = list(s["seg_mass"])                       # 单腿三段
+    # D-7 修复(2026-09-30):seg_mass 次序为 (跗跖,胫跗,股骨),而 sAccR 传感器
+    # 建立次序为 (股骨,胫跗,跗跖)——旧代码同下标相乘把首末两段配反了。
+    # 外部核验(直读接触力 vs 动量平衡):配反时相对误差 6.5e-4,配对后 4.8e-9。
+    mr = list(s["seg_mass"])[::-1]                 # 反转成 (股骨,胫跗,跗跖),与 sAccR 对齐
     M_tot = float(m) + float(np.sum(mr))
     Fx = float(m) * ax
     Fz = float(m) * az
@@ -416,13 +449,18 @@ def _lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h, rot_tarso=None):
         # 整段接触期的滑移没有判据意义：带水平速度落地本来就会滑出
         # v_x²/(2μg) 那么远（2.6 m/s、μ=0.4 时就是 0.86 m），那是"滑行"不是"失效"。
         # 真正决定腿好不好的是：**竖直冲量还在传递的时候，足端有没有从机体底下走开**。
-        slip_imp = float(abs(slip_sig[imin])) if imin < len(fx) else slip_tot
+        # D-9 修复(2026-09-30):判据量改为**窗口内最大**净滑移,不是机体最低点的
+        # 端点值——先滑出去再滑回来的轨迹端点值≈0,会漏判(合成反例:中途 100 mm
+        # 端点 0)。端点值保留为 slip_endpoint 供追溯。
+        nwin = min(imin + 1, len(fx))
+        slip_imp = float(np.max(np.abs(slip_sig[i0:nwin]))) if nwin > i0 else 0.0
+        out["slip_endpoint"] = float(abs(slip_sig[imin])) if imin < len(fx) else 0.0
         out["slip_alt"] = float(abs(slip_alt[imin])) if imin < len(fx) else 0.0
         out["roll_mm"] = float(1e3 * (roll[imin] - roll[i0])) if imin < len(fx) else 0.0
         out["foot_dx_mm"] = float(1e3 * (fx[imin] - fx[i0])) if imin < len(fx) else 0.0
     else:
         mu_dem, slip_tot, slip_imp = float("nan"), 0.0, 0.0
-        out["slip_alt"] = 0.0
+        out["slip_alt"] = out["slip_endpoint"] = 0.0
         out["roll_mm"] = out["foot_dx_mm"] = 0.0
     out.update(mu_demand=mu_dem if s.get("planar") else float("nan"),
                slip=slip_imp, slip_total=slip_tot, contact_frac=float(on.mean()))
@@ -431,7 +469,8 @@ def _lateral(mbs, acc, pos, footxyz, sAccR, s, m, g, v0, h, rot_tarso=None):
     out["x_drift"] = float(x[-1] - x[0])
 
     # 数值健康体检：末态总能不应高于初态（接触与摩擦只该耗散）
-    vz = np.gradient(pos[:, 3], h); vx_ = np.gradient(x, h)
+    _tt = pos[:, 0]
+    vz = np.gradient(pos[:, 3], _tt); vx_ = np.gradient(x, _tt)
     e0 = 0.5 * m * (vx_[0] ** 2 + vz[0] ** 2) + m * g * pos[0, 3]
     e1 = 0.5 * m * (vx_[-1] ** 2 + vz[-1] ** 2) + m * g * pos[-1, 3]
     ke0 = max(0.5 * m * (vx_[0] ** 2 + vz[0] ** 2), 1e-9)
