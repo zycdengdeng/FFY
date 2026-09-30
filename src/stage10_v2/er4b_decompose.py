@@ -59,14 +59,21 @@ def box_mean(f_row, logL, lc_log, hw, nu=41):
 
 
 def eval_box(F, m, L, b, k, w, pr):
-    """F: (nm, nl) 可行率(已按工况平均或单工况)。返回 (nm,) 盒内可行率与覆盖率。"""
+    """F: (nm, nl) 可行率(已按工况平均或单工况)。
+
+    返回 (盒内条件可行率 p̃, 覆盖率 γ, 下界, 上界),逐质量档。
+    p̃ 只是"已扫描部分中的可行率";完整先验可行率 p_F 满足
+        γ·p̃ ≤ p_F ≤ γ·p̃ + (1−γ)        (S9,2026-09-30 按外部审计加入)
+    γ<1 时结论只许用上下界区间,不许用 p̃ 冒充完整值。"""
     logL = np.log10(L)
     l0 = np.log10(pr.l1_center(BP.M_REF_KG))
     out, cov = np.zeros(len(m)), np.zeros(len(m))
     for i, mi in enumerate(m):
         lc = l0 + k * pr.sigma + b * np.log10(mi / BP.M_REF_KG)
         out[i], cov[i] = box_mean(F[i], logL, lc, w * pr.u_max * pr.sigma)
-    return out, cov
+    lo = cov * out
+    hi = cov * out + (1.0 - cov)               # 零覆盖 ⇒ [0,1] 无信息界,质量档不会被 nanmean 剔除
+    return out, cov, lo, hi
 
 
 def bands(m):
@@ -76,8 +83,10 @@ def bands(m):
 def summarize(F, m, L, pr, configs):
     rows = {}
     for name, (b, k, w) in configs.items():
-        v, cov = eval_box(F, m, L, b, k, w, pr)
-        rows[name] = {bn: (float(np.nanmean(v[msk])), float(cov[msk].min())) for bn, msk in bands(m).items()}
+        v, cov, lo, hi = eval_box(F, m, L, b, k, w, pr)
+        rows[name] = {bn: (float(np.nanmean(v[msk])), float(cov[msk].min()),
+                           float(np.nanmean(lo[msk])), float(np.nanmean(hi[msk])))
+                      for bn, msk in bands(m).items()}
     return rows
 
 
@@ -85,7 +94,11 @@ def md_table(title, rows, keys):
     s = [f"\n### {title}", "| 配置 | 轻 <12 kg | 重 >12 kg | 全 4–36 kg |", "|---|---|---|---|"]
     for k in keys:
         r = rows[k]
-        cell = lambda bn: f"{r[bn][0]:.3f}" + ("†" if r[bn][1] < 0.9 else "")
+        def cell(bn):
+            v, cv, lo, hi = r[bn]
+            if cv >= 0.999:
+                return f"{v:.3f}"
+            return f"[{lo:.3f},{hi:.3f}]†"      # 覆盖不足:只报 S9 上下界
         s.append(f"| {k} | {cell('轻<12')} | {cell('重>12')} | {cell('全4–36')} |")
     return "\n".join(s)
 
@@ -116,7 +129,7 @@ def main():
     cfg_none_anc = {f"b=none k={k:+.1f}σ w=1": (0.0, k, 1.0) for k in ks}
     allcfg = {**cfg_exp, **cfg_anc, **cfg_wid, **cfg_none_anc}
 
-    md = [f"# E-R4b 先验分解(数据 {a.scan};六工况平均;† = 盒子超出扫描范围 >10%)",
+    md = [f"# E-R4b 先验分解(数据 {a.scan};六工况平均;† = 盒子超出扫描范围,该格只报 S9 上下界 [γp̃, γp̃+1−γ])",
           f"stamp: `{json.dumps(stamp, ensure_ascii=False)}`",
           f"m0 = {BP.M_REF_KG:.1f} kg,L0 = {pr.l1_center(BP.M_REF_KG):.1f} mm,σ = {pr.sigma:.4f} log10,u_max = {pr.u_max}"]
     rows = summarize(Fmean, m, L, pr, allcfg)
@@ -125,15 +138,18 @@ def main():
     md.append(md_table("③ 同指数同锚点,改宽度", rows, list(cfg_wid)))
     md.append(md_table("④ 不缩放(b=0)下改锚点(工程'一根长度到底'能否靠选对长度补救)", rows, list(cfg_none_anc)))
 
-    # 分工况表(只给指数臂与锚点臂的全段值)
-    md.append("\n### ⑤ 分工况(全 4–36 kg)")
+    # 分工况表(只给指数臂与锚点臂的全段值;覆盖<1 的格子按 S9 界报)
+    md.append("\n### ⑤ 分工况(全 4–36 kg;γ<1 的格子报 [S9 下界,上界]†)")
     md.append("| 工况 | " + " | ".join(list(cfg_exp) + list(cfg_anc)) + " |")
     md.append("|---|" + "---|" * (len(cfg_exp) + len(cfg_anc)))
     per_cond = {}
     for cn, c in conds.items():
         r = summarize(c["f"], m, L, pr, {**cfg_exp, **cfg_anc})
-        per_cond[cn] = {k: v["全4–36"][0] for k, v in r.items()}
-        md.append(f"| {cn} | " + " | ".join(f"{per_cond[cn][k]:.3f}" for k in list(cfg_exp) + list(cfg_anc)) + " |")
+        per_cond[cn] = {k: (v["全4–36"][0], v["全4–36"][1], v["全4–36"][2], v["全4–36"][3]) for k, v in r.items()}
+        def _pc(k):
+            v, cv, lo_, hi_ = per_cond[cn][k]
+            return f"{v:.3f}" if cv >= 0.999 else f"[{lo_:.3f},{hi_:.3f}]†"
+        md.append(f"| {cn} | " + " | ".join(_pc(k) for k in list(cfg_exp) + list(cfg_anc)) + " |")
 
     # 配对自举:主对比的差值区间
     boot = {}
@@ -147,7 +163,7 @@ def main():
     if all(c is not None for c in codes) and a.boot > 0:
         rng = np.random.default_rng(0)
         nprobe = codes[0].shape[2]
-        md.append(f"\n### ⑥ 配对自举 95% 区间(B={a.boot},探针重采样)")
+        md.append(f"\n### ⑥ 配对自举 95% 区间(B={a.boot},探针重采样;仅对两臂覆盖率均=1 的段有效,覆盖不足段以 S9 区间为准)")
         md.append("| 对比 | 轻 <12 | 重 >12 | 全 4–36 |")
         md.append("|---|---|---|---|")
         for name, c1, c2 in pairs:
@@ -155,7 +171,7 @@ def main():
             for _ in range(a.boot):
                 idx = rng.integers(0, nprobe, nprobe)
                 Fb = np.mean([(c[:, :, idx] == 0).mean(2) for c in codes], 0)
-                v1, _ = eval_box(Fb, m, L, *c1, pr); v2, _ = eval_box(Fb, m, L, *c2, pr)
+                v1 = eval_box(Fb, m, L, *c1, pr)[0]; v2 = eval_box(Fb, m, L, *c2, pr)[0]
                 for bn, msk in bands(m).items():
                     d[bn].append(np.nanmean(v1[msk]) - np.nanmean(v2[msk]))
             boot[name] = {bn: [float(np.percentile(v, 2.5)), float(np.percentile(v, 97.5))] for bn, v in d.items()}

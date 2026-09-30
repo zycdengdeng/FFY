@@ -106,7 +106,7 @@ def main():
             batch(rng.random((k, 10))); n += k
     else:
         # 向量化 DE:scipy 一次把整代种群(形状 (10, N))交给目标函数,我们整批并行评价——
-        # 原版逐个评价是串行的,3000 次仿真要跑数小时(2026-10-01 修)。
+        # 原版逐个评价是串行的,3000 次仿真要跑数小时(2026-09-29 修;曾误标 10-01)。
         from scipy.optimize import differential_evolution
         popsize = 24
         maxiter = max(1, a.budget // (popsize * 10) - 1)

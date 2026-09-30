@@ -36,7 +36,7 @@ FIT_FALLBACK = dict(a=0.47899383301187465, b=0.39112926377807683,
                     ci95=0.030063514185437547, r2=0.754128606756704, n=214)
 
 U_MAX = 2.5            # 条件盒子取 ±2.5σ 的预测区间(四臂共用,消融中固定不变)
-# ⚠ 缺陷登记 2026-10-01:v2.5 质量域已改为 4–36 kg,锚点却仍是旧盒 √(1×12)=3.46 kg,
+# ⚠ 缺陷登记 2026-09-29(曾误标 10-01,见 stilt 缺陷登记 D-5):v2.5 质量域已改为 4–36 kg,锚点却仍是旧盒 √(1×12)=3.46 kg,
 #   落在工作域之外 ⇒ 四臂在整个 4–36 kg 内指数越低腿越短(12 kg 处 121/110/100/73 mm),
 #   指数与可用腿长混杂,g1_geo/elastic/none 三臂作为指数检验作废,须以 12 kg 锚点重跑。
 #   环境变量 FFY_M_REF_KG 可覆盖;默认改为 4–36 kg 的几何平均 12 kg。bio 臂不受影响(它就是拟合线)。
@@ -89,6 +89,10 @@ def load_fit(path=FIT_JSON, key="waterbirds_all"):
     try:
         return json.load(open(path))["fits"][key]
     except Exception:
+        import sys
+        print(f"[bioprior] ⚠ 拟合文件不可读({path}),回退硬编码 FIT_FALLBACK "
+              f"(a={FIT_FALLBACK['a']:.4f}, b={FIT_FALLBACK['b']:.4f})。"
+              f"审计 D-11:回退必须显式,不许静默。", file=sys.stderr)
         return dict(FIT_FALLBACK)
 
 
