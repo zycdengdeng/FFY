@@ -175,7 +175,7 @@ def main():
                 for bn, msk in bands(m).items():
                     d[bn].append(np.nanmean(v1[msk]) - np.nanmean(v2[msk]))
             boot[name] = {bn: [float(np.percentile(v, 2.5)), float(np.percentile(v, 97.5))] for bn, v in d.items()}
-            cell = lambda bn: f"[{boot[name][bn][0]:+.3f}, {boot[name][bn][1]:+.3f}]"
+            cell = lambda bn: f"[{boot[name][bn][0]:+.4f}, {boot[name][bn][1]:+.4f}]"
             md.append(f"| {name} | {cell('轻<12')} | {cell('重>12')} | {cell('全4–36')} |")
 
     # 两种口径的"最优腿长"曲线(生成器无关)
