@@ -1,0 +1,33 @@
+{
+  "source": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\outputs\\manuscript_revision_20261001\\manuscript_v0.6_codex修订_20261001_中文.md",
+  "pdf": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\output\\pdf\\manuscript_v0.6_codex修订_20261001_中文.pdf",
+  "pages": 9,
+  "formula_count": 19,
+  "display_equations": 16,
+  "formula_scaling_warnings": [],
+  "page_text_lengths": [
+    1342,
+    1364,
+    1349,
+    1580,
+    1223,
+    1043,
+    1109,
+    1622,
+    1081
+  ],
+  "rendered_pages": [
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\page-1.png",
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\page-2.png",
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\page-3.png",
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\page-4.png",
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\page-5.png",
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\page-6.png",
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\page-7.png",
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\page-8.png",
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\page-9.png"
+  ],
+  "contact_sheets": [
+    "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\contact_01.png"
+  ]
+}

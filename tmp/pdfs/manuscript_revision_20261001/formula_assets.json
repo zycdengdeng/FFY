@@ -1,0 +1,116 @@
+{
+  "\n\\ell=\\log_{10}(L_1/L_*),\\quad \\mu_\\pi(m)=\\alpha+b\\log_{10}(m/m_0),\\quad \\ell=\\mu_\\pi(m)+\\sigma u. \\tag{1}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_9809adaa77bff606.png",
+    "width_pt": 306.0,
+    "height_pt": 12.0,
+    "number": "1"
+  },
+  "\np_\\pi(\\ell\\mid m)=\\frac{\\mathbf{1}\\{|\\ell-\\mu_\\pi(m)|\\leq u_{\\max}\\sigma\\}}{2u_{\\max}\\sigma}. \\tag{2}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_9912ee62ff45b3d6.png",
+    "width_pt": 134.88,
+    "height_pt": 19.92,
+    "number": "2"
+  },
+  "\nf(\\ell,\\mathbf{c})=\\mathbb{E}_{\\boldsymbol{\\xi}\\sim q}[I_F(L_*10^\\ell,\\boldsymbol{\\xi};\\mathbf{c})],\\quad p_F(\\pi\\mid\\mathbf{c})=\\int f(\\ell,\\mathbf{c})p_\\pi(\\ell\\mid m)\\,d\\ell. \\tag{3}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_0ff6d4ed653d9ae4.png",
+    "width_pt": 300.0,
+    "height_pt": 14.88,
+    "number": "3"
+  },
+  "\n\\Delta_w(\\pi_a,\\pi_b)=\\sum_{\\mathbf{c}}w_{\\mathbf{c}}[p_F(\\pi_a\\mid\\mathbf{c})-p_F(\\pi_b\\mid\\mathbf{c})],\\quad \\sum_{\\mathbf{c}}w_{\\mathbf{c}}=1. \\tag{4}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_99160f07e7eb30d7.png",
+    "width_pt": 246.0,
+    "height_pt": 19.92,
+    "number": "4"
+  },
+  "\nI_F(\\mathbf{x},\\mathbf{c})=V(\\mathbf{x},\\mathbf{c})\\prod_{j=1}^{J}\\mathbf{1}\\{h_j(\\mathbf{x},\\mathbf{c})\\leq0\\}. \\tag{5}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_2bce563b7db5a499.png",
+    "width_pt": 164.88,
+    "height_pt": 30.96,
+    "number": "5"
+  },
+  "\n\\mathbf{M}(\\mathbf{q})\\ddot{\\mathbf{q}}+\\mathbf{h}(\\mathbf{q},\\dot{\\mathbf{q}})=\\mathbf{Q}_g+\\mathbf{Q}_j+\\mathbf{J}_c^T\\mathbf{f}_c+\\mathbf{\\Phi}_q^T\\boldsymbol{\\lambda}. \\tag{6}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_90900d427c2288ae.png",
+    "width_pt": 198.0,
+    "height_pt": 14.88,
+    "number": "6"
+  },
+  "\nA_t=\\frac{\\pi}{4}(D^2-d^2),\\quad I_t=\\frac{\\pi}{64}(D^4-d^4),\\quad P_{\\mathrm{cr}}=\\frac{\\pi^2EI_t}{(KL)^2}. \\tag{7}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_3806e84b3a76dc0f.png",
+    "width_pt": 228.0,
+    "height_pt": 20.88,
+    "number": "7"
+  },
+  "\nG_{\\mathrm{res}}=\\frac{1}{g}\\max_{t\\in T}\\sqrt{a_x(t)^2+a_z(t)^2}. \\tag{8}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_68e1021740edfb81.png",
+    "width_pt": 139.92,
+    "height_pt": 24.96,
+    "number": "8"
+  },
+  "\ns_{\\mathrm{leg}}=\\max\\left(0,\\max_{t\\geq t_c}[h(t_c)-h(t)]\\right),\\quad h(t)=z_{\\mathrm{hip}}(t)-z_{\\mathrm{foot}}(t). \\tag{9}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_76834bed4ae0197d.png",
+    "width_pt": 264.96,
+    "height_pt": 18.0,
+    "number": "9"
+  },
+  "\ns_{\\mathrm{slip}}=\\max_{t\\in T_s}|x_f(t)-x_f(t_s)-r[\\varphi(t)-\\varphi(t_s)]|. \\tag{10}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_2dbc790c35c44d59.png",
+    "width_pt": 192.0,
+    "height_pt": 18.96,
+    "number": "10"
+  },
+  "\n\\gamma\\widetilde{p}_F\\leq p_F\\leq\\gamma\\widetilde{p}_F+(1-\\gamma). \\tag{11}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_8d10bd2530b446f6.png",
+    "width_pt": 115.92,
+    "height_pt": 12.0,
+    "number": "11"
+  },
+  "\nH_{A,B}(\\mathbf{c})=\\mathbf{1}\\{\\exists\\mathbf{x}\\in\\mathcal{X}_{A,B}(\\mathbf{c}):I_F=1\\},\\quad J_{A,B}(\\mathbf{c})=\\min_{\\mathbf{x}\\in\\mathcal{X}_{A,B},\\ I_F=1}G_{\\mathrm{res}}(\\mathbf{x},\\mathbf{c}). \\tag{12}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_1642a996627b9ff9.png",
+    "width_pt": 319.92,
+    "height_pt": 18.96,
+    "number": "12"
+  },
+  "\nP_A(B;J^*)=\\sum_{\\mathbf{c}}w_{\\mathbf{c}}\\,\\mathbb{E}_{s}\\left[\\mathbf{1}\\{J_{A,B,s}(\\mathbf{c})\\leq J^*(\\mathbf{c})\\}\\right]. \\tag{13}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_4476b9ebafd3859d.png",
+    "width_pt": 201.84,
+    "height_pt": 19.92,
+    "number": "13"
+  },
+  "\nC_A(N)=C_{A,\\mathrm{offline}}+\\sum_{i=1}^{N}B_{A,i}. \\tag{14}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_1c78e1dbb39869ef.png",
+    "width_pt": 130.8,
+    "height_pt": 30.0,
+    "number": "14"
+  },
+  "\n\\mathcal{L}=\\mathbb{E}_{q_\\phi}\\left[\\frac{1}{d_u}\\|\\mathbf{u}-D_\\theta(\\mathbf{z},\\widetilde{\\mathbf{c}})\\|_2^2\\right]+\\frac{\\beta_t}{d_z}D_{\\mathrm{KL}}[q_\\phi(\\mathbf{z}\\mid\\mathbf{u},\\widetilde{\\mathbf{c}})\\|\\mathcal{N}(\\mathbf{0},\\mathbf{I})]. \\tag{15}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_105c2feefd717463.png",
+    "width_pt": 270.0,
+    "height_pt": 18.96,
+    "number": "15"
+  },
+  "\nW=\\int_0^sF(z)\\,dz=\\frac{1}{2}mv_0^2+mgs,\\quad \\eta=\\frac{W}{F_{\\mathrm{pk}}s},\\quad \\frac{a_{z,\\mathrm{pk}}}{g}=\\frac{1+v_0^2/(2gs)}{\\eta}-1. \\tag{16}\n": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_66d810bc8fbfc197.png",
+    "width_pt": 285.84,
+    "height_pt": 21.84,
+    "number": "16"
+  },
+  "\\dot{\\theta}": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_7d4d9a8ab6ba325d.png",
+    "width_pt": 6.0,
+    "height_pt": 12.0,
+    "number": ""
+  },
+  "\\tilde p_F": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_07b19c5e6c9f0d3e.png",
+    "width_pt": 12.96,
+    "height_pt": 12.0,
+    "number": ""
+  },
+  "\\tilde c": {
+    "path": "C:\\Users\\ZihanWANG\\Desktop\\FFY\\FFY\\tmp\\pdfs\\manuscript_revision_20261001\\formula_da97d2c537d53f17.png",
+    "width_pt": 6.0,
+    "height_pt": 9.84,
+    "number": ""
+  }
+}

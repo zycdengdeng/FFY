@@ -38,6 +38,16 @@ CONDS = {
     "wetsand2.0":  dict(kc=5.0e4, v0=2.0, label="湿沙 k_c=5e4 · v0=2.0"),
 }
 
+# ENG-prior 开发集工况(2026-10-01,R-H):刚度与速度都落在测试包络内部、但不与任何测试工况重合。
+# 只供 e18c_abs_scan --conds 显式点名;不进 CONDS,免得默认扫描把它们混进测试集。
+DEV_CONDS = {
+    "soil1.3": dict(kc=3.0e5, v0=1.3, label="压实土 k_c=3e5 · v0=1.3(开发集)"),
+    "soil1.7": dict(kc=3.0e5, v0=1.7, label="压实土 k_c=3e5 · v0=1.7(开发集)"),
+    "loam1.3": dict(kc=7.0e4, v0=1.3, label="松软土 k_c=7e4 · v0=1.3(开发集)"),
+    "loam1.7": dict(kc=7.0e4, v0=1.7, label="松软土 k_c=7e4 · v0=1.7(开发集)"),
+}
+assert not set(DEV_CONDS) & set(CONDS)
+
 # 与 run_v25_main.sh CONFIG=bird 的工厂调用逐项对应:
 #   factory_v2.py --v25 --foot bearing --planar 1 --npass 2;Fr=0 → v_x=0(纯垂直,面内平动自由)
 CFG = dict(

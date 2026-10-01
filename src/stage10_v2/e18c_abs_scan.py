@@ -14,6 +14,8 @@
 用法(A100,单行):
   OMP_NUM_THREADS=1 python src/stage10_v2/e18c_abs_scan.py --workers 96 --nprobe 96 --out outputs/e18c_scan
 成本:19 长度 × 9 质量 × 96 探针 × 6 工况 = 98,496 次评价(每次 2 遍),约为 g1b_e18b 的 0.6 倍。
+ENG-prior 开发集(2026-10-01,R-H;与测试集质量/工况/种子互不重合):
+  python src/stage10_v2/e18c_abs_scan.py --conds soil1.3,soil1.7,loam1.3,loam1.7 --nm 5 --mlo 4.5 --mhi 30 --nprobe 48 --seed 1 --out outputs/e18c_dev
 """
 from __future__ import annotations
 
@@ -69,7 +71,7 @@ def _probe_one(a):
 
 
 def run_cond(cname, Ls, ms, nprobe, workers, outdir, seed):
-    cd = E.CONDS[cname]
+    cd = {**E.CONDS, **E.DEV_CONDS}[cname]
     kc, v0 = cd["kc"], cd["v0"]
     pr = E.prior("bio")                          # 只借它展开其余 9 维;L1 之后覆盖为绝对值
     jobs, tags = [], []
@@ -154,8 +156,9 @@ def main():
         E.check_meta(a.check_meta)
     Ls = np.geomspace(a.llo, a.lhi, a.nl)
     ms = np.geomspace(a.mlo, a.mhi, a.nm)
-    conds = [c for c in a.conds.split(",") if c in E.CONDS]
-    assert conds, f"未知工况;可选:{list(E.CONDS)}"
+    allc = {**E.CONDS, **E.DEV_CONDS}
+    conds = [c for c in a.conds.split(",") if c in allc]
+    assert conds, f"未知工况;可选:{list(allc)}"
     print(f"[e18c] stamp: {json.dumps(E.stamp(), ensure_ascii=False)}")
     print(f"[e18c] {len(conds)} 工况 × {a.nm}×{a.nl}×{a.nprobe} = {len(conds)*a.nm*a.nl*a.nprobe} 次评价\n")
     json.dump(dict(stamp=E.stamp(), args=vars(a)), open(os.path.join(a.out, "stamp.json"), "w"),
